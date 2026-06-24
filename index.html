@@ -6,14 +6,14 @@
     <title>🦑 두족류 낚시 가이드 - 울산~남해</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="manifest" href="manifest.json">
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- 성능 최적화: CDN preconnect -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <style>
         body { font-family: 'Noto Sans KR', system-ui, sans-serif; }
         .section { display: none; }
         .section.active { display: block; }
-        .leaflet-container { height: 300px; border-radius: 20px; }
     </style>
 </head>
 <body class="bg-white text-slate-800 max-w-[480px] mx-auto">
@@ -26,7 +26,7 @@
             </div>
             <div>
                 <h1 class="text-2xl font-bold">두족류 낚시 가이드</h1>
-                <p class="text-[10px] text-slate-500">울산 ~ 남해 • v2.1</p>
+                <p class="text-[10px] text-slate-500">울산 ~ 남해 • v2.3</p>
             </div>
         </div>
         <div onclick="installPWA()" class="bg-[#06b6d4] text-white text-xs px-3 py-1.5 rounded-2xl cursor-pointer">
@@ -82,30 +82,27 @@
                 <div class="bg-white border rounded-3xl p-5">FG Knot + 영상 링크</div>
             </div>
         </section>
-
-        <!-- POINTS -->
-        <section id="points" class="section px-4 pt-4">
-            <h2 class="text-2xl font-bold mb-4">포인트</h2>
-            <div id="map" class="leaflet-container mb-6"></div>
-        </section>
     </div>
 
-    <!-- Bottom Nav -->
+    <!-- Bottom Nav (4개로 축소) -->
     <div class="fixed bottom-0 bg-white border-t w-full max-w-[480px] mx-auto z-50">
-        <div class="grid grid-cols-5 text-center text-xs py-2">
+        <div class="grid grid-cols-4 text-center text-xs py-2">
             <div onclick="switchSection('home')" class="cursor-pointer">🏠<br><span class="text-[10px]">홈</span></div>
             <div onclick="switchSection('weather')" class="cursor-pointer">🌤️<br><span class="text-[10px]">날씨</span></div>
             <div onclick="switchSection('species')" class="cursor-pointer">🦑<br><span class="text-[10px]">어종</span></div>
             <div onclick="switchSection('guide')" class="cursor-pointer">📖<br><span class="text-[10px]">가이드</span></div>
-            <div onclick="switchSection('points')" class="cursor-pointer">📍<br><span class="text-[10px]">포인트</span></div>
         </div>
     </div>
 
     <script>
-        // Weather
+        // Weather - 오류 처리 강화
         async function loadWeather() {
+            const weatherEl = document.getElementById('weather-content');
             try {
                 const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=35.5394&longitude=129.3114&current=temperature_2m,wind_speed_10m,weather_code&timezone=Asia%2FSeoul');
+                
+                if (!res.ok) throw new Error('날씨 API 응답 오류');
+                
                 const data = await res.json();
                 const temp = Math.round(data.current.temperature_2m);
                 const wind = Math.round(data.current.wind_speed_10m);
@@ -116,11 +113,24 @@
                 document.getElementById('home-wind').textContent = wind + " km/h";
                 document.getElementById('home-wave').textContent = wave;
 
-                document.getElementById('weather-content').innerHTML = `
-                    <div>온도: ${temp}°C<br>바람: ${wind} km/h<br>파도: ${wave}<br>조석: 만조 14:30경</div>
+                weatherEl.innerHTML = `
+                    <div class="space-y-1">
+                        <div>온도: <span class="font-semibold">${temp}°C</span></div>
+                        <div>바람: <span class="font-semibold">${wind} km/h</span></div>
+                        <div>파도: <span class="font-semibold">${wave}</span></div>
+                        <div class="text-xs text-slate-500 mt-2">조석: 만조 14:30경 (예시)</div>
+                    </div>
                 `;
             } catch(e) {
-                console.log("Weather error");
+                console.error("Weather error:", e);
+                weatherEl.innerHTML = `
+                    <div class="text-red-500">
+                        날씨 정보를 불러오지 못했습니다.<br>
+                        <span class="text-xs">네트워크 연결을 확인해주세요.</span>
+                    </div>
+                `;
+                // 홈 화면도 기본값 표시
+                document.getElementById('home-desc').textContent = "날씨 로딩 실패";
             }
         }
 
@@ -143,18 +153,10 @@
             `).join('');
         }
 
-        function initMap() {
-            const map = L.map('map').setView([34.85, 128.0], 9);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            L.marker([34.85, 128.1]).addTo(map).bindPopup('거제 홍도');
-            L.marker([34.9, 127.9]).addTo(map).bindPopup('남해 창선');
-        }
-
         function switchSection(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             if (id === 'weather') loadWeather();
-            if (id === 'points') initMap();
         }
 
         function switchGuideTab(tab) {
@@ -166,7 +168,7 @@
             alert('브라우저 메뉴에서 "홈 화면에 추가"를 눌러주세요!');
         }
 
-        // 강제 업데이트 알림
+        // Service Worker 강제 업데이트
         function checkForUpdate() {
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.ready.then(reg => {
@@ -178,15 +180,32 @@
         function init() {
             renderSpecies();
             loadWeather();
-            checkForUpdate(); // 강제 업데이트 확인
+            checkForUpdate();
 
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('SW 등록됨:', reg.scope))
-                    .catch(err => console.log('SW 실패'));
+                    .then(reg => {
+                        console.log('SW 등록됨:', reg.scope);
+                        
+                        reg.addEventListener('updatefound', () => {
+                            const newWorker = reg.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    if (confirm('새 버전(v2.3)이 있습니다. 지금 업데이트할까요?')) {
+                                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                    }
+                                }
+                            });
+                        });
+                    })
+                    .catch(err => console.error('SW 등록 실패:', err));
             }
-            
-            console.log('%c[v2.1] 캐시 강제 업데이트 버전 초기화 완료', 'color:#06b6d4');
+
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                window.location.reload();
+            });
+
+            console.log('%c[v2.3] 지도 삭제 + 안정화 버전 초기화 완료', 'color:#06b6d4');
         }
 
         window.onload = init;

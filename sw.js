@@ -1,22 +1,25 @@
-const CACHE_VERSION = 'v2.1';
+const CACHE_VERSION = 'v2.3';
 const CACHE_NAME = `cephalopod-fishing-${CACHE_VERSION}`;
 
 const urlsToCache = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
+  // 주요 외부 리소스 (CDN)
+  'https://cdn.tailwindcss.com',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css'
 ];
 
-// Install: 새로운 캐시 생성
+// Install
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
-      .then(() => self.skipWaiting()) // 즉시 활성화
+      .then(() => self.skipWaiting())
   );
 });
 
-// Activate: 오래된 캐시 삭제 + 강제 업데이트
+// Activate - 오래된 캐시 삭제
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -29,12 +32,17 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch: Cache First + 업데이트 확인
+// Fetch - Cache First 전략
 self.addEventListener('fetch', event => {
+  // 날씨 API는 항상 네트워크 우선
+  if (event.request.url.includes('open-meteo.com')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {
-      const fetchPromise = fetch(event.request).then(networkResponse => {
-        // 새 버전 감지 시 클라이언트에게 알림
+      return cachedResponse || fetch(event.request).then(networkResponse => {
         if (networkResponse && networkResponse.status === 200) {
           const responseClone = networkResponse.clone();
           caches.open(CACHE_NAME).then(cache => {
@@ -42,9 +50,12 @@ self.addEventListener('fetch', event => {
           });
         }
         return networkResponse;
+      }).catch(() => {
+        // 오프라인 fallback
+        if (event.request.destination === 'document') {
+          return caches.match('/index.html');
+        }
       });
-
-      return cachedResponse || fetchPromise;
     })
   );
 });
