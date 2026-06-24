@@ -1,11 +1,10 @@
-const CACHE_VERSION = 'v2.3';
+const CACHE_VERSION = 'v2.4';
 const CACHE_NAME = `cephalopod-fishing-${CACHE_VERSION}`;
 
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  // 주요 외부 리소스 (CDN)
   'https://cdn.tailwindcss.com',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css'
 ];
@@ -19,7 +18,7 @@ self.addEventListener('install', event => {
   );
 });
 
-// Activate - 오래된 캐시 삭제
+// Activate
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -32,17 +31,30 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch - Cache First 전략
+// Fetch Strategy: Stale-While-Revalidate + Network First for weather
 self.addEventListener('fetch', event => {
-  // 날씨 API는 항상 네트워크 우선
-  if (event.request.url.includes('open-meteo.com')) {
-    event.respondWith(fetch(event.request));
+  const url = event.request.url;
+
+  // Weather API → Network First (최신 데이터 우선)
+  if (url.includes('open-meteo.com')) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
     return;
   }
 
+  // 정적 리소스 → Cache First + Background Update (Stale-While-Revalidate)
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {
-      return cachedResponse || fetch(event.request).then(networkResponse => {
+      const fetchPromise = fetch(event.request).then(networkResponse => {
         if (networkResponse && networkResponse.status === 200) {
           const responseClone = networkResponse.clone();
           caches.open(CACHE_NAME).then(cache => {
@@ -50,12 +62,10 @@ self.addEventListener('fetch', event => {
           });
         }
         return networkResponse;
-      }).catch(() => {
-        // 오프라인 fallback
-        if (event.request.destination === 'document') {
-          return caches.match('/index.html');
-        }
-      });
+      }).catch(() => cachedResponse); // 네트워크 실패 시 캐시 반환
+
+      // 캐시가 있으면 즉시 반환 + 백그라운드에서 최신 버전 가져오기
+      return cachedResponse || fetchPromise;
     })
   );
 });
