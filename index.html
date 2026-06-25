@@ -46,27 +46,59 @@
     --safe-right: env(safe-area-inset-right);
   }
 
+  /* ── 좌우 스크롤 완전 차단 + 3프레임 레이아웃 ── */
+  *, *::before, *::after { box-sizing: border-box; }
+
   html, body {
-    overflow-x: hidden;
-    max-width: 100vw;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    margin: 0; padding: 0;
   }
 
   body {
     font-family: 'Noto Sans KR', system-ui, -apple-system, sans-serif;
-    overflow-x: hidden;
     -webkit-tap-highlight-color: transparent;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
   }
 
+  /* 앱 컨테이너: 전체 화면 flex 세로 */
   .app-container {
     max-width: 480px;
+    width: 100%;
     margin: 0 auto;
+    height: 100%;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
     background: white;
-    min-height: 100vh;
+    overflow: hidden;
     box-shadow: 0 0 20px rgba(0,0,0,0.05);
     padding-left: var(--safe-left);
     padding-right: var(--safe-right);
+  }
+
+  /* 프레임1: 헤더 고정 */
+  .app-header { flex-shrink: 0; }
+
+  /* 프레임2: 콘텐츠 스크롤 영역 */
+  .app-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
     overflow-x: hidden;
-    width: 100%;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+
+  /* 프레임3: 하단 네비 고정 */
+  .app-footer {
+    flex-shrink: 0;
+    padding-bottom: var(--safe-bottom);
+    background: rgba(255,255,255,0.98);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid #f1f5f9;
   }
 
   .section { display: none; }
@@ -136,12 +168,6 @@
   .search-input { transition: all 0.2s ease; }
   .search-input:focus { box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1); }
 
-  .bottom-nav {
-    padding-bottom: var(--safe-bottom);
-    background: rgba(255,255,255,0.98);
-    backdrop-filter: blur(20px);
-  }
-
   .heart-btn {
     transition: all 0.15s ease;
     font-size: 1.25rem;
@@ -162,10 +188,10 @@
 </style>
 </head>
 <body class="bg-slate-100">
-<div class="app-container mx-auto min-h-screen flex flex-col">
+<div class="app-container">
 
-  <!-- Header -->
-  <div class="bg-white border-b px-5 pt-4 pb-3 sticky top-0 z-50" style="padding-top: max(16px, var(--safe-top));">
+  <!-- 프레임1: 헤더 -->
+  <div class="app-header bg-white border-b px-5 pt-4 pb-3" style="padding-top: max(16px, var(--safe-top));">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-x-3">
         <div class="w-10 h-10 bg-sky-100 rounded-2xl flex items-center justify-center">
@@ -173,7 +199,7 @@
         </div>
         <div>
           <h1 class="text-[22px] font-bold tracking-tighter text-slate-900">두낚이</h1>
-          <p class="text-[10px] text-sky-600 font-medium -mt-1">두족류 낚시 가이드 v1.6</p>
+          <p class="text-[10px] text-sky-600 font-medium -mt-1">두족류 낚시 가이드 v1.9</p>
         </div>
       </div>
       <button id="install-btn" onclick="installPWA()"
@@ -183,25 +209,28 @@
     </div>
   </div>
 
-  <div class="flex-1 pb-20 overflow-y-auto" id="main-content">
+  <!-- 프레임2: 스크롤 콘텐츠 -->
+  <div class="app-body" id="main-content">
 
     <!-- HOME -->
-    <div id="page-home" class="section active px-5 pt-5">
+    <div id="page-home" class="section active px-5 pt-5 pb-6">
 
       <!-- Weather -->
       <div class="bg-white rounded-3xl p-5 cute-shadow mb-5 border border-slate-100">
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-x-2">
-            <span class="text-xl">🌤️</span>
-            <span class="font-semibold text-slate-800">실시간 날씨 + 낚시 지수</span>
-          </div>
-          <button onclick="getWeather()"
-                  class="text-xs px-3.5 py-1.5 bg-sky-100 active:bg-sky-300 text-sky-700 rounded-2xl flex items-center gap-x-1.5 font-medium active:scale-95 transition-all">
-            <span>📍</span><span>위치</span>
-          </button>
+        <div class="flex items-center gap-x-2 mb-3">
+          <span class="text-xl">🌤️</span>
+          <span class="font-semibold text-slate-800">날씨 + 낚시 지수</span>
+        </div>
+        <div class="flex gap-x-1.5 flex-wrap gap-y-1.5 mb-3">
+          <button onclick="getWeatherByLocation('gps')"       class="weather-loc-btn text-xs px-3 py-1.5 rounded-2xl bg-sky-600 text-white font-medium" data-loc="gps">📍 현위치</button>
+          <button onclick="getWeatherByLocation('ulsan')"     class="weather-loc-btn text-xs px-3 py-1.5 rounded-2xl bg-white border text-slate-600" data-loc="ulsan">울산</button>
+          <button onclick="getWeatherByLocation('busan')"     class="weather-loc-btn text-xs px-3 py-1.5 rounded-2xl bg-white border text-slate-600" data-loc="busan">부산</button>
+          <button onclick="getWeatherByLocation('tongyeong')" class="weather-loc-btn text-xs px-3 py-1.5 rounded-2xl bg-white border text-slate-600" data-loc="tongyeong">통영</button>
+          <button onclick="getWeatherByLocation('sacheon')"   class="weather-loc-btn text-xs px-3 py-1.5 rounded-2xl bg-white border text-slate-600" data-loc="sacheon">삼천포</button>
+          <button onclick="getWeatherByLocation('geoje')"     class="weather-loc-btn text-xs px-3 py-1.5 rounded-2xl bg-white border text-slate-600" data-loc="geoje">거제</button>
         </div>
         <div id="weather-content">
-          <div class="text-sm text-slate-500 py-2">위치 버튼을 눌러 실시간 날씨를 확인하세요</div>
+          <div class="text-sm text-slate-500 py-2">위치를 선택하면 날씨와 7일 예보를 확인할 수 있어요</div>
         </div>
       </div>
 
@@ -239,10 +268,12 @@
         <div class="mb-3">
           <select id="tide-port" onchange="updateTideInfo()"
                   class="w-full text-sm border border-slate-200 rounded-2xl px-4 py-2.5 focus:outline-none focus:border-sky-300">
+            <option value="ulsan">울산</option>
             <option value="busan">부산</option>
-            <option value="yeosu">여수</option>
-            <option value="incheon">인천</option>
             <option value="tongyeong">통영</option>
+            <option value="sacheon">사천(삼천포)</option>
+            <option value="geoje">거제</option>
+            <option value="goseong">고성</option>
           </select>
         </div>
         <div id="tide-content" class="text-sm"></div>
@@ -253,7 +284,7 @@
     </div>
 
     <!-- SPECIES -->
-    <div id="page-species" class="section px-5 pt-5">
+    <div id="page-species" class="section px-5 pt-5 pb-6">
       <div class="mb-4 px-1">
         <input type="text" id="species-search" placeholder="어종 검색 (예: 주꾸미)"
                onkeyup="debounceSearchSpecies()"
@@ -263,7 +294,7 @@
     </div>
 
     <!-- TACKLE -->
-    <div id="page-tackle" class="section px-5 pt-5">
+    <div id="page-tackle" class="section px-5 pt-5 pb-6">
       <div class="flex gap-x-2 mb-4">
         <button onclick="showTackleTab('rig')" id="tab-rig"
                 class="flex-1 py-2.5 text-sm font-medium rounded-3xl bg-sky-600 text-white transition-colors">추천 채비</button>
@@ -275,7 +306,7 @@
     </div>
 
     <!-- SPOTS -->
-    <div id="page-spots" class="section px-5 pt-5">
+    <div id="page-spots" class="section px-5 pt-5 pb-6">
       <div class="mb-4">
         <input type="text" id="spot-search" placeholder="포인트 검색"
                onkeyup="debounceSearchSpots()"
@@ -290,7 +321,7 @@
     </div>
 
     <!-- LOG -->
-    <div id="page-log" class="section px-5 pt-5">
+    <div id="page-log" class="section px-5 pt-5 pb-6">
       <div class="flex justify-between items-end mb-4 px-1">
         <div>
           <div class="font-semibold text-lg">내 낚시 기록</div>
@@ -310,10 +341,33 @@
       </div>
       <div id="log-list" class="space-y-3"></div>
     </div>
+    <!-- CHARTER -->
+    <div id="page-charter" class="section px-5 pt-5 pb-6">
+      <div class="flex justify-between items-end mb-4 px-1">
+        <div>
+          <div class="font-semibold text-lg">선사 정보</div>
+          <div class="text-xs text-slate-500">선상24 등록 선사 · 탭하면 홈피로 이동</div>
+        </div>
+        <button onclick="showCharterAddModal()"
+                class="bg-sky-600 active:bg-sky-800 text-white text-sm px-4 py-2 rounded-3xl flex items-center gap-x-1.5 font-medium active:scale-95 transition-all">
+          <span>➕</span><span>선사 추가</span>
+        </button>
+      </div>
+      <div class="flex gap-x-2 flex-wrap gap-y-2 mb-4">
+        <button onclick="filterCharter('all')"    class="charter-filter-btn px-4 py-1.5 text-xs rounded-3xl bg-sky-600 text-white" data-region="all">전체</button>
+        <button onclick="filterCharter('삼천포')" class="charter-filter-btn px-4 py-1.5 text-xs rounded-3xl bg-white border" data-region="삼천포">삼천포</button>
+        <button onclick="filterCharter('통영')"   class="charter-filter-btn px-4 py-1.5 text-xs rounded-3xl bg-white border" data-region="통영">통영</button>
+        <button onclick="filterCharter('내추가')" class="charter-filter-btn px-4 py-1.5 text-xs rounded-3xl bg-white border" data-region="내추가">내가 추가</button>
+      </div>
+      <div id="charter-list" class="space-y-3"></div>
+      <div class="mt-5 p-4 bg-slate-50 rounded-2xl text-xs text-slate-500 leading-relaxed">
+        ℹ️ 선사 정보는 변경될 수 있습니다. 출조 전 해당 홈페이지에서 꼭 확인하세요.
+      </div>
+    </div>
   </div>
 
-  <!-- Bottom Navigation -->
-  <div class="fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto bg-white border-t z-50 bottom-nav">
+  <!-- 프레임3: 하단 네비 -->
+  <div class="app-footer">
     <div class="grid grid-cols-6 text-center py-1">
       <div onclick="showPage('page-home')" class="nav-item flex flex-col items-center justify-center py-2 cursor-pointer" data-page="page-home">
         <span class="text-2xl">🏠</span>
@@ -397,6 +451,50 @@
     <button onclick="saveCatch()"
             class="mt-6 w-full bg-emerald-600 active:bg-emerald-800 text-white font-semibold py-3.5 rounded-3xl active:scale-[0.985] transition-all">
       기록 저장하기
+    </button>
+  </div>
+</div>
+
+<!-- 선사 추가 모달 -->
+<div id="charter-add-modal" onclick="if(event.target.id==='charter-add-modal') hideCharterAddModal()"
+     class="hidden fixed inset-0 bg-black/60 z-[100] items-end">
+  <div onclick="event.stopImmediatePropagation()"
+       class="modal-pop bg-white w-full max-w-[480px] mx-auto rounded-t-3xl p-6 max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between mb-5 items-center">
+      <div class="font-bold text-xl">선사 추가</div>
+      <button onclick="hideCharterAddModal()" class="text-2xl text-slate-400">×</button>
+    </div>
+    <div class="space-y-4 text-sm">
+      <div>
+        <label class="block text-xs text-slate-500 mb-1.5 font-medium">선사명 <span class="text-red-400">*</span></label>
+        <input type="text" id="charter-name" class="w-full border border-slate-200 rounded-2xl px-4 py-3" placeholder="예: 삼천포 행복호">
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs text-slate-500 mb-1.5 font-medium">지역 <span class="text-red-400">*</span></label>
+          <input type="text" id="charter-region" class="w-full border border-slate-200 rounded-2xl px-4 py-3" placeholder="예: 삼천포">
+        </div>
+        <div>
+          <label class="block text-xs text-slate-500 mb-1.5 font-medium">항구</label>
+          <input type="text" id="charter-port" class="w-full border border-slate-200 rounded-2xl px-4 py-3" placeholder="예: 팔포항">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs text-slate-500 mb-1.5 font-medium">주력 어종 (쉼표로 구분)</label>
+        <input type="text" id="charter-species" class="w-full border border-slate-200 rounded-2xl px-4 py-3" placeholder="예: 갑오징어, 문어, 주꾸미">
+      </div>
+      <div>
+        <label class="block text-xs text-slate-500 mb-1.5 font-medium">홈페이지 URL</label>
+        <input type="url" id="charter-url" class="w-full border border-slate-200 rounded-2xl px-4 py-3" placeholder="https://...">
+      </div>
+      <div>
+        <label class="block text-xs text-slate-500 mb-1.5 font-medium">메모</label>
+        <textarea id="charter-desc" rows="2" class="w-full border border-slate-200 rounded-2xl px-4 py-3" placeholder="출항시간, 선비, 특이사항 등"></textarea>
+      </div>
+    </div>
+    <button onclick="saveCharterAdd()"
+            class="mt-6 w-full bg-sky-600 active:bg-sky-800 text-white font-semibold py-3.5 rounded-3xl transition-all active:scale-[0.985]">
+      선사 저장하기
     </button>
   </div>
 </div>
@@ -506,21 +604,32 @@
     ],
 
     spots: [
-      { id: 1, name: "부산 오륙도 방파제",        type: "도보", region: "부산",     desc: "도보권 인기 포인트. 문어와 주꾸미가 자주 올라옵니다.", tips: "파도 높을 때 안전 주의. 안전화 착용." },
-      { id: 2, name: "여수 선상 주꾸미 포인트",   type: "선상", region: "전남 여수", desc: "가을 주꾸미 시즌 최고의 선상 포인트.", tips: "선장님과 조류·수심 소통 중요." },
-      { id: 3, name: "고흥 장계 방파제",           type: "도보", region: "전남 고흥", desc: "최근 워킹 문어로 유명해진 포인트.", tips: "슬로프 지역이 특히 좋습니다." },
-      { id: 4, name: "삼천포 선상 갑오징어",       type: "선상", region: "경남 사천", desc: "갑오징어와 주꾸미 복합 공략 가능.", tips: "가을 시즌 조황이 좋습니다." },
-      { id: 5, name: "인천 송도 방파제",           type: "도보", region: "인천",     desc: "수도권 접근성 좋은 도보권 포인트.", tips: "물때에 따라 조황 차이 큼." }
+      {id:1,  name:"삼천포 늑도 방파제",     type:"도보", region:"경남 사천",  species:["갑오징어","주꾸미"],              desc:"늑도항 방파제. 잘피밭+암초 혼합 지형. 봄·가을 갑오징어 일번지.", tips:"내항 깊숙이 공략. 조류 흐를 때 에기 띄워서 스테이 길게."},
+      {id:2,  name:"통영 도산 방파제",       type:"도보", region:"경남 통영",  species:["갑오징어","무늬오징어","문어"],   desc:"도산항 인근. 무늬오징어·갑오징어·돌문어 복합 포인트.",           tips:"야간~새벽 불빛 주변 공략. 에기 3.5호 기본."},
+      {id:3,  name:"거제 풍화리 선착장",     type:"도보", region:"경남 거제",  species:["무늬오징어","갑오징어"],          desc:"거제 서쪽 조용한 포인트. 무늬오징어 에깅 명소.",                 tips:"파도 없는 잔잔한 날. 새벽 or 해질녘 골든타임."},
+      {id:4,  name:"거제 칠천도 방파제",     type:"도보", region:"경남 거제",  species:["갑오징어","문어","주꾸미"],       desc:"칠천도 내 소형 방파제. 가족 낚시 가능. 화장실·주차 편리.",      tips:"내항 쪽 잘피밭 집중 공략. 썰물 때 유리."},
+      {id:5,  name:"울산 온산 방파제",       type:"도보", region:"울산",       species:["갑오징어","주꾸미"],              desc:"울산 온산앞바다 진입 방파제. 봄철 갑오징어 도보 포인트.",        tips:"봄 산란기(3~5월) 집중. 낮에도 입질 활발."},
+      {id:6,  name:"부산 가덕도 방파제",     type:"도보", region:"부산",       species:["문어","갑오징어","주꾸미"],       desc:"대항선착장 인근. 문어·갑오징어·주꾸미 도보 명소.",              tips:"안전화 필수. 파도 높을 때 진입 금지."},
+      {id:7,  name:"고성 자란만 방파제",     type:"도보", region:"경남 고성",  species:["갑오징어","무늬오징어"],          desc:"자란만 내 조용한 포인트. 낚시인 적어 경쟁 덜함.",               tips:"잘피밭 경계 공략. 에기 2.5~3호 유효."},
+      {id:8,  name:"마산 진동 방파제",       type:"도보", region:"경남 마산",  species:["갑오징어","주꾸미","문어"],       desc:"진동만 내 방파제. 갑오징어·주꾸미 복합.",                       tips:"조류 약한 내만. 봉돌 가볍게 세팅."},
+      {id:9,  name:"삼천포 팔포항 선상",     type:"선상", region:"경남 사천",  species:["갑오징어","문어","주꾸미"],       desc:"남해안 두족류 선상 일번지. 다수 선사 운영. 내만·원도권 가능.",   tips:"선사 홈피서 물때·조황 확인 후 예약."},
+      {id:10, name:"통영 미수항 선상",       type:"선상", region:"경남 통영",  species:["문어","갑오징어","무늬오징어"],   desc:"통영권 문어·갑오징어 선상 포인트. 유림호 등 운영.",              tips:"채비 무게 선장 안내 따를 것."},
+      {id:11, name:"거제 선상 무늬오징어",   type:"선상", region:"경남 거제",  species:["무늬오징어"],                    desc:"거제·통영권 무늬오징어 에깅 선상. 오전/오후반 8만원 선비.",      tips:"에깅 전용 로드+2000~2500번 릴. 에기 3.5~4호."},
+      {id:12, name:"울산 온산앞바다 선상",   type:"선상", region:"울산",       species:["갑오징어","주꾸미"],              desc:"울산 봄철 갑오징어 선상 포인트. 5월 산란기 조황 우수.",          tips:"PE 0.8~1호 + 가짓줄 채비. 봉돌 20~30호."}
     ],
 
     rigs: [
-      { name: "기본 주꾸미 채비",     desc: "PE 0.8~1.0호 + 리더 1.5~2호 + 2.0~2.5호 에기 + 가벼운 봉돌", tip: "조류 약할 때는 봉돌 더 가볍게" },
-      { name: "갑오징어 가짓줄 채비", desc: "봉돌과 에기를 분리하는 구조. 에기가 걸려도 봉돌 살릴 수 있음",  tip: "고가 에기 사용할 때 특히 추천" },
-      { name: "한치 중층 채비",       desc: "에기를 중층에 머물게 하는 반유동 또는 찌 채비",                  tip: "한치는 바닥이 아닌 중층 노려야 함" }
+      {species:"주꾸미",    name:"주꾸미 선상 채비",      desc:"PE 0.8~1.0호 + 리더 1.5~2호 + 왕눈이 에기 2.0~2.5호 + 봉돌 10~15호. 발밑 고패질.",            tip:"조류 세지면 봉돌 무겁게. 에기 꼬리가 바닥 향하도록."},
+      {species:"주꾸미",    name:"주꾸미 도보 워킹 채비",  desc:"스피닝릴 2500번 + PE 0.6~0.8호 + 쇼크리더 2호 + 에기 2.0~2.5호. 원거리 캐스팅 후 바닥 드래깅.",tip:"잘피밭·모래바닥 위 천천히 끌기. 입질 후 빠른 챔질."},
+      {species:"갑오징어",  name:"갑오징어 선상 가짓줄",  desc:"PE 0.8~1호 + 베이트릴 + 봉돌(20~30호) + 가짓줄 에기. 착저 후 스테이 5~10초.",                 tip:"봉돌 분리 매듭(올브라이트) 사용 시 에기 손실 방지."},
+      {species:"갑오징어",  name:"갑오징어 도보 에깅",    desc:"스피닝릴 2500번 + PE 0.8~1.2호 + 카본 2.5호 + 에기 3.0~3.5호. 캐스팅 → 착저 → 트위칭 → 스테이.", tip:"왕눈이보다 무늬오징어용 에기가 밑걸림 적음. 라인 텐션 유지."},
+      {species:"문어",      name:"문어 도보 에기 채비",   desc:"PE 1.0~1.5호 + 문어 전용 에기(대 3개 연결) + 봉돌 20~40호. 바닥 천천히 끌기.",                  tip:"문어는 에기를 감싸 안음. 급하게 챔질 금지. 천천히 릴링."},
+      {species:"문어",      name:"문어 생미끼 채비",      desc:"PE 1.5~2호 + 봉돌 20~40호 + 민물새우 or 게 생미끼. 바닥 찍고 천천히 끌기.",                     tip:"생미끼 효과 좋지만 밑걸림 많음. 갯바위 주변 집중 공략."},
+      {species:"무늬오징어",name:"무늬오징어 에깅 채비",  desc:"에깅 전용 로드 + 스피닝릴 2000~2500번 + PE 0.6~0.8호 + 쇼크리더 2~2.5호 + 에기 3.5~4호.",     tip:"착저 후 샤크리(위로 짧게 올려치기) 4~5회 → 폴 → 입질 확인."},
+      {species:"한치",      name:"한치 중층 반유동 채비", desc:"한치 전용 에기 2.5~3호 + 찌 or 반유동 채비로 수면 3~4m 유지. 부드러운 저속 액션.",               tip:"한치는 위에서 내려오는 먹이 선호. 야간 불빛 주변 집중."}
     ],
 
-    // ③ Knot 유튜브 링크 → 실제 인기 튜토리얼 영상으로 교체
-    knots: [
+        knots: [
       { id: "dorae", name: "도래 매듭", use: "PE라인과 리더 연결, 에기 연결에 가장 많이 사용", difficulty: "쉬움",
         youtube: "https://www.youtube.com/watch?v=TNMNkZxJEhk",
         steps: ["PE라인 끝을 도래에 2번 감아 고정", "리더를 도래에 끼운 후 PE라인으로 5~6번 감음", "끝을 도래 구멍에 넣고 당겨 조임", "여분의 줄 잘라 마무리"] },
@@ -532,56 +641,33 @@
         steps: ["메인라인에 작은 고리 만들기", "리더를 고리에 통과 후 여러 번 감음", "강하게 조여 고정", "에기와 봉돌 각각 연결"] }
     ],
 
-    // 선사 데이터
+    // 선사 데이터 (선상24 · 전화번호 미포함)
     charters: [
-      { id: 1, name: '여수 오션킹호', region: '여수', port: '국동항',
-        species: ['주꾸미', '갑오징어', '문어'],
-        phone: '010-6410-5705', fee: '5만원~',
-        url: 'http://ocking.sunsang24.com/',
-        desc: '여수 국동항 출항. 주꾸미·갑오징어 전문 선사. 할인 선비 상시 운영.' },
-      { id: 2, name: '여수 베테랑피싱', region: '여수', port: '국동항',
-        species: ['갑오징어', '한치', '문어', '주꾸미'],
-        phone: '010-8641-1999', fee: '10만원~',
-        url: 'https://veteranfishing.sunsang24.com/',
-        desc: '먼바다 갑오징어·한치 전문. 도시락·아침·점심 제공. 자리배정 추첨제.' },
-      { id: 3, name: '삼천포 에코피싱', region: '삼천포', port: '팔포항',
-        species: ['갑오징어', '문어', '주꾸미'],
-        phone: '010-9567-6605', fee: '5~10만원',
-        url: 'http://ecofishing.sunsang24.com/',
-        desc: '삼천포 팔포항. 내만·원도권 갑오징어·문어 전문. 신용카드 현장결제 가능.' },
-      { id: 4, name: '삼천포 한솔피싱', region: '삼천포', port: '팔포항',
-        species: ['갑오징어', '문어', '주꾸미', '뽈락'],
-        phone: '010-5042-8878', fee: '문의',
-        url: 'https://xn--im4b0yn51bvd.com/',
-        desc: '삼천포 팔포항. 2021년 신조선. 문어·갑오징어·주꾸미 복합 출조.' },
-      { id: 5, name: '통영 유림호', region: '통영', port: '미수항',
-        species: ['문어', '갑오징어', '주꾸미'],
-        phone: '010-9347-2635', fee: '10만원~',
-        url: 'https://yurimho.sunsang24.com/',
-        desc: '통영 미수항 출항. 문어·삼천포권 복합 출조 가능.' },
-      { id: 6, name: '통영 조은호', region: '통영', port: '도산항',
-        species: ['갑오징어', '문어', '무늬오징어'],
-        phone: '010-5436-8517', fee: '10만원~',
-        url: 'https://www.fishapp.co.kr/wf/B0001095TF',
-        desc: '통영 도산항. 고성IC·북통영IC에서 10분. 갑오징어·돌문어·무늬오징어 전문.' },
-      { id: 7, name: '인천 우리바다낚시', region: '인천', port: '연안부두',
-        species: ['주꾸미', '갑오징어', '광어', '우럭'],
-        phone: '032-888-6060', fee: '5만원~',
-        url: 'https://www.woorinaksi.com/',
-        desc: '인천 연안부두. 우리바다호·제우스호 운영. 주꾸미·갑오징어 시즌 전문.' },
-      { id: 8, name: '인천 칸피싱', region: '인천', port: '연안부두',
-        species: ['주꾸미', '갑오징어', '광어', '참돔'],
-        phone: '010-6297-7474', fee: '문의',
-        url: 'https://khanfishing.com/',
-        desc: '인천 연안부두. 루어·침선·생활낚시 전문. 다양한 어종 출조 가능.' }
+      {id:1,  name:'삼천포 에코피싱호', region:'삼천포', port:'팔포항', species:['갑오징어','문어','주꾸미','참돔'],        url:'https://ecofishing.sunsang24.com/',     desc:'두족류 전문. 내만권·원도권 출조. 신용카드 결제 가능. 자리 추첨제.'},
+      {id:2,  name:'삼천포 이래피싱',   region:'삼천포', port:'팔포항', species:['갑오징어','돌문어','주꾸미','한치'],      url:'https://erae.sunsang24.com/',           desc:'돌문어·갑오징어 루어 전문. 최근 돌문어 폭발 조황.'},
+      {id:3,  name:'삼천포 임금호',     region:'삼천포', port:'팔포항', species:['갑오징어','문어','주꾸미'],               url:'https://kingfishing.sunsang24.com/',    desc:'두족류 전문. 오전반 갑오징어 집중 출조.'},
+      {id:4,  name:'삼천포 뉴아재피싱', region:'삼천포', port:'팔포항', species:['문어','주꾸미','갑오징어'],               url:'https://3004.sunsang24.com/',           desc:'9.77t 대형선. 인조미끼 전용. 식사(라면·김밥·볼락회) 제공.'},
+      {id:5,  name:'삼천포 아재피싱',   region:'삼천포', port:'팔포항', species:['문어','주꾸미','갑오징어'],               url:'https://3004.sunsang24.com/',           desc:'인조미끼(웜) 전용. 생미끼 사용 불가. 마릿수 조황 우수.'},
+      {id:6,  name:'삼천포 박프로호',   region:'삼천포', port:'팔포항', species:['갑오징어','문어','주꾸미'],               url:'https://3004parkpro.sunsang24.com/',    desc:'팔포항 두족류 생활낚시 전문 선사.'},
+      {id:7,  name:'삼천포 피싱랜드',   region:'삼천포', port:'팔포항', species:['갑오징어','문어','주꾸미','뽈락'],        url:'https://fishingland.sunsang24.com/',    desc:'주간·야간 동시 할인. 도시락·음료·간식 제공.'},
+      {id:8,  name:'삼천포 피싱스토리', region:'삼천포', port:'팔포항', species:['갑오징어','문어','주꾸미','무늬오징어'],   url:'https://fs.sunsang24.com/',             desc:'루어·에깅 전문. 갑오징어·문어·주꾸미·무늬오징어 복합 출조.'},
+      {id:9,  name:'삼천포 누리피싱',   region:'삼천포', port:'팔포항', species:['갑오징어','주꾸미','한치','참돔'],        url:'https://nurifishing.sunsang24.com/',    desc:'갑오징어·주꾸미·한치·타이라바 전문. 초보 가능. 단체 환영.'},
+      {id:10, name:'삼천포 포인트호',   region:'삼천포', port:'팔포항', species:['문어','주꾸미','갈치','한치'],            url:'https://point3004.sunsang24.com/',      desc:'팔포항 생활낚시. 문어·주꾸미·타이라바·갈치 복합 출조.'},
+      {id:11, name:'통영 미라클호',     region:'통영',   port:'신전항', species:['무늬오징어','문어','주꾸미'],             url:'https://miracle.sunsang24.com/',        desc:'무늬오징어 에깅 전문. 연중 무늬오징어 출조.'},
+      {id:12, name:'통영 유림호',       region:'통영',   port:'미수항', species:['문어','갑오징어','주꾸미'],               url:'https://yurimho.sunsang24.com/',        desc:'미수항 출항. 문어·갑오징어·주꾸미 복합 출조.'},
+      {id:13, name:'통영 조은호',       region:'통영',   port:'도산항', species:['갑오징어','문어','무늬오징어','감성돔'],   url:'https://www.sunsang24.com/',            desc:'고성IC·북통영IC 10분. 갑오징어·돌문어·무늬오징어 전문. 개인물칸 완비.'},
+      {id:14, name:'통영 송현호',       region:'통영',   port:'통영항', species:['문어','갑오징어','주꾸미'],               url:'https://songhyeon.sunsang24.com/',      desc:'주간·야간 문어 전문. 주중·주말 상시 예약 가능.'},
+      {id:15, name:'통영 보승호',       region:'통영',   port:'유촌항', species:['문어','갑오징어','감성돔'],               url:'https://boseung.sunsang24.com/',        desc:'유촌항 출항. 문어·갑오징어·감성돔 전문.'}
     ]
   };
 
   // ==================== STATE ====================
   let currentPage = 'page-home';
   let currentSpotFilter = 'all';
+  let currentCharterFilter = 'all';
   let catches = [];
   let savedSpots = [];
+  let customCharters = [];
   let searchTimeout = null;
 
   // ==================== UTILS ====================
@@ -597,8 +683,7 @@
     }, 2300);
   }
 
-  // ⑤ 네비게이션 활성 상태 시각 개선
-  function updateNavActive(pageId) {
+    function updateNavActive(pageId) {
     document.querySelectorAll('.nav-item').forEach(el => {
       el.classList.remove('nav-active');
     });
@@ -638,104 +723,142 @@
   }
 
   // ==================== WEATHER ====================
-  async function getWeather() {
-    const container = document.getElementById('weather-content');
-    if (!navigator.geolocation) {
-      container.innerHTML = `<div class="text-red-500 text-sm py-3">위치 기능을 지원하지 않습니다.</div>`;
-      return;
-    }
-    container.innerHTML = `<div class="flex justify-center py-6 text-3xl">⏳</div>`;
+  const LOCATIONS = {
+    gps:       {name:'현재위치', lat:null, lon:null},
+    ulsan:     {name:'울산',    lat:35.5384, lon:129.3114},
+    busan:     {name:'부산',    lat:35.1796, lon:129.0756},
+    tongyeong: {name:'통영',    lat:34.8544, lon:128.4332},
+    sacheon:   {name:'삼천포',  lat:34.9392, lon:128.0642},
+    geoje:     {name:'거제',    lat:34.8803, lon:128.6219}
+  };
+  let currentWeatherLoc = 'ulsan';
 
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      try {
-        const { latitude: lat, longitude: lon } = pos.coords;
-        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m,precipitation,rain,is_day&timezone=Asia%2FSeoul`);
-        const data = await res.json();
-        const cur = data.current;
-
-        const temp  = Math.round(cur.temperature_2m);
-        const wind  = Math.round(cur.wind_speed_10m);
-        const precip = cur.precipitation || cur.rain || 0;
-        const isDay = cur.is_day !== undefined ? cur.is_day : (new Date().getHours() >= 6 && new Date().getHours() < 20 ? 1 : 0);
-
-        let score = 62;
-        if (wind < 12) score += 20; else if (wind > 26) score -= 25;
-        if (precip > 0.5) score -= 15;
-        if (cur.weather_code <= 2) score += 10;
-        score = Math.max(30, Math.min(95, score));
-
-        let icon = '🌤️', desc = '좋음';
-        if      (cur.weather_code >= 61) { icon = '🌧️'; desc = '비'; }
-        else if (cur.weather_code >= 45) { icon = '🌫️'; desc = '안개'; }
-        else if (cur.weather_code >= 3)  { icon = '☁️';  desc = '흐림'; }
-        else if (isDay)                  { icon = '☀️';  desc = '맑음'; }
-        else                             { icon = '🌙';  desc = '맑음(야간)'; }
-
-        const scoreColor = score > 75 ? 'text-emerald-600' : score > 55 ? 'text-amber-600' : 'text-red-500';
-        const scoreMsg   = score > 75 ? '선상 낚시하기 좋은 날씨입니다!' : score > 55 ? '조심스럽게 출조하세요' : '바람/비 주의!';
-
-        container.innerHTML = `
-          <div class="flex justify-between items-start">
-            <div><div class="text-sm text-slate-500">현재 위치</div>
-              <div class="text-5xl font-bold text-slate-900 mt-1">${temp}°</div></div>
-            <div class="text-right"><div class="text-6xl mb-1">${icon}</div>
-              <div class="text-sm text-slate-600">${desc}</div></div>
-          </div>
-          <div class="mt-5 grid grid-cols-3 gap-3">
-            <div class="metric rounded-2xl p-3 text-center">
-              <div class="text-xs text-slate-500">바람</div>
-              <div class="font-semibold">${wind} km/h</div>
-            </div>
-            <div class="metric rounded-2xl p-3 text-center">
-              <div class="text-xs text-slate-500">낚시 지수</div>
-              <div class="font-extrabold text-2xl ${scoreColor}">${score}</div>
-            </div>
-            <div class="metric rounded-2xl p-3 text-center">
-              <div class="text-xs text-slate-500">강수</div>
-              <div class="font-semibold">${precip}mm</div>
-            </div>
-          </div>
-          <div class="text-center mt-4 text-xs ${scoreColor} font-medium">${scoreMsg}</div>`;
-      } catch {
-        container.innerHTML = `<div class="text-red-500 text-sm py-4 text-center">날씨 정보를 불러오지 못했습니다.<br>
-          <button onclick="getWeather()" class="underline text-sky-600 mt-1">다시 시도</button></div>`;
-      }
-    }, () => {
-      container.innerHTML = `<div class="text-sm text-center py-4 text-slate-500">위치 접근이 거부되었습니다.<br>설정에서 위치 권한을 허용해주세요.</div>`;
+  function getWeatherByLocation(locKey) {
+    currentWeatherLoc = locKey;
+    document.querySelectorAll('.weather-loc-btn').forEach(b => {
+      const on = b.dataset.loc === locKey;
+      b.className = 'weather-loc-btn text-xs px-3 py-1.5 rounded-2xl font-medium transition-all ' +
+        (on ? 'bg-sky-600 text-white' : 'bg-white border text-slate-600');
     });
+    const container = document.getElementById('weather-content');
+    container.innerHTML = '<div class="flex justify-center py-6 text-3xl">⏳</div>';
+    if (locKey === 'gps') {
+      if (!navigator.geolocation) { container.innerHTML = '<div class="text-red-500 text-sm py-3">위치 기능 미지원</div>'; return; }
+      navigator.geolocation.getCurrentPosition(
+        pos => fetchWeather(pos.coords.latitude, pos.coords.longitude, '현재위치'),
+        () => { container.innerHTML = '<div class="text-sm text-center py-4 text-slate-500">위치 접근이 거부되었습니다.</div>'; }
+      );
+    } else {
+      const loc = LOCATIONS[locKey];
+      fetchWeather(loc.lat, loc.lon, loc.name);
+    }
   }
 
-  // ==================== TIDE ====================
+  async function fetchWeather(lat, lon, locName) {
+    const container = document.getElementById('weather-content');
+    try {
+      const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
+        '&current=temperature_2m,weather_code,wind_speed_10m,precipitation,rain,is_day' +
+        '&daily=weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max,precipitation_sum' +
+        '&timezone=Asia%2FSeoul&forecast_days=7');
+      const data = await res.json();
+      const cur = data.current;
+      const daily = data.daily;
+      const temp  = Math.round(cur.temperature_2m);
+      const wind  = Math.round(cur.wind_speed_10m);
+      const precip = cur.precipitation || cur.rain || 0;
+      const isDay = cur.is_day !== undefined ? cur.is_day : (new Date().getHours() >= 6 && new Date().getHours() < 20 ? 1 : 0);
+      let score = 62;
+      if (wind < 12) score += 20; else if (wind > 26) score -= 25;
+      if (precip > 0.5) score -= 15;
+      if (cur.weather_code <= 2) score += 10;
+      score = Math.max(30, Math.min(95, score));
+      function wIcon(code, day) {
+        if (code >= 61) return '🌧️'; if (code >= 45) return '🌫️';
+        if (code >= 3)  return '☁️';  return day ? '☀️' : '🌙';
+      }
+      const sc = score > 75 ? 'text-emerald-600' : score > 55 ? 'text-amber-600' : 'text-red-500';
+      const sm = score > 75 ? '출조 좋은 날씨!' : score > 55 ? '조심스럽게 출조' : '⚠️ 바람/비 주의';
+      const days = ['일','월','화','수','목','금','토'];
+      const foreHtml = daily.time.map((d, i) => {
+        const dt = new Date(d);
+        const ds = i===0?'오늘':i===1?'내일':days[dt.getDay()]+'요';
+        const hi = Math.round(daily.temperature_2m_max[i]);
+        const lo = Math.round(daily.temperature_2m_min[i]);
+        const w  = Math.round(daily.wind_speed_10m_max[i]);
+        let fs = 62;
+        if (w < 12) fs += 20; else if (w > 26) fs -= 25;
+        if (daily.precipitation_sum[i] > 1) fs -= 15;
+        if (daily.weather_code[i] <= 2) fs += 10;
+        fs = Math.max(30, Math.min(95, fs));
+        const fc = fs>75?'#059669':fs>55?'#d97706':'#ef4444';
+        return '<div class="flex flex-col items-center px-0.5">' +
+          '<div class="text-[10px] text-slate-500">' + ds + '</div>' +
+          '<div class="text-lg my-0.5">' + wIcon(daily.weather_code[i],1) + '</div>' +
+          '<div class="text-xs font-semibold text-slate-700">' + hi + '°</div>' +
+          '<div class="text-[10px] text-slate-400">' + lo + '°</div>' +
+          '<div class="text-[10px] font-bold mt-0.5" style="color:' + fc + '">' + fs + '</div></div>';
+      }).join('');
+      container.innerHTML =
+        '<div class="flex justify-between items-start">' +
+          '<div><div class="text-xs text-slate-500">' + locName + '</div>' +
+          '<div class="text-5xl font-bold text-slate-900 mt-0.5">' + temp + '°</div></div>' +
+          '<div class="text-right"><div class="text-5xl">' + wIcon(cur.weather_code, isDay) + '</div>' +
+          '<div class="text-xs ' + sc + ' font-semibold mt-0.5">' + sm + '</div></div>' +
+        '</div>' +
+        '<div class="mt-3 grid grid-cols-3 gap-2">' +
+          '<div class="metric rounded-2xl p-2.5 text-center"><div class="text-[10px] text-slate-500">바람</div><div class="font-semibold text-sm">' + wind + ' km/h</div></div>' +
+          '<div class="metric rounded-2xl p-2.5 text-center"><div class="text-[10px] text-slate-500">낚시지수</div><div class="font-extrabold text-xl ' + sc + '">' + score + '</div></div>' +
+          '<div class="metric rounded-2xl p-2.5 text-center"><div class="text-[10px] text-slate-500">강수</div><div class="font-semibold text-sm">' + precip + 'mm</div></div>' +
+        '</div>' +
+        '<div class="mt-3 pt-3 border-t border-slate-100">' +
+          '<div class="text-[10px] text-slate-400 mb-1.5">7일 예보 (숫자=낚시지수)</div>' +
+          '<div class="flex justify-between">' + foreHtml + '</div></div>';
+    } catch(e) {
+      container.innerHTML = '<div class="text-red-500 text-sm py-4 text-center">날씨 정보를 불러오지 못했습니다.<br>' +
+        '<button onclick="getWeatherByLocation('' + currentWeatherLoc + '')" class="underline text-sky-600">다시 시도</button></div>';
+    }
+  }
+
+
+
   function updateTideInfo() {
     const port = document.getElementById('tide-port').value;
     const dayOffset = new Date().getDate() % 4;
     const tideTable = {
-      busan:     [{ current:"간조 후 +1시간 40분", nextHigh:"14:25 (+2.9m)", nextLow:"20:40 (+0.3m)" },
-                  { current:"만조 직전 30분",       nextHigh:"11:10 (+3.0m)", nextLow:"17:30 (+0.4m)" },
-                  { current:"만조 후 +2시간",        nextHigh:"15:05 (+2.8m)", nextLow:"21:20 (+0.3m)" },
-                  { current:"간조 직전",             nextHigh:"13:40 (+2.9m)", nextLow:"19:55 (+0.4m)" }],
-      yeosu:     [{ current:"만조 후 +2시간 10분",  nextHigh:"15:50 (+3.1m)", nextLow:"21:55 (+0.5m)" },
-                  { current:"간조 후 +1시간",        nextHigh:"12:30 (+3.2m)", nextLow:"18:40 (+0.6m)" },
-                  { current:"만조 직전",             nextHigh:"14:15 (+3.0m)", nextLow:"20:30 (+0.5m)" },
-                  { current:"간조 직후",             nextHigh:"13:00 (+3.1m)", nextLow:"19:10 (+0.5m)" }],
-      incheon:   [{ current:"간조 후 +0시간 50분",  nextHigh:"13:10 (+7.8m)", nextLow:"19:25 (+1.2m)" },
-                  { current:"만조 후 +3시간",        nextHigh:"14:50 (+7.6m)", nextLow:"21:00 (+1.3m)" },
-                  { current:"간조 직전",             nextHigh:"12:35 (+7.9m)", nextLow:"18:50 (+1.2m)" },
-                  { current:"만조 직후",             nextHigh:"15:20 (+7.7m)", nextLow:"21:30 (+1.1m)" }],
-      tongyeong: [{ current:"만조 직전",             nextHigh:"14:05 (+2.6m)", nextLow:"20:15 (+0.4m)" },
-                  { current:"간조 후 +2시간",        nextHigh:"13:20 (+2.7m)", nextLow:"19:35 (+0.4m)" },
-                  { current:"만조 후 +1시간",        nextHigh:"15:40 (+2.5m)", nextLow:"21:50 (+0.5m)" },
-                  { current:"간조 직전",             nextHigh:"12:00 (+2.6m)", nextLow:"18:10 (+0.4m)" }]
+      ulsan:     [{current:"간조 후 +1시간",       nextHigh:"13:40 (+1.4m)", nextLow:"19:55 (+0.1m)"},
+                  {current:"만조 직전 30분",        nextHigh:"12:20 (+1.5m)", nextLow:"18:35 (+0.1m)"},
+                  {current:"만조 후 +2시간",         nextHigh:"14:50 (+1.3m)", nextLow:"21:05 (+0.2m)"},
+                  {current:"간조 직전",              nextHigh:"13:10 (+1.4m)", nextLow:"19:20 (+0.1m)"}],
+      busan:     [{current:"간조 후 +1시간 40분",   nextHigh:"14:25 (+1.5m)", nextLow:"20:40 (+0.1m)"},
+                  {current:"만조 직전 30분",         nextHigh:"11:10 (+1.6m)", nextLow:"17:30 (+0.1m)"},
+                  {current:"만조 후 +2시간",          nextHigh:"15:05 (+1.4m)", nextLow:"21:20 (+0.1m)"},
+                  {current:"간조 직전",               nextHigh:"13:40 (+1.5m)", nextLow:"19:55 (+0.1m)"}],
+      tongyeong: [{current:"만조 직전",              nextHigh:"14:05 (+2.6m)", nextLow:"20:15 (+0.4m)"},
+                  {current:"간조 후 +2시간",          nextHigh:"13:20 (+2.7m)", nextLow:"19:35 (+0.4m)"},
+                  {current:"만조 후 +1시간",          nextHigh:"15:40 (+2.5m)", nextLow:"21:50 (+0.5m)"},
+                  {current:"간조 직전",               nextHigh:"12:00 (+2.6m)", nextLow:"18:10 (+0.4m)"}],
+      sacheon:   [{current:"간조 후 +1시간 20분",   nextHigh:"14:10 (+2.7m)", nextLow:"20:25 (+0.3m)"},
+                  {current:"만조 직전",              nextHigh:"11:45 (+2.8m)", nextLow:"18:00 (+0.4m)"},
+                  {current:"만조 후 +2시간 30분",    nextHigh:"15:30 (+2.6m)", nextLow:"21:45 (+0.3m)"},
+                  {current:"간조 직후",               nextHigh:"13:05 (+2.7m)", nextLow:"19:15 (+0.3m)"}],
+      geoje:     [{current:"만조 후 +1시간 30분",   nextHigh:"15:20 (+2.4m)", nextLow:"21:30 (+0.3m)"},
+                  {current:"간조 후 +1시간",         nextHigh:"12:50 (+2.5m)", nextLow:"19:00 (+0.3m)"},
+                  {current:"만조 직전",              nextHigh:"14:35 (+2.3m)", nextLow:"20:45 (+0.4m)"},
+                  {current:"간조 직전",              nextHigh:"13:15 (+2.4m)", nextLow:"19:25 (+0.3m)"}],
+      goseong:   [{current:"만조 직전 30분",        nextHigh:"14:00 (+2.7m)", nextLow:"20:10 (+0.4m)"},
+                  {current:"간조 후 +2시간",        nextHigh:"13:30 (+2.8m)", nextLow:"19:40 (+0.5m)"},
+                  {current:"만조 후 +1시간 30분",   nextHigh:"15:15 (+2.6m)", nextLow:"21:25 (+0.4m)"},
+                  {current:"간조 직후",              nextHigh:"12:45 (+2.7m)", nextLow:"18:55 (+0.4m)"}]
     };
-    const t = tideTable[port][dayOffset];
-    document.getElementById('tide-content').innerHTML = `
-      <div class="text-sm"><span class="font-semibold text-emerald-600">${t.current}</span></div>
-      <div class="mt-2.5 grid grid-cols-2 gap-x-4 text-xs text-slate-600">
-        <div>다음 만조 <span class="font-medium text-slate-800">${t.nextHigh}</span></div>
-        <div>다음 간조 <span class="font-medium text-slate-800">${t.nextLow}</span></div>
-      </div>`;
+    const t = tideTable[port] ? tideTable[port][dayOffset] : tideTable['ulsan'][dayOffset];
+    document.getElementById('tide-content').innerHTML =
+      '<div class="text-sm"><span class="font-semibold text-emerald-600">' + t.current + '</span></div>' +
+      '<div class="mt-2.5 grid grid-cols-2 gap-x-4 text-xs text-slate-600">' +
+        '<div>다음 만조 <span class="font-medium text-slate-800">' + t.nextHigh + '</span></div>' +
+        '<div>다음 간조 <span class="font-medium text-slate-800">' + t.nextLow + '</span></div>' +
+      '</div>';
   }
-
   // ==================== TODAY RECOMMEND ====================
   function renderTodayRecommend() {
     const month = new Date().getMonth() + 1;
@@ -785,8 +908,7 @@
     });
   }
 
-  // ④ 어종 상세 모달에 "기록하기" 버튼 추가
-  function showSpeciesDetail(id) {
+    function showSpeciesDetail(id) {
     const s = APP_DATA.species.find(x => x.id === id);
     if (!s) return;
     const modal   = document.getElementById('species-modal');
@@ -850,12 +972,21 @@
   }
 
   function renderTackle() {
-    document.getElementById('rig-list').innerHTML = APP_DATA.rigs.map(r => `
-      <div class="bg-white border border-slate-100 rounded-3xl p-4">
-        <div class="font-semibold">${r.name}</div>
-        <div class="text-sm text-slate-600 mt-1">${r.desc}</div>
-        <div class="mt-2 text-xs inline-block bg-amber-50 text-amber-700 px-3 py-1 rounded-2xl">${r.tip}</div>
-      </div>`).join('');
+    const rigGroups = {};
+    APP_DATA.rigs.forEach(r => { if (!rigGroups[r.species]) rigGroups[r.species] = []; rigGroups[r.species].push(r); });
+    const spEmoji = {'주꾸미':'🦑','갑오징어':'🦑','문어':'🐙','무늬오징어':'🦑','한치':'🦑'};
+    document.getElementById('rig-list').innerHTML = Object.entries(rigGroups).map(([sp, rigs]) =>
+      '<div class="mb-5">' +
+        '<div class="flex items-center gap-x-2 mb-2 px-1"><span class="text-lg">' + (spEmoji[sp]||'🎣') + '</span>' +
+        '<span class="font-semibold text-slate-800">' + sp + '</span></div>' +
+        rigs.map(r =>
+          '<div class="bg-white border border-slate-100 rounded-3xl p-4 mb-2">' +
+            '<div class="font-medium text-slate-900">' + r.name + '</div>' +
+            '<div class="text-sm text-slate-600 mt-1 leading-relaxed">' + r.desc + '</div>' +
+            '<div class="mt-2 text-xs inline-block bg-amber-50 text-amber-700 px-3 py-1 rounded-2xl">💡 ' + r.tip + '</div>' +
+          '</div>'
+        ).join('') + '</div>'
+    ).join('');
 
     document.getElementById('knot-list').innerHTML = APP_DATA.knots.map(k => `
       <div onclick="showKnotDetail('${k.id}')" class="bg-white border border-slate-100 rounded-3xl p-4 cursor-pointer active:bg-slate-50">
@@ -1041,8 +1172,7 @@
     });
   }
 
-  // ① 기록 추가/수정 통합 모달
-  function showCatchModal(presetSpeciesId = null) {
+    function showCatchModal(presetSpeciesId = null) {
     const modal  = document.getElementById('catch-modal');
     const select = document.getElementById('catch-species');
     select.innerHTML = APP_DATA.species.map(s =>
@@ -1130,11 +1260,112 @@
     showToast('기록이 삭제되었습니다');
   }
 
+  
+  // ==================== CHARTER ====================
+  function loadCustomCharters() {
+    try { customCharters = JSON.parse(localStorage.getItem('dunaki_custom_charters_v1') || '[]'); }
+    catch { customCharters = []; }
+  }
+  function saveCustomCharters() {
+    try { localStorage.setItem('dunaki_custom_charters_v1', JSON.stringify(customCharters)); }
+    catch { showToast('저장 실패'); }
+  }
+
+  function filterCharter(region) {
+    currentCharterFilter = region;
+    document.querySelectorAll('.charter-filter-btn').forEach(b => {
+      const on = b.dataset.region === region;
+      b.className = 'charter-filter-btn px-4 py-1.5 text-xs rounded-3xl transition-all ' + (on ? 'bg-sky-600 text-white' : 'bg-white border text-slate-600');
+    });
+    renderCharters();
+  }
+
+  function renderCharters() {
+    const container = document.getElementById('charter-list');
+    if (!container) return;
+    const all = [...APP_DATA.charters, ...customCharters.map(c => ({...c, isCustom:true}))];
+    let list;
+    if (currentCharterFilter === 'all')     list = all;
+    else if (currentCharterFilter === '내추가') list = all.filter(c => c.isCustom);
+    else list = all.filter(c => c.region === currentCharterFilter && !c.isCustom);
+
+    container.innerHTML = '';
+    if (!list.length) {
+      container.innerHTML = '<div class="text-center py-10 text-sm text-slate-400">등록된 선사가 없어요.<br>➕ 버튼으로 추가해보세요!</div>';
+      return;
+    }
+    list.forEach(c => {
+      const tags = c.species.map(s => '<span class="text-[10px] px-2 py-0.5 bg-rose-50 text-rose-600 rounded-xl">' + s + '</span>').join('');
+      const badge = c.isCustom ? '<span class="text-[10px] px-2 py-0.5 bg-amber-100 text-amber-700 rounded-xl ml-1">내추가</span>' : '';
+      const delBtn = c.isCustom ? '<button onclick="deleteCustomCharter(' + c.id + ',event)" class="p-1.5 text-base ml-1 text-red-400">🗑️</button>' : '';
+      const homeBtn = c.url ? '<a href="' + c.url + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="flex-shrink-0 bg-sky-600 active:bg-sky-800 text-white text-xs px-3 py-1.5 rounded-2xl font-medium">홈피 →</a>' : '';
+
+      const div = document.createElement('div');
+      div.className = 'bg-white border border-slate-100 rounded-3xl p-4 transition-all' + (c.url ? ' cursor-pointer active:bg-slate-50' : '');
+      div.innerHTML =
+        '<div class="flex justify-between items-start gap-x-2">' +
+          '<div class="flex-1 min-w-0">' +
+            '<div class="flex items-center flex-wrap gap-y-1">' +
+              '<span class="font-semibold text-slate-900">' + c.name + '</span>' + badge +
+            '</div>' +
+            '<div class="flex items-center gap-x-2 mt-1 flex-wrap gap-y-1">' +
+              '<span class="text-xs px-2.5 py-0.5 rounded-2xl bg-sky-100 text-sky-700">' + c.region + '</span>' +
+              '<span class="text-xs text-slate-500">⚓ ' + c.port + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="flex items-center flex-shrink-0">' + homeBtn + delBtn + '</div>' +
+        '</div>' +
+        (c.desc ? '<div class="text-xs text-slate-500 mt-2 leading-relaxed">' + c.desc + '</div>' : '') +
+        '<div class="mt-2 flex flex-wrap gap-1">' + tags + '</div>';
+
+      if (c.url) div.onclick = () => window.open(c.url, '_blank', 'noopener,noreferrer');
+      container.appendChild(div);
+    });
+  }
+
+  function showCharterAddModal() {
+    ['charter-name','charter-region','charter-port','charter-species','charter-url','charter-desc'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    const m = document.getElementById('charter-add-modal');
+    m.classList.remove('hidden'); m.classList.add('flex');
+  }
+  function hideCharterAddModal() {
+    const m = document.getElementById('charter-add-modal');
+    m.classList.remove('flex'); m.classList.add('hidden');
+  }
+  function saveCharterAdd() {
+    const name   = document.getElementById('charter-name').value.trim();
+    const region = document.getElementById('charter-region').value.trim();
+    const port   = document.getElementById('charter-port').value.trim() || '미정';
+    const raw    = document.getElementById('charter-species').value.trim();
+    const url    = document.getElementById('charter-url').value.trim();
+    const desc   = document.getElementById('charter-desc').value.trim();
+    if (!name)   return showToast('선사명을 입력해주세요');
+    if (!region) return showToast('지역을 입력해주세요');
+    const species = raw ? raw.split(',').map(s => s.trim()).filter(Boolean) : [];
+    customCharters.unshift({id:Date.now(), name, region, port, species, url, desc, isCustom:true});
+    saveCustomCharters();
+    hideCharterAddModal();
+    showToast('선사가 추가되었어요! ⚓');
+    renderCharters();
+  }
+  function deleteCustomCharter(id, e) {
+    e.stopImmediatePropagation();
+    if (!confirm('이 선사를 삭제할까요?')) return;
+    customCharters = customCharters.filter(c => c.id !== id);
+    saveCustomCharters();
+    renderCharters();
+    showToast('선사가 삭제되었습니다');
+  }
+
   // ==================== INIT ====================
   function initApp() {
     setupPWA();
     loadCatches();
     loadSavedSpots();
+    loadCustomCharters();
 
     renderSpecies();
     renderTackle();
@@ -1147,8 +1378,9 @@
 
     showPage('page-home');
 
-    document.documentElement.style.overflowX = 'hidden';
-    document.body.style.overflowX = 'hidden';
+    // 스크롤 제어는 CSS로 처리
+
+    getWeatherByLocation('ulsan');
 
     if (!localStorage.getItem('dunaki_welcomed_v3')) {
       setTimeout(() => {
