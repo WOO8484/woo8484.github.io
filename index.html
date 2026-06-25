@@ -109,8 +109,8 @@ ul, ol { list-style: none; }
   padding: 6px 0; transition: all .2s;
   position: relative;
 }
-.nav-btn .nav-icon { font-size: 22px; line-height: 1; transition: transform .2s; }
-.nav-btn .nav-label { font-size: 10px; font-weight: 700; color: var(--muted); transition: color .2s; }
+.nav-btn .nav-icon { font-size: 20px; line-height: 1; transition: transform .2s; }
+.nav-btn .nav-label { font-size: 9px; font-weight: 700; color: var(--muted); transition: color .2s; }
 .nav-btn.active .nav-label { color: var(--ocean); }
 .nav-btn.active .nav-icon { transform: scale(1.15); }
 .nav-btn.active::after {
@@ -405,14 +405,14 @@ ul, ol { list-style: none; }
 .tackle-card .t-name { font-size: 15px; font-weight: 900; }
 .tackle-card .t-sub { font-size: 11px; color: var(--muted); }
 .tackle-spec {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px;
 }
 .spec-item {
   background: var(--sky); border-radius: var(--radius-sm);
   padding: 8px 10px;
 }
 .spec-item .s-lbl { font-size: 10px; color: var(--muted); font-weight: 700; }
-.spec-item .s-val { font-size: 13px; font-weight: 700; color: var(--ink); margin-top: 2px; }
+.spec-item .s-val { font-size: 12px; font-weight: 700; color: var(--ink); margin-top: 2px; line-height: 1.4; }
 .tackle-tip {
   background: var(--sand); border-radius: var(--radius-sm);
   padding: 10px 12px; font-size: 12px; line-height: 1.7;
@@ -801,15 +801,21 @@ ul, ol { list-style: none; }
         </div>
       </div>
 
-      <!-- 이달의 추천 어종 -->
+    </section>
+
+    <!-- =============== PAGE: 시즌/금어기 =============== -->
+    <section class="page" id="page-season">
+      <div class="page-title">🗓 이달의 두족류 시즌</div>
+
+      <!-- 이달의 시즌 스트립 -->
       <div class="fish-season-strip">
-        <div class="strip-title">🗓 이달의 두족류 시즌</div>
+        <div class="strip-title">📅 이번 달 현황</div>
         <div class="season-items" id="season-strip">
           <!-- JS로 채워짐 -->
         </div>
       </div>
 
-      <!-- 시즌 캘린더 -->
+      <!-- 연간 시즌 캘린더 -->
       <div class="season-cal">
         <div class="season-cal-title">📅 연간 시즌 캘린더</div>
         <table class="cal-table">
@@ -820,13 +826,12 @@ ul, ol { list-style: none; }
               <th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th>
             </tr>
           </thead>
-          <tbody id="season-cal-body">
-          </tbody>
+          <tbody id="season-cal-body"></tbody>
         </table>
       </div>
 
-      <!-- 낚시 금어기 -->
-      <div class="page-title" style="margin-top:4px">⛔ 주의 금어기 정보</div>
+      <!-- 금어기 정보 -->
+      <div class="page-title" style="margin-top:4px">⛔ 금어기 정보</div>
       <div class="prohibited-card">
         <div class="p-header"><span class="p-icon">🦑</span><span class="p-name">무늬오징어 (흰꼴뚜기)</span></div>
         <span class="p-period">금어기 없음 (연중 가능)</span>
@@ -952,26 +957,31 @@ ul, ol { list-style: none; }
         <div class="tackle-card">
           <div class="t-header"><span class="t-icon">🎣</span><div><div class="t-name">선상 문어 기본채비</div><div class="t-sub">선상낚시용</div></div></div>
           <div class="tackle-spec">
-            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">타코 전용 1.8~2.1m</div></div>
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">타코전용 2.1m</div></div>
             <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">소형 베이트릴</div></div>
             <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 1.5~2호</div></div>
-            <div class="spec-item"><div class="s-lbl">쇼크리더</div><div class="s-val">나일론 30~40lb</div></div>
-            <div class="spec-item"><div class="s-lbl">루어</div><div class="s-val">타코베이트 / 에기 3.5~4호</div></div>
-            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">30~80호 (수심별)</div></div>
+            <div class="spec-item"><div class="s-lbl">쇼크리더</div><div class="s-val">나일론 40lb</div></div>
+            <div class="spec-item"><div class="s-lbl">루어</div><div class="s-val">타코베이트/에기</div></div>
+            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">30~80호</div></div>
           </div>
           <div class="tackle-tip">문어 루어는 문어 색감(오렌지, 핑크, 파랑)에 반응이 좋습니다. 바닥을 긁는 느낌으로 천천히 끌어오세요.</div>
         </div>
         <div class="tackle-card">
           <div class="t-header"><span class="t-icon">🪨</span><div><div class="t-name">갯바위 문어 채비</div><div class="t-sub">도보 갯바위용</div></div></div>
           <div class="tackle-spec">
-            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">갯바위대 2.7~3.3m</div></div>
-            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">소형 스피닝릴 2500</div></div>
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">갯바위대 3m</div></div>
+            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">스피닝 2500</div></div>
             <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 1.5호 이상</div></div>
             <div class="spec-item"><div class="s-lbl">채비</div><div class="s-val">문어 걸치기 채비</div></div>
-            <div class="spec-item"><div class="s-lbl">미끼</div><div class="s-val">문어루어 / 살오징어</div></div>
+            <div class="spec-item"><div class="s-lbl">미끼</div><div class="s-val">문어루어/살오징어</div></div>
             <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">10~20호</div></div>
           </div>
           <div class="tackle-tip">갯바위 틈새에 루어를 집어넣고 살살 당기는 방식. 미끼는 살오징어 작게 잘라 훅에 꽂아도 효과적입니다.</div>
+        </div>
+
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🎨</span><div><div class="t-name">루어 색상 가이드</div><div class="t-sub">날씨·수심별</div></div></div>
+          <div style="padding:2px 0;"><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🔴</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">오렌지·핑크</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">맑은 날 기본 / 가장 반응 좋음</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🔵</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">파랑·퍼플</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">맑은 물 · 낮 시간대</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">⚫</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">검정·다크계열</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">탁한 물 · 야간 · 깊은 수심</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🟡</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">골드·형광</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">흐린 날 · 조류 빠를 때</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">⚪</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">화이트·자연색</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">산란기 봄철 · 수온 낮을 때</div></div></div></div>
         </div>
       </div>
 
@@ -979,38 +989,43 @@ ul, ol { list-style: none; }
         <div class="tackle-card">
           <div class="t-header"><span class="t-icon">🦑</span><div><div class="t-name">한치 오모리그 채비</div><div class="t-sub">선상낚시 · 기본</div></div></div>
           <div class="tackle-spec">
-            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">한치 전용 오모리로드 2.1m (L~ML)</div></div>
-            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">수심카운터 소형 베이트릴 (필수!)</div></div>
-            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 합사 0.6~1호 (5색 마킹 추천)</div></div>
-            <div class="spec-item"><div class="s-lbl">목줄</div><div class="s-val">카본(플루오로) 3호</div></div>
-            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">오모리그 20~30호 (형광/축광)</div></div>
-            <div class="spec-item"><div class="s-lbl">슷테/에기</div><div class="s-val">한치 전용 슷테 2~3단 (축광색)</div></div>
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">오모리로드 2.1m</div></div>
+            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">수심카운터릴</div></div>
+            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 0.6~1호</div></div>
+            <div class="spec-item"><div class="s-lbl">목줄</div><div class="s-val">카본 3호</div></div>
+            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">오모리 30호</div></div>
+            <div class="spec-item"><div class="s-lbl">슷테/에기</div><div class="s-val">슷테 2~3단</div></div>
           </div>
           <div class="tackle-tip">수심 파악이 핵심! 수심 카운터 없는 릴은 5색 합사+마킹 필수. 슷테는 바늘이 얇고 촘촘한 한치 전용으로 준비하세요.</div>
         </div>
         <div class="tackle-card">
           <div class="t-header"><span class="t-icon">⚡</span><div><div class="t-name">이카메탈 채비</div><div class="t-sub">선상 수직지깅</div></div></div>
           <div class="tackle-spec">
-            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">이카메탈 전용 베이트로드 2.1m</div></div>
-            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">소형 베이트릴 / 경량 전동릴</div></div>
-            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 합사 0.8~1호</div></div>
-            <div class="spec-item"><div class="s-lbl">이카메탈</div><div class="s-val">80~120g (화려한 축광 메탈)</div></div>
-            <div class="spec-item"><div class="s-lbl">슷테</div><div class="s-val">2~3단 한치 전용 (핫핑크·야광)</div></div>
-            <div class="spec-item"><div class="s-lbl">공략 수심</div><div class="s-val">10~40m (활성도따라 부상)</div></div>
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">이카메탈 2.1m</div></div>
+            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">베이트릴/전동릴</div></div>
+            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 0.8~1호</div></div>
+            <div class="spec-item"><div class="s-lbl">이카메탈</div><div class="s-val">80~120g 축광</div></div>
+            <div class="spec-item"><div class="s-lbl">슷테</div><div class="s-val">슷테 2~3단</div></div>
+            <div class="spec-item"><div class="s-lbl">공략 수심</div><div class="s-val">10~40m</div></div>
           </div>
           <div class="tackle-tip">이카메탈은 봉돌+루어 겸용. 야간에는 야광 슷테 필수! 한치 활성도에 따라 다양한 무게 준비 권장.</div>
         </div>
         <div class="tackle-card">
           <div class="t-header"><span class="t-icon">🌙</span><div><div class="t-name">야간 다단 거치 채비</div><div class="t-sub">집어등 주변 · 마릿수</div></div></div>
           <div class="tackle-spec">
-            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">한치 거치용 로드 2.1m (L~UL)</div></div>
-            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">소형 전동릴 (편의성 최고)</div></div>
-            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 합사 0.6~1호</div></div>
-            <div class="spec-item"><div class="s-lbl">채비</div><div class="s-val">시판용 2~3단 이카메탈 채비</div></div>
-            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">20~30호 슬림 롱타입</div></div>
-            <div class="spec-item"><div class="s-lbl">포인트</div><div class="s-val">집어등 빛/어둠 경계선</div></div>
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">거치용 2.1m</div></div>
+            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">소형 전동릴</div></div>
+            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 0.6~1호</div></div>
+            <div class="spec-item"><div class="s-lbl">채비</div><div class="s-val">이카메탈 2~3단</div></div>
+            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">20~30호</div></div>
+            <div class="spec-item"><div class="s-lbl">포인트</div><div class="s-val">집어등 경계선</div></div>
           </div>
           <div class="tackle-tip">시판 완성 채비가 편리. 입질은 로드 끝 떨림으로 확인. 집어등 불빛 경계선을 집중 공략하세요.</div>
+        </div>
+
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🎨</span><div><div class="t-name">슷테·이카메탈 색상 가이드</div><div class="t-sub">시간·수심·활성도별</div></div></div>
+          <div style="padding:2px 0;"><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🔴</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">핫핑크·레드</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">기본 필수 색상 / 야간 특히 효과적</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🟡</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">골드·오렌지</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">흐린 날 · 탁한 물 · 조황 부진 시</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">⚪</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">화이트·야광</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">야간 집어등 주변 / 심야 시간대</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🔵</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">블루·퍼플</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">새벽·해질녘 · 맑은 물</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🟢</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">그린야광</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">달 없는 밤 · 깊은 수심</div></div></div></div>
         </div>
       </div>
 
@@ -1018,14 +1033,19 @@ ul, ol { list-style: none; }
         <div class="tackle-card">
           <div class="t-header"><span class="t-icon">🎣</span><div><div class="t-name">주꾸미 기본 채비</div><div class="t-sub">선상·방파제 공통</div></div></div>
           <div class="tackle-spec">
-            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">에깅로드 7~8ft 또는 루어대</div></div>
-            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">스피닝릴 2500~3000</div></div>
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">에깅로드 7~8ft</div></div>
+            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">스피닝 3000</div></div>
             <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 0.6~1호</div></div>
-            <div class="spec-item"><div class="s-lbl">쇼크리더</div><div class="s-val">플루오로 1.5~2.5호</div></div>
-            <div class="spec-item"><div class="s-lbl">에기</div><div class="s-val">주꾸미에기 2~2.5호</div></div>
-            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">10~20호 (수심별)</div></div>
+            <div class="spec-item"><div class="s-lbl">쇼크리더</div><div class="s-val">플루오로 2호</div></div>
+            <div class="spec-item"><div class="s-lbl">에기</div><div class="s-val">주꾸미에기 2.5호</div></div>
+            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">10~20호</div></div>
           </div>
           <div class="tackle-tip">주꾸미는 초보자도 쉽게 할 수 있습니다. 바닥 착저 후 천천히 들어올리면 무거운 느낌이 나는데 그게 주꾸미가 달린 것입니다. 급하게 당기지 마세요!</div>
+        </div>
+
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🎨</span><div><div class="t-name">주꾸미 에기 색상 가이드</div><div class="t-sub">계절·날씨·수심별</div></div></div>
+          <div style="padding:2px 0;"><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🔴</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">레드·오렌지</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">가을 시즌 기본 / 가장 반응 좋음</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🟡</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">골드·형광</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">흐린 날 · 탁한 물</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">⚪</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">야광·화이트</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">야간 낚시 · 깊은 수심</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🔵</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">블루·퍼플</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">맑은 물 · 햇빛 강한 낮</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🟤</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">브라운·자연색</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">교란당한 포인트 · 프레셔 높을 때</div></div></div></div>
         </div>
       </div>
 
@@ -1033,12 +1053,12 @@ ul, ol { list-style: none; }
         <div class="tackle-card">
           <div class="t-header"><span class="t-icon">🎣</span><div><div class="t-name">무늬오징어 에깅 채비</div><div class="t-sub">갯바위·선상 에깅</div></div></div>
           <div class="tackle-spec">
-            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">에깅 전용 8.6~9.6ft</div></div>
-            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">스피닝릴 2500~3000</div></div>
-            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 0.6~0.8호</div></div>
-            <div class="spec-item"><div class="s-lbl">쇼크리더</div><div class="s-val">플루오로 2~3호 (50~80cm)</div></div>
-            <div class="spec-item"><div class="s-lbl">에기</div><div class="s-val">3.5호 기준 (봄:4호/가을:3~3.5호)</div></div>
-            <div class="spec-item"><div class="s-lbl">색상</div><div class="s-val">핑크/오렌지(기본), 블루(맑은날)</div></div>
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">에깅로드 9ft</div></div>
+            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">스피닝 3000</div></div>
+            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 0.6~0.8</div></div>
+            <div class="spec-item"><div class="s-lbl">쇼크리더</div><div class="s-val">플루오로 2~3호</div></div>
+            <div class="spec-item"><div class="s-lbl">에기</div><div class="s-val">3~3.5호</div></div>
+            <div class="spec-item"><div class="s-lbl">색상</div><div class="s-val">핑크·오렌지·블루</div></div>
           </div>
           <div class="tackle-tip">무늬오징어 에깅은 라인 관리가 핵심. 챔질 후 너무 세게 당기면 찢어집니다. 일정한 텐션을 유지하며 천천히 끌어올리세요.</div>
         </div>
@@ -1058,14 +1078,18 @@ ul, ol { list-style: none; }
         <div class="tackle-card">
           <div class="t-header"><span class="t-icon">🎣</span><div><div class="t-name">갑오징어 쿠레 채비</div><div class="t-sub">선상·방파제</div></div></div>
           <div class="tackle-spec">
-            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">에깅로드 / 루어대 7~8ft</div></div>
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">에깅로드 7~8ft</div></div>
             <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">스피닝릴 3000</div></div>
             <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 0.8~1호</div></div>
             <div class="spec-item"><div class="s-lbl">쇼크리더</div><div class="s-val">플루오로 2~3호</div></div>
-            <div class="spec-item"><div class="s-lbl">채비</div><div class="s-val">갑오징어 전용 쿠레/에기</div></div>
+            <div class="spec-item"><div class="s-lbl">채비</div><div class="s-val">쿠레/에기</div></div>
             <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">15~30호</div></div>
           </div>
           <div class="tackle-tip">갑오징어는 먹물이 많으니 타월과 장갑을 미리 준비하세요. 에기보다 쿠레채비의 반응이 더 좋은 경우가 많습니다.</div>
+        </div>
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🎨</span><div><div class="t-name">쿠레·에기 색상 가이드</div><div class="t-sub">날씨·수온·시간대별</div></div></div>
+          <div style="padding:2px 0;"><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🟢</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">그린·올리브</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">기본 색상 / 연중 안정적</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🔴</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">핑크·오렌지</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">맑은 날 낮 · 수온 높을 때</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">⚪</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">화이트·야광</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">야간 · 흐린 날 · 깊은 수심</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🔵</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">블루·퍼플</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">맑은 물 · 새벽·해질녘</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">⚫</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">검정·다크</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">탁한 물 · 조류 강할 때</div></div></div></div>
         </div>
       </div>
     </section>
@@ -1125,13 +1149,13 @@ ul, ol { list-style: none; }
       <span class="nav-icon">🌤</span>
       <span class="nav-label">날씨/물때</span>
     </button>
+    <button class="nav-btn" data-page="season">
+      <span class="nav-icon">📅</span>
+      <span class="nav-label">시즌/금어기</span>
+    </button>
     <button class="nav-btn" data-page="species">
       <span class="nav-icon">🐙</span>
       <span class="nav-label">어종도감</span>
-    </button>
-    <button class="nav-btn" data-page="method">
-      <span class="nav-icon">🎣</span>
-      <span class="nav-label">낚시방법</span>
     </button>
     <button class="nav-btn" data-page="tackle">
       <span class="nav-icon">⚓</span>
