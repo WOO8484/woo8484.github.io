@@ -633,17 +633,15 @@ ul, ol { list-style: none; }
         <text x="14" y="19" text-anchor="middle" font-size="16" fill="white">🐙</text>
       </svg>
       <span class="logo-text">먹물왕 낚시일지</span>
-    </div>
-    <!-- 버전 배지 (중앙) -->
-    <div id="version-badge" style="
-      position:absolute; left:50%; transform:translateX(-50%);
-      display:flex; align-items:center; gap:4px;
-      background:linear-gradient(135deg,rgba(75,163,204,.15),rgba(26,110,153,.15));
-      border:1px solid rgba(75,163,204,.3);
-      border-radius:20px; padding:3px 10px;">
-      <span style="font-size:9px;font-weight:900;color:var(--ocean);letter-spacing:.5px;">v1.2</span>
-      <span style="width:3px;height:3px;border-radius:50%;background:var(--ocean);opacity:.5;"></span>
-      <span style="font-size:9px;color:var(--muted);font-weight:600;">BETA</span>
+      <div id="version-badge" style="
+        display:flex; align-items:center; gap:3px;
+        background:linear-gradient(135deg,rgba(75,163,204,.15),rgba(26,110,153,.15));
+        border:1px solid rgba(75,163,204,.3);
+        border-radius:20px; padding:2px 7px; margin-left:2px; flex-shrink:0;">
+        <span style="font-size:9px;font-weight:900;color:var(--ocean);letter-spacing:.5px;">v1.3</span>
+        <span style="width:3px;height:3px;border-radius:50%;background:var(--ocean);opacity:.5;"></span>
+        <span style="font-size:9px;color:var(--muted);font-weight:600;">BETA</span>
+      </div>
     </div>
     <div class="weather-badge" id="header-weather">
       <span>🌤</span><span id="hw-text">날씨 로딩중</span>
@@ -845,27 +843,27 @@ ul, ol { list-style: none; }
       <!-- 금어기 정보 -->
       <div class="page-title" style="margin-top:4px">⛔ 금어기 정보</div>
       <div class="prohibited-card">
-        <div class="p-header"><span class="p-icon">🦑</span><span class="p-name">무늬오징어 (흰꼴뚜기)</span></div>
+        <div class="p-header"><span class="p-icon" data-fish="bigfin">🦑</span><span class="p-name">무늬오징어 (흰꼴뚜기)</span></div>
         <span class="p-period">금어기 없음 (연중 가능)</span>
         <div class="p-desc">별도 금어기 없으나 산란기(봄·초여름)에는 자원 보호를 위해 자제 권장</div>
       </div>
       <div class="prohibited-card">
-        <div class="p-header"><span class="p-icon">🐙</span><span class="p-name">문어</span></div>
+        <div class="p-header"><span class="p-icon" data-fish="octopus">🐙</span><span class="p-name">문어</span></div>
         <span class="p-period">금지체장 : 외투장 6cm 미만</span>
         <div class="p-desc">소형 문어는 반드시 방류. 특히 5~7월 산란기에는 자원 보호 동참 권장</div>
       </div>
       <div class="prohibited-card">
-        <div class="p-header"><span class="p-icon">🦐</span><span class="p-name">주꾸미</span></div>
+        <div class="p-header"><span class="p-icon" data-fish="webfoot">🦐</span><span class="p-name">주꾸미</span></div>
         <span class="p-period">금어기 : 5월 11일 ~ 8월 31일</span>
         <div class="p-desc">매년 동일 기간 적용. 위반 시 과태료 부과. 해당 기간 채비 사용 금지</div>
       </div>
       <div class="prohibited-card">
-        <div class="p-header"><span class="p-icon">🏹</span><span class="p-name">화살촉오징어</span></div>
+        <div class="p-header"><span class="p-icon" data-fish="arrow">🏹</span><span class="p-name">화살촉오징어</span></div>
         <span class="p-period">금어기 : 5월 / 몸통 15cm 이하 방류</span>
         <div class="p-desc">5월 한 달 금어기. 6월부터 12월까지 시즌. 15cm 이하 소형 개체는 반드시 방류.</div>
       </div>
       <div class="prohibited-card">
-        <div class="p-header"><span class="p-icon">🦑</span><span class="p-name">살오징어</span></div>
+        <div class="p-header"><span class="p-icon" data-fish="saury">🦑</span><span class="p-name">살오징어</span></div>
         <span class="p-period">금어기 : 4월 1일 ~ 5월 31일</span>
         <div class="p-desc">매년 4~5월 두 달간 금어기. 금어기 종료 후 첫 출조는 최소 두 달 전 예약 권장.</div>
       </div>
@@ -1677,13 +1675,26 @@ const SEASON_DATA = [
   { name:'살오징어',    spId:'saury',      months:[0,0,0,1,1,1,1,1,1,1,0,0] },
 ];
 
-const WEATHER_MOCK = {
-  '거제': { temp:24, desc:'맑음',    wind:'3.2', wave:'0.5', hum:'68', vis:'20', feelslike:23 },
-  '통영': { temp:23, desc:'구름조금', wind:'4.1', wave:'0.7', hum:'72', vis:'15', feelslike:22 },
-  '사천': { temp:23, desc:'흐림',    wind:'5.2', wave:'1.0', hum:'80', vis:'10', feelslike:22 },
-  '부산': { temp:25, desc:'맑음',    wind:'4.5', wave:'0.8', hum:'66', vis:'20', feelslike:24 },
-  '울산': { temp:23, desc:'맑음',    wind:'3.8', wave:'0.6', hum:'64', vis:'22', feelslike:22 },
+const REGION_COORDS = {
+  '거제': { lat: 34.8799, lon: 128.6211 },
+  '통영': { lat: 34.8544, lon: 128.4332 },
+  '사천': { lat: 34.9381, lon: 128.0644 },
+  '부산': { lat: 35.1796, lon: 129.0756 },
+  '울산': { lat: 35.5384, lon: 129.3114 },
 };
+const _wxCache = {};
+function _wmoToDesc(code) {
+  if (code === 0) return '맑음';
+  if (code <= 2) return '구름조금';
+  if (code === 3) return '흐림';
+  if (code <= 49) return '안개';
+  if (code <= 59) return '이슬비';
+  if (code <= 69) return '비';
+  if (code <= 79) return '눈';
+  if (code <= 82) return '소나기';
+  if (code <= 99) return '뇌우';
+  return '알수없음';
+}
 
 const TIDE_MOCK = {
   '거제': { cur:'320cm', type:'7', fish:'⭐⭐⭐ 좋음', high:'06:42', low:'12:38', sun:'05:22', set:'19:48' },
@@ -1726,10 +1737,48 @@ function navigate(page) {
   currentPage = page;
 }
 
-function updateWeather(region) {
-  const w = WEATHER_MOCK[region] || WEATHER_MOCK['거제'];
+async function updateWeather(region) {
   const t = TIDE_MOCK[region] || TIDE_MOCK['거제'];
   document.getElementById('w-region-name').textContent = '📍 ' + region;
+  document.getElementById('t-cur').textContent = t.cur;
+  document.getElementById('t-type').textContent = t.type + '물';
+  document.getElementById('t-fish').textContent = t.fish;
+  document.getElementById('t-high').textContent = t.high;
+  document.getElementById('t-low').textContent = t.low;
+  document.getElementById('t-sun').textContent = t.sun;
+  document.getElementById('t-set').textContent = t.set;
+  const now = Date.now();
+  if (_wxCache[region] && (now - _wxCache[region].ts) < 5 * 60 * 1000) {
+    _applyWeatherUI(region, _wxCache[region].data); return;
+  }
+  document.getElementById('w-temp').textContent = '--°';
+  document.getElementById('w-desc').textContent = '불러오는 중…';
+  document.getElementById('hw-text').textContent = region + ' 로딩중';
+  const { lat, lon } = REGION_COORDS[region] || REGION_COORDS['거제'];
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
+    + `&current=temperature_2m,apparent_temperature,weathercode,windspeed_10m,relativehumidity_2m,visibility,wave_height`
+    + `&wind_speed_unit=ms&timezone=Asia%2FSeoul`;
+  try {
+    const res = await fetch(url);
+    const json = await res.json();
+    const c = json.current;
+    const data = {
+      temp: Math.round(c.temperature_2m),
+      feelslike: Math.round(c.apparent_temperature),
+      desc: _wmoToDesc(c.weathercode),
+      wind: c.windspeed_10m != null ? c.windspeed_10m.toFixed(1) : '--',
+      wave: c.wave_height != null ? c.wave_height.toFixed(1) : '--',
+      hum: c.relativehumidity_2m != null ? Math.round(c.relativehumidity_2m) : '--',
+      vis: c.visibility != null ? (c.visibility / 1000).toFixed(0) : '--',
+    };
+    _wxCache[region] = { ts: now, data };
+    _applyWeatherUI(region, data);
+  } catch(e) {
+    document.getElementById('w-desc').textContent = '날씨 오류';
+    document.getElementById('hw-text').textContent = region + ' 날씨 오류';
+  }
+}
+function _applyWeatherUI(region, w) {
   document.getElementById('w-temp').textContent = w.temp + '°';
   document.getElementById('w-desc').textContent = w.desc;
   document.getElementById('w-feelslike').textContent = '체감 ' + w.feelslike + '°';
@@ -1738,13 +1787,6 @@ function updateWeather(region) {
   document.getElementById('w-hum').textContent = w.hum + ' %';
   document.getElementById('w-vis').textContent = w.vis + ' km';
   document.getElementById('hw-text').textContent = region + ' ' + w.temp + '° ' + w.desc;
-  document.getElementById('t-cur').textContent = t.cur;
-  document.getElementById('t-type').textContent = t.type + '물';
-  document.getElementById('t-fish').textContent = t.fish;
-  document.getElementById('t-high').textContent = t.high;
-  document.getElementById('t-low').textContent = t.low;
-  document.getElementById('t-sun').textContent = t.sun;
-  document.getElementById('t-set').textContent = t.set;
 }
 
 function buildSeasonStrip() {
@@ -1944,15 +1986,16 @@ function buildWalkSpots() {
   const list = document.getElementById('walk-spots-list');
   list.innerHTML = '';
   WALK_SPOTS.forEach(s => {
+    const fishTags = s.fish.map(f =>
+      `<span class="ws-tag">${getFishIconHtml(f, 18)} ${f}</span>`
+    ).join('');
     list.innerHTML += `
       <div class="walk-spot">
         <div class="ws-header">
           <span class="ws-icon">${s.icon}</span>
           <div><div class="ws-name">${s.name}</div><div class="ws-region">${s.region}</div></div>
         </div>
-        <div class="ws-tags">
-          ${s.fish.map(f => `<span class="ws-tag">🎣 ${f}</span>`).join('')}
-        </div>
+        <div class="ws-tags">${fishTags}</div>
         <div class="ws-desc">${s.desc}</div>
       </div>`;
   });
@@ -2035,7 +2078,9 @@ document.getElementById('region-selector').addEventListener('click', e => {
       var form = document.getElementById('add-point-form');
       var opening = (form.style.display === 'none' || form.style.display === '');
       form.style.display = opening ? 'block' : 'none';
-      if (opening) initPickMap();
+      if (opening) {
+        setTimeout(function() { initPickMap(); }, 50);
+      }
     });
 
     // 취소
@@ -2067,7 +2112,10 @@ document.getElementById('region-selector').addEventListener('click', e => {
 
   // ── Leaflet 지도 초기화 ──────────────────────────────────────────────
   function initPickMap() {
-    if (pickMap) { pickMap.invalidateSize(); return; }
+    if (pickMap) {
+      setTimeout(function() { pickMap.invalidateSize(); }, 50);
+      return;
+    }
 
     pickMap = L.map('leaflet-pick-map', { zoomControl: true, attributionControl: false })
       .setView([34.95, 128.5], 8);
@@ -2394,6 +2442,76 @@ function buildTackleTabs() {
   });
 }
 
+// ============================================================
+// 어종 SVG 아이콘 헬퍼 & 패치 함수
+// ============================================================
+
+const FISH_NAME_TO_ID = {
+  '문어':        'octopus',
+  '한치':        'squid-han',
+  '주꾸미':      'webfoot',
+  '무늬오징어':  'bigfin',
+  '갑오징어':    'cuttlefish',
+  '화살촉오징어':'arrow',
+  '화살촉':      'arrow',
+  '살오징어':    'saury',
+};
+
+function getFishIconHtml(fishName, size) {
+  size = size || 20;
+  const id = FISH_NAME_TO_ID[fishName];
+  const sp = id ? SPECIES_DATA.find(s => s.id === id) : null;
+  if (!sp) return '<span style="font-size:' + size + 'px">🎣</span>';
+  return '<span style="display:inline-block;width:' + size + 'px;height:' + size + 'px;vertical-align:middle;">' + getSvg(sp) + '</span>';
+}
+
+// 채비 카드 t-icon → 어종 SVG 교체
+function patchTackleCardIcons() {
+  const MAP = {
+    '문어':        'octopus',
+    '한치':        'squid-han',
+    '주꾸미':      'webfoot',
+    '무늬':        'bigfin',
+    '갑오징어':    'cuttlefish',
+    '화살촉오징어':'arrow',
+    '살오징어':    'saury',
+  };
+  Object.entries(MAP).forEach(function(entry) {
+    const key = entry[0], spId = entry[1];
+    const panel = document.getElementById('tp-' + key);
+    if (!panel) return;
+    const sp = SPECIES_DATA.find(function(s) { return s.id === spId; });
+    if (!sp) return;
+    panel.querySelectorAll('.tackle-card').forEach(function(card) {
+      const tName = card.querySelector('.t-name');
+      if (!tName || tName.textContent.includes('색상 가이드')) return;
+      const iconEl = card.querySelector('.t-icon');
+      if (!iconEl) return;
+      iconEl.style.fontSize = '';
+      iconEl.style.width = '32px';
+      iconEl.style.height = '32px';
+      iconEl.style.display = 'inline-block';
+      iconEl.style.verticalAlign = 'middle';
+      iconEl.innerHTML = getSvg(sp);
+    });
+  });
+}
+
+// 금어기 카드 p-icon → 어종 SVG 교체
+function patchProhibitedCardIcons() {
+  document.querySelectorAll('.p-icon[data-fish]').forEach(function(el) {
+    const sp = SPECIES_DATA.find(function(s) { return s.id === el.dataset.fish; });
+    if (!sp) return;
+    el.style.fontSize = '';
+    el.style.width = '28px';
+    el.style.height = '28px';
+    el.style.display = 'inline-block';
+    el.style.verticalAlign = 'middle';
+    el.textContent = '';
+    el.innerHTML = getSvg(sp);
+  });
+}
+
 // Info tabs
 document.querySelectorAll('.info-tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -2429,6 +2547,8 @@ document.getElementById('species-modal').addEventListener('click', e => {
   buildSeasonCal();
   buildSpeciesGrid();
   buildTackleTabs();
+  patchTackleCardIcons();
+  patchProhibitedCardIcons();
   buildKnots();
   buildBoats();
   buildWalkSpots();
