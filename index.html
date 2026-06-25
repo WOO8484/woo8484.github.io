@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>🎣 경남·울산 낚시정보</title>
+<title>🐙 먹물왕 낚시일지</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
@@ -251,10 +251,12 @@ ul, ol { list-style: none; }
 
 /* Species Detail Modal */
 .modal-overlay {
-  display: none; position: fixed; inset: 0;
+  display: none; position: fixed;
+  top: 0; bottom: 0;
+  left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px;
   background: rgba(26,110,153,0.35); z-index: 200;
   align-items: flex-end; justify-content: center;
-  max-width: 480px; left: 50%; transform: translateX(-50%);
 }
 .modal-overlay.open { display: flex; }
 .modal-sheet {
@@ -621,9 +623,9 @@ ul, ol { list-style: none; }
     <div class="logo">
       <svg width="28" height="28" viewBox="0 0 28 28">
         <circle cx="14" cy="14" r="14" fill="#4BA3CC"/>
-        <text x="14" y="19" text-anchor="middle" font-size="16" fill="white">🎣</text>
+        <text x="14" y="19" text-anchor="middle" font-size="16" fill="white">🐙</text>
       </svg>
-      <span class="logo-text">경남·울산 낚시</span>
+      <span class="logo-text">먹물왕 낚시일지</span>
     </div>
     <div class="weather-badge" id="header-weather">
       <span>🌤</span><span id="hw-text">날씨 로딩중</span>
@@ -858,18 +860,46 @@ ul, ol { list-style: none; }
       </div>
 
       <div class="tackle-panel" id="tp-한치">
+
         <div class="tackle-card">
-          <div class="t-header"><span class="t-icon">🎣</span><div><div class="t-name">한치 선상 야간 채비</div><div class="t-sub">선상 야간낚시</div></div></div>
+          <div class="t-header"><span class="t-icon">🦑</span><div><div class="t-name">한치 오모리그 채비</div><div class="t-sub">선상낚시 · 가장 기본</div></div></div>
           <div class="tackle-spec">
-            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">에깅로드 8~9ft</div></div>
-            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">스피닝릴 3000</div></div>
-            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 0.6~0.8호</div></div>
-            <div class="spec-item"><div class="s-lbl">쇼크리더</div><div class="s-val">플루오로 2~3호</div></div>
-            <div class="spec-item"><div class="s-lbl">에기</div><div class="s-val">한치에기 2.5~3호</div></div>
-            <div class="spec-item"><div class="s-lbl">색상</div><div class="s-val">야광·핑크·주황</div></div>
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">한치 전용 오모리로드 2.1m (L~ML)</div></div>
+            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">수심카운터 소형 베이트릴 (필수!)</div></div>
+            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 합사 0.6~1호 (5색 마킹 추천)</div></div>
+            <div class="spec-item"><div class="s-lbl">목줄</div><div class="s-val">카본(플루오로) 3호</div></div>
+            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">오모리그 봉돌 20~30호 (형광/축광)</div></div>
+            <div class="spec-item"><div class="s-lbl">슷테/에기</div><div class="s-val">한치 전용 슷테 2~3단 (화려한 축광)</div></div>
           </div>
-          <div class="tackle-tip">한치는 야간 집어등 주변을 공략합니다. 에기는 야광이나 반짝이는 색상이 효과적. 빠른 저킹보다 중간 속도로 끊어당기세요.</div>
+          <div class="tackle-tip">수심 파악이 핵심! 수심 카운터 없는 릴은 5색 합사+마킹 필수. 슷테는 바늘이 얇고 촘촘한 한치 전용으로 준비하세요. 색상보다 바늘 품질이 더 중요합니다.</div>
         </div>
+
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">⚡</span><div><div class="t-name">이카메탈 채비</div><div class="t-sub">선상 수직지깅 · 빠른 수심 탐색</div></div></div>
+          <div class="tackle-spec">
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">이카메탈 전용 베이트로드 2.1m</div></div>
+            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">소형 베이트릴 또는 경량 전동릴</div></div>
+            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 합사 0.8~1호</div></div>
+            <div class="spec-item"><div class="s-lbl">이카메탈</div><div class="s-val">80~120g (화려한 축광 메탈 추천)</div></div>
+            <div class="spec-item"><div class="s-lbl">슷테</div><div class="s-val">2~3단 한치 전용 (핫핑크·야광·금색)</div></div>
+            <div class="spec-item"><div class="s-lbl">공략 수심</div><div class="s-val">10~40m (활성도에 따라 부상)</div></div>
+          </div>
+          <div class="tackle-tip">이카메탈은 봉돌+루어 겸용. 80~120g 기본이지만 한치 활성도와 조류에 따라 다양한 무게 준비 권장. 야간에는 야광 슷테 필수!</div>
+        </div>
+
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🌙</span><div><div class="t-name">야간 다단 거치 채비</div><div class="t-sub">선상 집어등 주변 · 마릿수 공략</div></div></div>
+          <div class="tackle-spec">
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">한치 거치용 로드 2.1m (L~UL)</div></div>
+            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">소형 전동릴 (편의성 최고)</div></div>
+            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 합사 0.6~1호</div></div>
+            <div class="spec-item"><div class="s-lbl">채비</div><div class="s-val">시판용 2~3단 이카메탈 채비</div></div>
+            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">20~30호 슬림 롱타입 (밑걸림 최소화)</div></div>
+            <div class="spec-item"><div class="s-lbl">포인트</div><div class="s-val">집어등 빛/어둠 경계선 주변</div></div>
+          </div>
+          <div class="tackle-tip">시판 완성 채비가 편리. 입질은 로드 끝 떨림으로 확인. 전동릴 사용 시 마릿수 폭발 기대! 집어등 불빛과 어둠의 경계선을 집중 공략하세요.</div>
+        </div>
+
       </div>
 
       <div class="tackle-panel" id="tp-주꾸미">
