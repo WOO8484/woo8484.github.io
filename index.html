@@ -46,6 +46,11 @@
     --safe-right: env(safe-area-inset-right);
   }
 
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
   body {
     font-family: 'Noto Sans KR', system-ui, -apple-system, sans-serif;
     overflow-x: hidden;
@@ -60,6 +65,8 @@
     box-shadow: 0 0 20px rgba(0,0,0,0.05);
     padding-left: var(--safe-left);
     padding-right: var(--safe-right);
+    overflow-x: hidden;
+    width: 100%;
   }
 
   .section { display: none; }
@@ -166,7 +173,7 @@
         </div>
         <div>
           <h1 class="text-[22px] font-bold tracking-tighter text-slate-900">두낚이</h1>
-          <p class="text-[10px] text-sky-600 font-medium -mt-1">두족류 낚시 가이드 v1.5</p>
+          <p class="text-[10px] text-sky-600 font-medium -mt-1">두족류 낚시 가이드 v1.6</p>
         </div>
       </div>
       <button id="install-btn" onclick="installPWA()"
@@ -307,7 +314,7 @@
 
   <!-- Bottom Navigation -->
   <div class="fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto bg-white border-t z-50 bottom-nav">
-    <div class="grid grid-cols-5 text-center py-1">
+    <div class="grid grid-cols-6 text-center py-1">
       <div onclick="showPage('page-home')" class="nav-item flex flex-col items-center justify-center py-2 cursor-pointer" data-page="page-home">
         <span class="text-2xl">🏠</span>
         <span class="nav-label text-[10px] text-slate-500 mt-0.5">홈</span>
@@ -327,6 +334,10 @@
       <div onclick="showPage('page-log')" class="nav-item flex flex-col items-center justify-center py-2 cursor-pointer" data-page="page-log">
         <span class="text-2xl">📖</span>
         <span class="nav-label text-[10px] text-slate-500 mt-0.5">기록</span>
+      </div>
+      <div onclick="showPage('page-charter')" class="nav-item flex flex-col items-center justify-center py-2 cursor-pointer" data-page="page-charter">
+        <span class="text-2xl">⚓</span>
+        <span class="nav-label text-[10px] text-slate-500 mt-0.5">선사</span>
       </div>
     </div>
   </div>
@@ -519,6 +530,50 @@
       { id: "allbright", name: "올브라이트 변형", use: "봉돌과 에기를 분리하는 가짓줄 채비에 유용", difficulty: "보통",
         youtube: "https://www.youtube.com/watch?v=LcWZBpxJXNw",
         steps: ["메인라인에 작은 고리 만들기", "리더를 고리에 통과 후 여러 번 감음", "강하게 조여 고정", "에기와 봉돌 각각 연결"] }
+    ],
+
+    // 선사 데이터
+    charters: [
+      { id: 1, name: '여수 오션킹호', region: '여수', port: '국동항',
+        species: ['주꾸미', '갑오징어', '문어'],
+        phone: '010-6410-5705', fee: '5만원~',
+        url: 'http://ocking.sunsang24.com/',
+        desc: '여수 국동항 출항. 주꾸미·갑오징어 전문 선사. 할인 선비 상시 운영.' },
+      { id: 2, name: '여수 베테랑피싱', region: '여수', port: '국동항',
+        species: ['갑오징어', '한치', '문어', '주꾸미'],
+        phone: '010-8641-1999', fee: '10만원~',
+        url: 'https://veteranfishing.sunsang24.com/',
+        desc: '먼바다 갑오징어·한치 전문. 도시락·아침·점심 제공. 자리배정 추첨제.' },
+      { id: 3, name: '삼천포 에코피싱', region: '삼천포', port: '팔포항',
+        species: ['갑오징어', '문어', '주꾸미'],
+        phone: '010-9567-6605', fee: '5~10만원',
+        url: 'http://ecofishing.sunsang24.com/',
+        desc: '삼천포 팔포항. 내만·원도권 갑오징어·문어 전문. 신용카드 현장결제 가능.' },
+      { id: 4, name: '삼천포 한솔피싱', region: '삼천포', port: '팔포항',
+        species: ['갑오징어', '문어', '주꾸미', '뽈락'],
+        phone: '010-5042-8878', fee: '문의',
+        url: 'https://xn--im4b0yn51bvd.com/',
+        desc: '삼천포 팔포항. 2021년 신조선. 문어·갑오징어·주꾸미 복합 출조.' },
+      { id: 5, name: '통영 유림호', region: '통영', port: '미수항',
+        species: ['문어', '갑오징어', '주꾸미'],
+        phone: '010-9347-2635', fee: '10만원~',
+        url: 'https://yurimho.sunsang24.com/',
+        desc: '통영 미수항 출항. 문어·삼천포권 복합 출조 가능.' },
+      { id: 6, name: '통영 조은호', region: '통영', port: '도산항',
+        species: ['갑오징어', '문어', '무늬오징어'],
+        phone: '010-5436-8517', fee: '10만원~',
+        url: 'https://www.fishapp.co.kr/wf/B0001095TF',
+        desc: '통영 도산항. 고성IC·북통영IC에서 10분. 갑오징어·돌문어·무늬오징어 전문.' },
+      { id: 7, name: '인천 우리바다낚시', region: '인천', port: '연안부두',
+        species: ['주꾸미', '갑오징어', '광어', '우럭'],
+        phone: '032-888-6060', fee: '5만원~',
+        url: 'https://www.woorinaksi.com/',
+        desc: '인천 연안부두. 우리바다호·제우스호 운영. 주꾸미·갑오징어 시즌 전문.' },
+      { id: 8, name: '인천 칸피싱', region: '인천', port: '연안부두',
+        species: ['주꾸미', '갑오징어', '광어', '참돔'],
+        phone: '010-6297-7474', fee: '문의',
+        url: 'https://khanfishing.com/',
+        desc: '인천 연안부두. 루어·침선·생활낚시 전문. 다양한 어종 출조 가능.' }
     ]
   };
 
@@ -560,6 +615,7 @@
     if (pageId === 'page-log')     renderLog();
     if (pageId === 'page-species') renderSpecies();
     if (pageId === 'page-spots')   renderSpots();
+    if (pageId === 'page-charter') renderCharters();
   }
 
   // ==================== 검색 ====================
@@ -1085,6 +1141,7 @@
     renderSpots();
     renderLog();
     renderTodayRecommend();
+    renderCharters();
 
     setTimeout(() => { updateTideInfo(); }, 300);
 
