@@ -711,19 +711,56 @@ ul, ol { list-style: none; }
           <!-- 포인트 버튼 목록 -->
           <div id="quick-pins" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
 
-          <!-- 날씨 테이블 (Open-Meteo) -->
-          <!-- Windy iframe -->
-          <div id="windy-frame-wrap" style="display:none;">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-              <div style="font-size:12px;font-weight:700;color:var(--deep);" id="windy-pt-label">📍</div>
-              <button id="open-windy-ext"
-                style="padding:5px 12px;border-radius:12px;background:var(--ocean);
-                       color:#fff;font-size:11px;font-weight:700;">🌬 앱으로 열기</button>
+          <!-- 날씨 패널 -->
+          <div id="wx-panel" style="display:none;">
+
+            <!-- 포인트명 + 🐙 Windy 버튼 -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <div style="font-size:13px;font-weight:700;color:var(--deep);" id="wx-pt-title">📍</div>
+              <button id="open-windy-ext" style="
+                display:flex;align-items:center;gap:5px;
+                padding:6px 12px;border-radius:20px;
+                background:linear-gradient(135deg,#1a3a5c,#0a7abf);
+                color:#fff;font-size:11px;font-weight:700;
+                box-shadow:0 2px 8px rgba(10,122,191,.35);
+                border:1px solid rgba(255,255,255,.15);">
+                <svg width="16" height="16" viewBox="0 0 32 32" fill="none">
+                  <!-- 🐙 먹물왕 미니 아이콘 -->
+                  <circle cx="16" cy="12" r="8" fill="#4BA3CC"/>
+                  <ellipse cx="13" cy="11" rx="2" ry="2.5" fill="white"/>
+                  <ellipse cx="19" cy="11" rx="2" ry="2.5" fill="white"/>
+                  <circle cx="13" cy="11.5" r="1" fill="#1a3a5c"/>
+                  <circle cx="19" cy="11.5" r="1" fill="#1a3a5c"/>
+                  <!-- 바람선 -->
+                  <path d="M6 20 Q10 17 14 20 Q18 23 22 20 Q26 17 28 19" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                  <path d="M4 24 Q9 21 13 24 Q17 27 22 24 Q26 21 29 23" stroke="white" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".7"/>
+                </svg>
+                Windy 보기
+              </button>
             </div>
-            <iframe id="windy-iframe"
-              style="width:100%;height:550px;border-radius:var(--radius-sm);
-                     border:1.5px solid var(--border);display:block;"
-              frameborder="0" src="about:blank"></iframe>
+
+            <!-- 현재 날씨 요약 -->
+            <div id="wx-now-card" style="
+              display:flex;align-items:center;gap:12px;
+              background:linear-gradient(135deg,var(--deep),var(--ocean));
+              border-radius:var(--radius-sm);padding:12px 14px;
+              color:#fff;margin-bottom:10px;">
+              <div style="font-size:40px;line-height:1;" id="wx-now-icon">⏳</div>
+              <div style="flex:1;">
+                <div style="font-size:26px;font-weight:900;line-height:1;" id="wx-now-temp">--°</div>
+                <div style="font-size:11px;opacity:.8;margin-top:2px;" id="wx-now-desc">불러오는 중…</div>
+              </div>
+              <div style="text-align:right;font-size:11px;line-height:2;opacity:.9;" id="wx-now-extra"></div>
+            </div>
+
+            <!-- 시간별 테이블 -->
+            <div style="background:var(--foam);border-radius:var(--radius-sm);border:1px solid var(--border);overflow:hidden;">
+              <div id="wx-date-hdr" style="display:grid;background:#eef4f9;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--deep);"></div>
+              <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;">
+                <table id="wx-tbl" style="width:max-content;min-width:100%;border-collapse:collapse;"></table>
+              </div>
+            </div>
+
           </div>
 
         </div>
@@ -1976,25 +2013,188 @@ document.getElementById('region-selector').addEventListener('click', e => {
 
   // ── Windy embed ──────────────────────────────────────────────────────
   function selectPoint(pt) {
-    var embed = 'https://embed.windy.com/embed2.html'
-      + '?lat='       + pt.lat.toFixed(3)
-      + '&lon='       + pt.lon.toFixed(3)
-      + '&detailLat=' + pt.lat.toFixed(3)
-      + '&detailLon=' + pt.lon.toFixed(3)
-      + '&width=650&height=550&zoom=10'
-      + '&level=surface&overlay=wind&product=ecmwf'
-      + '&menu=&message=true&marker=true&calendar=now'
-      + '&pressure=true&type=map&location=coordinates'
-      + '&detail=true&metricWind=m%2Fs&metricTemp=%C2%B0C&radarRange=-1';
-    document.getElementById('windy-iframe').src = embed;
-    document.getElementById('windy-frame-wrap').style.display = 'block';
-    document.getElementById('windy-pt-label').textContent = '📍 ' + pt.name;
-    var ext = 'https://www.windy.com/'
+    document.getElementById('wx-panel').style.display = 'block';
+    document.getElementById('wx-pt-title').textContent = '📍 ' + pt.name;
+
+    // 🐙 Windy 버튼 링크
+    var windyUrl = 'https://www.windy.com/'
       + pt.lat.toFixed(3) + '/' + pt.lon.toFixed(3)
       + '?wind,' + pt.lat.toFixed(2) + ',' + pt.lon.toFixed(2) + ',10';
     document.getElementById('open-windy-ext').onclick = function() {
-      window.open(ext, '_blank');
+      window.open(windyUrl, '_blank');
     };
+
+    fetchWx(pt.lat, pt.lon);
+  }
+
+  async function fetchWx(lat, lon) {
+    document.getElementById('wx-now-icon').textContent = '⏳';
+    document.getElementById('wx-now-temp').textContent = '--°';
+    document.getElementById('wx-now-desc').textContent = '불러오는 중…';
+    document.getElementById('wx-now-extra').innerHTML = '';
+    document.getElementById('wx-tbl').innerHTML = '';
+    document.getElementById('wx-date-hdr').innerHTML = '';
+
+    try {
+      var res = await fetch(
+        'https://api.open-meteo.com/v1/forecast'
+        + '?latitude='  + lat.toFixed(4)
+        + '&longitude=' + lon.toFixed(4)
+        + '&current=temperature_2m,apparent_temperature,weather_code,'
+        + 'wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation'
+        + '&hourly=temperature_2m,precipitation,wind_speed_10m,wind_gusts_10m,'
+        + 'wind_direction_10m,weather_code,wave_height'
+        + '&wind_speed_unit=ms&forecast_days=3&timezone=Asia%2FSeoul'
+      );
+      if (!res.ok) throw new Error(res.status);
+      var d = await res.json();
+      var c = d.current;
+      var wd = wmo(c.weather_code);
+
+      // 현재 날씨 요약
+      document.getElementById('wx-now-icon').textContent = wd.i;
+      document.getElementById('wx-now-temp').textContent = c.temperature_2m + '°C';
+      document.getElementById('wx-now-desc').textContent = wd.t;
+      document.getElementById('wx-now-extra').innerHTML =
+        '💨 ' + c.wind_speed_10m + ' m/s ' + dir(c.wind_direction_10m) + '<br>'
+        + '💥 돌풍 ' + c.wind_gusts_10m + ' m/s<br>'
+        + '🌡 체감 ' + c.apparent_temperature + '°C'
+        + (c.precipitation > 0 ? '<br>🌧 ' + c.precipitation + ' mm' : '');
+
+      // 시간별 데이터
+      var times  = d.hourly.time;
+      var TEMPS  = d.hourly.temperature_2m;
+      var PREC   = d.hourly.precipitation;
+      var WIND   = d.hourly.wind_speed_10m;
+      var GUST   = d.hourly.wind_gusts_10m;
+      var WDIR   = d.hourly.wind_direction_10m;
+      var WC     = d.hourly.weather_code;
+      var WAVE   = d.hourly.wave_height;
+
+      // 3시간 간격 슬롯
+      var slots = [];
+      for (var i = 0; i < times.length && slots.length < 18; i++) {
+        if (new Date(times[i]).getHours() % 3 === 0) slots.push(i);
+      }
+
+      // 날짜 헤더
+      var dateMap = {}, dateOrder = [];
+      slots.forEach(function(idx) {
+        var dt = new Date(times[idx]);
+        var key = ['일','월','화','수','목','금','토'][dt.getDay()]
+          + ' ' + (dt.getMonth()+1) + '/' + dt.getDate();
+        if (!dateMap[key]) { dateMap[key] = 0; dateOrder.push(key); }
+        dateMap[key]++;
+      });
+      var hdr = document.getElementById('wx-date-hdr');
+      hdr.style.gridTemplateColumns = '50px repeat(' + slots.length + ', 38px)';
+      var hdrHtml = '<div style="padding:5px 4px;"></div>';
+      dateOrder.forEach(function(k) {
+        hdrHtml += '<div style="grid-column:span ' + dateMap[k] + ';padding:5px 2px;'
+          + 'text-align:center;border-left:1px solid var(--border);">' + k + '</div>';
+      });
+      hdr.innerHTML = hdrHtml;
+
+      // 바람 색상
+      function wc(v) {
+        return v>=14?'#c62828':v>=10?'#e65100':v>=7?'#f57f17':v>=4?'#2e7d32':'#0277bd';
+      }
+      function wbg(v) {
+        return v>=14?'rgba(198,40,40,.13)':v>=10?'rgba(230,81,0,.11)':
+               v>=7?'rgba(245,127,23,.11)':v>=4?'rgba(46,125,50,.09)':'rgba(2,119,189,.09)';
+      }
+      // 파고 색상
+      function wavec(v) {
+        return v>=2?'#c62828':v>=1?'#e65100':v>=0.5?'#f57f17':'#0277bd';
+      }
+      // 기온 색상
+      function tempc(t) {
+        var r = Math.round(Math.min(Math.max((t-10)/20,0),1)*220);
+        return 'rgb('+r+',80,'+(220-r)+')';
+      }
+      // 풍향 화살표
+      function wdarr(deg) {
+        return ['↓','↙','←','↖','↑','↗','→','↘'][Math.round(deg/45)%8];
+      }
+
+      var LBL = 'position:sticky;left:0;background:var(--foam);z-index:2;'
+        + 'padding:5px 6px;font-size:10px;font-weight:700;color:var(--muted);'
+        + 'white-space:nowrap;border-right:1px solid var(--border);min-width:50px;'
+        + 'border-bottom:1px solid var(--border);';
+      var CELL = 'padding:5px 2px;text-align:center;font-size:11px;font-weight:700;'
+        + 'width:38px;border-left:1px solid #eef4f9;border-bottom:1px solid var(--border);';
+
+      var ROWS = [
+        { l:'시간', k:'time' },
+        { l:'날씨', k:'icon' },
+        { l:'기온°C', k:'temp' },
+        { l:'비 mm', k:'prec' },
+        { l:'바람 m/s', k:'wind' },
+        { l:'돌풍 m/s', k:'gust' },
+        { l:'파고 m', k:'wave' },
+        { l:'풍향', k:'wdir' },
+      ];
+
+      var tbody = '';
+      ROWS.forEach(function(row) {
+        tbody += '<tr>';
+        tbody += '<td style="' + LBL + '">' + row.l + '</td>';
+        slots.forEach(function(idx) {
+          var dt = new Date(times[idx]);
+          var h = dt.getHours();
+          var isNight = h < 6 || h >= 21;
+          var style = CELL + (isNight ? 'background:#f8f9fc;' : '');
+          var cell = '';
+
+          if (row.k === 'time') {
+            cell = '<span style="font-size:10px;font-weight:900;color:'+(isNight?'#7986cb':'var(--deep)')+';">' + h + '시</span>';
+          } else if (row.k === 'icon') {
+            cell = '<span style="font-size:15px;">' + wmo(WC[idx]).i + '</span>';
+          } else if (row.k === 'temp') {
+            cell = '<span style="color:' + tempc(TEMPS[idx]) + ';">' + TEMPS[idx] + '°</span>';
+          } else if (row.k === 'prec') {
+            var p = PREC[idx];
+            cell = p > 0
+              ? '<span style="color:#1565c0;font-size:10px;">' + p.toFixed(1) + '</span>'
+              : '<span style="color:#cfd8dc;">—</span>';
+          } else if (row.k === 'wind') {
+            var w = WIND[idx];
+            style += 'background:' + wbg(w) + ';';
+            cell = '<span style="color:' + wc(w) + ';">' + w.toFixed(1) + '</span>';
+          } else if (row.k === 'gust') {
+            var g = GUST[idx];
+            style += 'background:' + wbg(g) + ';';
+            cell = '<span style="color:' + wc(g) + ';">' + g.toFixed(1) + '</span>';
+          } else if (row.k === 'wave') {
+            var wv = WAVE ? WAVE[idx] : null;
+            cell = wv != null
+              ? '<span style="color:' + wavec(wv) + ';">' + wv.toFixed(1) + '</span>'
+              : '<span style="color:#cfd8dc;">—</span>';
+          } else if (row.k === 'wdir') {
+            cell = '<span style="font-size:15px;color:var(--deep);" title="' + WDIR[idx] + '°">'
+              + wdarr(WDIR[idx]) + '</span>';
+          }
+          tbody += '<td style="' + style + '">' + cell + '</td>';
+        });
+        tbody += '</tr>';
+      });
+      document.getElementById('wx-tbl').innerHTML = '<tbody>' + tbody + '</tbody>';
+
+    } catch(e) {
+      document.getElementById('wx-now-desc').textContent = '⚠️ 날씨를 불러올 수 없습니다.';
+    }
+  }
+
+  function wmo(c) {
+    var m={0:['☀️','맑음'],1:['🌤','대체로 맑음'],2:['⛅','구름조금'],3:['☁️','흐림'],
+      45:['🌫','안개'],48:['🌫','짙은 안개'],51:['🌦','이슬비'],53:['🌦','이슬비'],
+      55:['🌧','강한 이슬비'],61:['🌧','비'],63:['🌧','비'],65:['🌧','강한 비'],
+      71:['🌨','눈'],73:['🌨','눈'],75:['❄️','강한 눈'],80:['🌦','소나기'],
+      81:['🌧','소나기'],82:['⛈','강한 소나기'],95:['⛈','뇌우'],99:['⛈','뇌우+우박']};
+    var v=m[c]||['🌡','코드'+c]; return {i:v[0],t:v[1]};
+  }
+  function dir(d) {
+    return ['N','NE','E','SE','S','SW','W','NW'][Math.round(d/45)%8];
   }
 
 
