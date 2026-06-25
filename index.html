@@ -629,7 +629,8 @@
       {species:"한치",      name:"한치 중층 반유동 채비", desc:"한치 전용 에기 2.5~3호 + 찌 or 반유동 채비로 수면 3~4m 유지. 부드러운 저속 액션.",               tip:"한치는 위에서 내려오는 먹이 선호. 야간 불빛 주변 집중."}
     ],
 
-        knots: [
+    // ③ Knot 유튜브 링크 → 실제 인기 튜토리얼 영상으로 교체
+    knots: [
       { id: "dorae", name: "도래 매듭", use: "PE라인과 리더 연결, 에기 연결에 가장 많이 사용", difficulty: "쉬움",
         youtube: "https://www.youtube.com/watch?v=TNMNkZxJEhk",
         steps: ["PE라인 끝을 도래에 2번 감아 고정", "리더를 도래에 끼운 후 PE라인으로 5~6번 감음", "끝을 도래 구멍에 넣고 당겨 조임", "여분의 줄 잘라 마무리"] },
@@ -647,7 +648,7 @@
       {id:2,  name:'삼천포 이래피싱',   region:'삼천포', port:'팔포항', species:['갑오징어','돌문어','주꾸미','한치'],      url:'https://erae.sunsang24.com/',           desc:'돌문어·갑오징어 루어 전문. 최근 돌문어 폭발 조황.'},
       {id:3,  name:'삼천포 임금호',     region:'삼천포', port:'팔포항', species:['갑오징어','문어','주꾸미'],               url:'https://kingfishing.sunsang24.com/',    desc:'두족류 전문. 오전반 갑오징어 집중 출조.'},
       {id:4,  name:'삼천포 뉴아재피싱', region:'삼천포', port:'팔포항', species:['문어','주꾸미','갑오징어'],               url:'https://3004.sunsang24.com/',           desc:'9.77t 대형선. 인조미끼 전용. 식사(라면·김밥·볼락회) 제공.'},
-      {id:5,  name:'삼천포 아재피싱',   region:'삼천포', port:'팔포항', species:['문어','주꾸미','갑오징어'],               url:'https://3004.sunsang24.com/',           desc:'인조미끼(웜) 전용. 생미끼 사용 불가. 마릿수 조황 우수.'},
+      {id:5,  name:'삼천포 아재피싱',   region:'삼천포', port:'팔포항', species:['문어','주꾸미','갑오징어'],               url:'',           desc:'인조미끼(웜) 전용. 생미끼 사용 불가. 마릿수 조황 우수.'},
       {id:6,  name:'삼천포 박프로호',   region:'삼천포', port:'팔포항', species:['갑오징어','문어','주꾸미'],               url:'https://3004parkpro.sunsang24.com/',    desc:'팔포항 두족류 생활낚시 전문 선사.'},
       {id:7,  name:'삼천포 피싱랜드',   region:'삼천포', port:'팔포항', species:['갑오징어','문어','주꾸미','뽈락'],        url:'https://fishingland.sunsang24.com/',    desc:'주간·야간 동시 할인. 도시락·음료·간식 제공.'},
       {id:8,  name:'삼천포 피싱스토리', region:'삼천포', port:'팔포항', species:['갑오징어','문어','주꾸미','무늬오징어'],   url:'https://fs.sunsang24.com/',             desc:'루어·에깅 전문. 갑오징어·문어·주꾸미·무늬오징어 복합 출조.'},
@@ -664,7 +665,6 @@
   // ==================== STATE ====================
   let currentPage = 'page-home';
   let currentSpotFilter = 'all';
-  let currentCharterFilter = 'all';
   let catches = [];
   let savedSpots = [];
   let customCharters = [];
@@ -683,7 +683,8 @@
     }, 2300);
   }
 
-    function updateNavActive(pageId) {
+  // ⑤ 네비게이션 활성 상태 시각 개선
+  function updateNavActive(pageId) {
     document.querySelectorAll('.nav-item').forEach(el => {
       el.classList.remove('nav-active');
     });
@@ -816,12 +817,78 @@
           '<div class="flex justify-between">' + foreHtml + '</div></div>';
     } catch(e) {
       container.innerHTML = '<div class="text-red-500 text-sm py-4 text-center">날씨 정보를 불러오지 못했습니다.<br>' +
-        '<button onclick="getWeatherByLocation('' + currentWeatherLoc + '')" class="underline text-sky-600">다시 시도</button></div>';
+        '<button onclick="getWeatherByLocation(currentWeatherLoc)" class="underline text-sky-600">다시 시도</button></div>';
     }
   }
 
+  async function getWeather() {
+    const container = document.getElementById('weather-content');
+    if (!navigator.geolocation) {
+      container.innerHTML = `<div class="text-red-500 text-sm py-3">위치 기능을 지원하지 않습니다.</div>`;
+      return;
+    }
+    container.innerHTML = `<div class="flex justify-center py-6 text-3xl">⏳</div>`;
 
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      try {
+        const { latitude: lat, longitude: lon } = pos.coords;
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m,precipitation,rain,is_day&timezone=Asia%2FSeoul`);
+        const data = await res.json();
+        const cur = data.current;
 
+        const temp  = Math.round(cur.temperature_2m);
+        const wind  = Math.round(cur.wind_speed_10m);
+        const precip = cur.precipitation || cur.rain || 0;
+        const isDay = cur.is_day !== undefined ? cur.is_day : (new Date().getHours() >= 6 && new Date().getHours() < 20 ? 1 : 0);
+
+        let score = 62;
+        if (wind < 12) score += 20; else if (wind > 26) score -= 25;
+        if (precip > 0.5) score -= 15;
+        if (cur.weather_code <= 2) score += 10;
+        score = Math.max(30, Math.min(95, score));
+
+        let icon = '🌤️', desc = '좋음';
+        if      (cur.weather_code >= 61) { icon = '🌧️'; desc = '비'; }
+        else if (cur.weather_code >= 45) { icon = '🌫️'; desc = '안개'; }
+        else if (cur.weather_code >= 3)  { icon = '☁️';  desc = '흐림'; }
+        else if (isDay)                  { icon = '☀️';  desc = '맑음'; }
+        else                             { icon = '🌙';  desc = '맑음(야간)'; }
+
+        const scoreColor = score > 75 ? 'text-emerald-600' : score > 55 ? 'text-amber-600' : 'text-red-500';
+        const scoreMsg   = score > 75 ? '선상 낚시하기 좋은 날씨입니다!' : score > 55 ? '조심스럽게 출조하세요' : '바람/비 주의!';
+
+        container.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div><div class="text-sm text-slate-500">현재 위치</div>
+              <div class="text-5xl font-bold text-slate-900 mt-1">${temp}°</div></div>
+            <div class="text-right"><div class="text-6xl mb-1">${icon}</div>
+              <div class="text-sm text-slate-600">${desc}</div></div>
+          </div>
+          <div class="mt-5 grid grid-cols-3 gap-3">
+            <div class="metric rounded-2xl p-3 text-center">
+              <div class="text-xs text-slate-500">바람</div>
+              <div class="font-semibold">${wind} km/h</div>
+            </div>
+            <div class="metric rounded-2xl p-3 text-center">
+              <div class="text-xs text-slate-500">낚시 지수</div>
+              <div class="font-extrabold text-2xl ${scoreColor}">${score}</div>
+            </div>
+            <div class="metric rounded-2xl p-3 text-center">
+              <div class="text-xs text-slate-500">강수</div>
+              <div class="font-semibold">${precip}mm</div>
+            </div>
+          </div>
+          <div class="text-center mt-4 text-xs ${scoreColor} font-medium">${scoreMsg}</div>`;
+      } catch {
+        container.innerHTML = `<div class="text-red-500 text-sm py-4 text-center">날씨 정보를 불러오지 못했습니다.<br>
+          <button onclick="getWeather()" class="underline text-sky-600 mt-1">다시 시도</button></div>`;
+      }
+    }, () => {
+      container.innerHTML = `<div class="text-sm text-center py-4 text-slate-500">위치 접근이 거부되었습니다.<br>설정에서 위치 권한을 허용해주세요.</div>`;
+    });
+  }
+
+  // ==================== TIDE ====================
   function updateTideInfo() {
     const port = document.getElementById('tide-port').value;
     const dayOffset = new Date().getDate() % 4;
@@ -908,7 +975,8 @@
     });
   }
 
-    function showSpeciesDetail(id) {
+  // ④ 어종 상세 모달에 "기록하기" 버튼 추가
+  function showSpeciesDetail(id) {
     const s = APP_DATA.species.find(x => x.id === id);
     if (!s) return;
     const modal   = document.getElementById('species-modal');
@@ -1172,7 +1240,8 @@
     });
   }
 
-    function showCatchModal(presetSpeciesId = null) {
+  // ① 기록 추가/수정 통합 모달
+  function showCatchModal(presetSpeciesId = null) {
     const modal  = document.getElementById('catch-modal');
     const select = document.getElementById('catch-species');
     select.innerHTML = APP_DATA.species.map(s =>
@@ -1260,106 +1329,6 @@
     showToast('기록이 삭제되었습니다');
   }
 
-  
-  // ==================== CHARTER ====================
-  function loadCustomCharters() {
-    try { customCharters = JSON.parse(localStorage.getItem('dunaki_custom_charters_v1') || '[]'); }
-    catch { customCharters = []; }
-  }
-  function saveCustomCharters() {
-    try { localStorage.setItem('dunaki_custom_charters_v1', JSON.stringify(customCharters)); }
-    catch { showToast('저장 실패'); }
-  }
-
-  function filterCharter(region) {
-    currentCharterFilter = region;
-    document.querySelectorAll('.charter-filter-btn').forEach(b => {
-      const on = b.dataset.region === region;
-      b.className = 'charter-filter-btn px-4 py-1.5 text-xs rounded-3xl transition-all ' + (on ? 'bg-sky-600 text-white' : 'bg-white border text-slate-600');
-    });
-    renderCharters();
-  }
-
-  function renderCharters() {
-    const container = document.getElementById('charter-list');
-    if (!container) return;
-    const all = [...APP_DATA.charters, ...customCharters.map(c => ({...c, isCustom:true}))];
-    let list;
-    if (currentCharterFilter === 'all')     list = all;
-    else if (currentCharterFilter === '내추가') list = all.filter(c => c.isCustom);
-    else list = all.filter(c => c.region === currentCharterFilter && !c.isCustom);
-
-    container.innerHTML = '';
-    if (!list.length) {
-      container.innerHTML = '<div class="text-center py-10 text-sm text-slate-400">등록된 선사가 없어요.<br>➕ 버튼으로 추가해보세요!</div>';
-      return;
-    }
-    list.forEach(c => {
-      const tags = c.species.map(s => '<span class="text-[10px] px-2 py-0.5 bg-rose-50 text-rose-600 rounded-xl">' + s + '</span>').join('');
-      const badge = c.isCustom ? '<span class="text-[10px] px-2 py-0.5 bg-amber-100 text-amber-700 rounded-xl ml-1">내추가</span>' : '';
-      const delBtn = c.isCustom ? '<button onclick="deleteCustomCharter(' + c.id + ',event)" class="p-1.5 text-base ml-1 text-red-400">🗑️</button>' : '';
-      const homeBtn = c.url ? '<a href="' + c.url + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="flex-shrink-0 bg-sky-600 active:bg-sky-800 text-white text-xs px-3 py-1.5 rounded-2xl font-medium">홈피 →</a>' : '';
-
-      const div = document.createElement('div');
-      div.className = 'bg-white border border-slate-100 rounded-3xl p-4 transition-all' + (c.url ? ' cursor-pointer active:bg-slate-50' : '');
-      div.innerHTML =
-        '<div class="flex justify-between items-start gap-x-2">' +
-          '<div class="flex-1 min-w-0">' +
-            '<div class="flex items-center flex-wrap gap-y-1">' +
-              '<span class="font-semibold text-slate-900">' + c.name + '</span>' + badge +
-            '</div>' +
-            '<div class="flex items-center gap-x-2 mt-1 flex-wrap gap-y-1">' +
-              '<span class="text-xs px-2.5 py-0.5 rounded-2xl bg-sky-100 text-sky-700">' + c.region + '</span>' +
-              '<span class="text-xs text-slate-500">⚓ ' + c.port + '</span>' +
-            '</div>' +
-          '</div>' +
-          '<div class="flex items-center flex-shrink-0">' + homeBtn + delBtn + '</div>' +
-        '</div>' +
-        (c.desc ? '<div class="text-xs text-slate-500 mt-2 leading-relaxed">' + c.desc + '</div>' : '') +
-        '<div class="mt-2 flex flex-wrap gap-1">' + tags + '</div>';
-
-      if (c.url) div.onclick = () => window.open(c.url, '_blank', 'noopener,noreferrer');
-      container.appendChild(div);
-    });
-  }
-
-  function showCharterAddModal() {
-    ['charter-name','charter-region','charter-port','charter-species','charter-url','charter-desc'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
-    });
-    const m = document.getElementById('charter-add-modal');
-    m.classList.remove('hidden'); m.classList.add('flex');
-  }
-  function hideCharterAddModal() {
-    const m = document.getElementById('charter-add-modal');
-    m.classList.remove('flex'); m.classList.add('hidden');
-  }
-  function saveCharterAdd() {
-    const name   = document.getElementById('charter-name').value.trim();
-    const region = document.getElementById('charter-region').value.trim();
-    const port   = document.getElementById('charter-port').value.trim() || '미정';
-    const raw    = document.getElementById('charter-species').value.trim();
-    const url    = document.getElementById('charter-url').value.trim();
-    const desc   = document.getElementById('charter-desc').value.trim();
-    if (!name)   return showToast('선사명을 입력해주세요');
-    if (!region) return showToast('지역을 입력해주세요');
-    const species = raw ? raw.split(',').map(s => s.trim()).filter(Boolean) : [];
-    customCharters.unshift({id:Date.now(), name, region, port, species, url, desc, isCustom:true});
-    saveCustomCharters();
-    hideCharterAddModal();
-    showToast('선사가 추가되었어요! ⚓');
-    renderCharters();
-  }
-  function deleteCustomCharter(id, e) {
-    e.stopImmediatePropagation();
-    if (!confirm('이 선사를 삭제할까요?')) return;
-    customCharters = customCharters.filter(c => c.id !== id);
-    saveCustomCharters();
-    renderCharters();
-    showToast('선사가 삭제되었습니다');
-  }
-
   // ==================== INIT ====================
   function initApp() {
     setupPWA();
@@ -1389,6 +1358,107 @@
       }, 1400);
     }
   }
+
+    // ==================== CHARTER ====================
+    let currentCharterFilter = 'all';
+
+    function loadCustomCharters() {
+      try { customCharters = JSON.parse(localStorage.getItem('dunaki_custom_charters_v1') || '[]'); }
+      catch { customCharters = []; }
+    }
+    function saveCustomCharters() {
+      try { localStorage.setItem('dunaki_custom_charters_v1', JSON.stringify(customCharters)); }
+      catch { showToast('저장 실패'); }
+    }
+
+    function filterCharter(region) {
+      currentCharterFilter = region;
+      document.querySelectorAll('.charter-filter-btn').forEach(b => {
+        const on = b.dataset.region === region;
+        b.className = 'charter-filter-btn px-4 py-1.5 text-xs rounded-3xl transition-all ' + (on ? 'bg-sky-600 text-white' : 'bg-white border text-slate-600');
+      });
+      renderCharters();
+    }
+
+    function renderCharters() {
+      const container = document.getElementById('charter-list');
+      if (!container) return;
+      const all = [...APP_DATA.charters, ...customCharters.map(c => ({...c, isCustom:true}))];
+      let list;
+      if (currentCharterFilter === 'all')     list = all;
+      else if (currentCharterFilter === '내추가') list = all.filter(c => c.isCustom);
+      else list = all.filter(c => c.region === currentCharterFilter && !c.isCustom);
+
+      container.innerHTML = '';
+      if (!list.length) {
+        container.innerHTML = '<div class="text-center py-10 text-sm text-slate-400">등록된 선사가 없어요.<br>➕ 버튼으로 추가해보세요!</div>';
+        return;
+      }
+      list.forEach(c => {
+        const tags = c.species.map(s => '<span class="text-[10px] px-2 py-0.5 bg-rose-50 text-rose-600 rounded-xl">' + s + '</span>').join('');
+        const badge = c.isCustom ? '<span class="text-[10px] px-2 py-0.5 bg-amber-100 text-amber-700 rounded-xl ml-1">내추가</span>' : '';
+        const delBtn = c.isCustom ? '<button onclick="deleteCustomCharter(' + c.id + ',event)" class="p-1.5 text-base ml-1 text-red-400">🗑️</button>' : '';
+        const homeBtn = c.url ? '<a href="' + c.url + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="flex-shrink-0 bg-sky-600 active:bg-sky-800 text-white text-xs px-3 py-1.5 rounded-2xl font-medium">홈피 →</a>' : '';
+
+        const div = document.createElement('div');
+        div.className = 'bg-white border border-slate-100 rounded-3xl p-4 transition-all' + (c.url ? ' cursor-pointer active:bg-slate-50' : '');
+        div.innerHTML =
+          '<div class="flex justify-between items-start gap-x-2">' +
+            '<div class="flex-1 min-w-0">' +
+              '<div class="flex items-center flex-wrap gap-y-1">' +
+                '<span class="font-semibold text-slate-900">' + c.name + '</span>' + badge +
+              '</div>' +
+              '<div class="flex items-center gap-x-2 mt-1 flex-wrap gap-y-1">' +
+                '<span class="text-xs px-2.5 py-0.5 rounded-2xl bg-sky-100 text-sky-700">' + c.region + '</span>' +
+                '<span class="text-xs text-slate-500">⚓ ' + c.port + '</span>' +
+              '</div>' +
+            '</div>' +
+            '<div class="flex items-center flex-shrink-0">' + homeBtn + delBtn + '</div>' +
+          '</div>' +
+          (c.desc ? '<div class="text-xs text-slate-500 mt-2 leading-relaxed">' + c.desc + '</div>' : '') +
+          '<div class="mt-2 flex flex-wrap gap-1">' + tags + '</div>';
+
+        if (c.url) div.onclick = () => window.open(c.url, '_blank', 'noopener,noreferrer');
+        container.appendChild(div);
+      });
+    }
+
+    function showCharterAddModal() {
+      ['charter-name','charter-region','charter-port','charter-species','charter-url','charter-desc'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      const m = document.getElementById('charter-add-modal');
+      m.classList.remove('hidden'); m.classList.add('flex');
+    }
+    function hideCharterAddModal() {
+      const m = document.getElementById('charter-add-modal');
+      m.classList.remove('flex'); m.classList.add('hidden');
+    }
+    function saveCharterAdd() {
+      const name   = document.getElementById('charter-name').value.trim();
+      const region = document.getElementById('charter-region').value.trim();
+      const port   = document.getElementById('charter-port').value.trim() || '미정';
+      const raw    = document.getElementById('charter-species').value.trim();
+      const url    = document.getElementById('charter-url').value.trim();
+      const desc   = document.getElementById('charter-desc').value.trim();
+      if (!name)   return showToast('선사명을 입력해주세요');
+      if (!region) return showToast('지역을 입력해주세요');
+      const species = raw ? raw.split(',').map(s => s.trim()).filter(Boolean) : [];
+      customCharters.unshift({id:Date.now(), name, region, port, species, url, desc, isCustom:true});
+      saveCustomCharters();
+      hideCharterAddModal();
+      showToast('선사가 추가되었어요! ⚓');
+      renderCharters();
+    }
+    function deleteCustomCharter(id, e) {
+      e.stopImmediatePropagation();
+      if (!confirm('이 선사를 삭제할까요?')) return;
+      customCharters = customCharters.filter(c => c.id !== id);
+      saveCustomCharters();
+      renderCharters();
+      showToast('선사가 삭제되었습니다');
+    }
 
   window.onload = initApp;
 </script>
