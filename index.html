@@ -6,6 +6,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>🐙 먹물왕 낚시일지</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
@@ -654,44 +656,73 @@ ul, ol { list-style: none; }
       <div id="region-search-panel" style="display:none;margin-bottom:12px;">
         <div style="background:var(--foam);border-radius:var(--radius);padding:14px;border:1.5px solid var(--ocean);box-shadow:0 4px 16px var(--shadow);">
 
-          <!-- 포인트 목록 -->
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <!-- 헤더 -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
             <div style="font-size:13px;font-weight:700;color:var(--deep);">📍 낚시 포인트 날씨</div>
-            <button id="add-point-toggle" style="padding:5px 10px;border-radius:var(--radius-sm);background:var(--ocean);color:#fff;font-size:11px;font-weight:700;">＋ 포인트 추가</button>
+            <button id="add-point-toggle"
+              style="padding:5px 12px;border-radius:var(--radius-sm);background:var(--ocean);
+                     color:#fff;font-size:11px;font-weight:700;">＋ 포인트 추가</button>
           </div>
 
-          <!-- 포인트 추가 폼 (기본 hidden) -->
-          <div id="add-point-form" style="display:none;background:var(--sky);border-radius:var(--radius-sm);padding:10px;margin-bottom:10px;border:1px solid var(--border);">
-            <div style="font-size:11px;font-weight:700;color:var(--deep);margin-bottom:8px;">새 포인트 추가</div>
-            <div style="display:flex;flex-direction:column;gap:6px;">
-              <input id="new-pt-name" type="text" placeholder="포인트 이름 (예: 여수 돌산도)"
-                style="padding:8px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);font-size:12px;font-family:inherit;background:#fff;outline:none;">
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                <input id="new-pt-lat" type="number" step="0.001" placeholder="위도 (예: 34.752)"
-                  style="padding:8px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);font-size:12px;font-family:inherit;background:#fff;outline:none;">
-                <input id="new-pt-lon" type="number" step="0.001" placeholder="경도 (예: 127.693)"
-                  style="padding:8px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);font-size:12px;font-family:inherit;background:#fff;outline:none;">
+          <!-- ★ 포인트 추가 모드 (Leaflet 지도) -->
+          <div id="add-point-form" style="display:none;margin-bottom:12px;">
+            <div style="background:var(--sky);border-radius:var(--radius-sm);padding:10px;border:1.5px solid var(--ocean);">
+              <div style="font-size:11px;font-weight:700;color:var(--deep);margin-bottom:6px;">
+                🗺 지도를 탭해서 위치를 선택하세요
               </div>
-              <input id="new-pt-fish" type="text" placeholder="주요 어종 (예: 무늬오징어·문어)"
-                style="padding:8px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);font-size:12px;font-family:inherit;background:#fff;outline:none;">
-              <div style="display:flex;gap:6px;">
-                <button id="new-pt-save" style="flex:1;padding:8px;border-radius:var(--radius-sm);background:var(--ocean);color:#fff;font-size:12px;font-weight:700;">저장</button>
-                <button id="new-pt-cancel" style="padding:8px 14px;border-radius:var(--radius-sm);background:var(--border);color:var(--muted);font-size:12px;font-weight:700;">취소</button>
+              <!-- Leaflet 지도 -->
+              <div id="leaflet-pick-map"
+                style="width:100%;height:240px;border-radius:var(--radius-sm);
+                       overflow:hidden;border:1px solid var(--border);margin-bottom:8px;"></div>
+              <!-- 선택된 좌표 표시 -->
+              <div id="pick-coord-bar"
+                style="display:none;background:#fff;border-radius:var(--radius-sm);
+                       padding:7px 10px;font-size:11px;color:var(--deep);font-weight:700;
+                       border:1px solid var(--border);margin-bottom:8px;">
+                📍 <span id="pick-coord-text">위치를 탭하세요</span>
+              </div>
+              <!-- 이름·어종 입력 -->
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <input id="new-pt-name" type="text" placeholder="포인트 이름 (예: 여수 돌산도)"
+                  style="padding:8px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);
+                         font-size:12px;font-family:inherit;background:#fff;outline:none;">
+                <input id="new-pt-fish" type="text" placeholder="주요 어종 (예: 무늬오징어·문어)"
+                  style="padding:8px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);
+                         font-size:12px;font-family:inherit;background:#fff;outline:none;">
+                <!-- 위도/경도는 숨김 — 지도 탭으로 자동 입력 -->
+                <input id="new-pt-lat" type="hidden">
+                <input id="new-pt-lon" type="hidden">
+                <div style="display:flex;gap:6px;">
+                  <button id="new-pt-save"
+                    style="flex:1;padding:9px;border-radius:var(--radius-sm);
+                           background:var(--ocean);color:#fff;font-size:12px;font-weight:700;">
+                    ✓ 저장
+                  </button>
+                  <button id="new-pt-cancel"
+                    style="padding:9px 14px;border-radius:var(--radius-sm);
+                           background:var(--border);color:var(--muted);font-size:12px;font-weight:700;">
+                    취소
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- 포인트 버튼 목록 -->
-          <div id="quick-pins" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
+          <div id="quick-pins" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
 
-          <!-- Windy iframe (포인트 선택 시 표시) -->
+          <!-- 날씨 테이블 (Open-Meteo) -->
+          <!-- Windy iframe -->
           <div id="windy-frame-wrap" style="display:none;">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-              <div style="font-size:11px;font-weight:700;color:var(--muted);" id="windy-pt-label">🗺 Windy 날씨</div>
-              <button id="open-windy-ext" style="padding:4px 10px;border-radius:12px;background:var(--ocean);color:#fff;font-size:10px;font-weight:700;">🌬 새탭으로 열기</button>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <div style="font-size:12px;font-weight:700;color:var(--deep);" id="windy-pt-label">📍</div>
+              <button id="open-windy-ext"
+                style="padding:5px 12px;border-radius:12px;background:var(--ocean);
+                       color:#fff;font-size:11px;font-weight:700;">🌬 앱으로 열기</button>
             </div>
             <iframe id="windy-iframe"
-              style="width:100%;height:500px;border-radius:var(--radius-sm);border:1.5px solid var(--border);display:block;"
+              style="width:100%;height:550px;border-radius:var(--radius-sm);
+                     border:1.5px solid var(--border);display:block;"
               frameborder="0" src="about:blank"></iframe>
           </div>
 
@@ -1773,8 +1804,7 @@ document.getElementById('region-selector').addEventListener('click', e => {
 // ── Windy 포인트 날씨 ────────────────────────────────────────────────────
 (function setupWindySearch() {
 
-  // localStorage로 포인트 저장
-  var STORAGE_KEY = 'fishing_points_v1';
+  var STORAGE_KEY = 'fishing_points_v2';
   var DEFAULT_PTS = [
     { name:'거제 장승포', lat:34.836, lon:128.693, fish:'무늬오징어·문어' },
     { name:'통영 서호항', lat:34.845, lon:128.430, fish:'갑오징어·한치' },
@@ -1783,107 +1813,160 @@ document.getElementById('region-selector').addEventListener('click', e => {
     { name:'울산 방어진', lat:35.491, lon:129.437, fish:'무늬오징어·한치' },
   ];
 
-  function loadPoints() {
-    try {
-      var s = localStorage.getItem(STORAGE_KEY);
-      return s ? JSON.parse(s) : DEFAULT_PTS.slice();
-    } catch(e) { return DEFAULT_PTS.slice(); }
+  function loadPts() {
+    try { var s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s) : DEFAULT_PTS.slice(); }
+    catch(e) { return DEFAULT_PTS.slice(); }
   }
-  function savePoints(pts) {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(pts)); } catch(e) {}
-  }
+  function savePts(p) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch(e) {} }
 
-  var points = loadPoints();
-  var initialized = false;
+  var points = loadPts();
+  var panelReady = false;
+  var pickMap = null, pickMarker = null;
+  var pickedLat = null, pickedLon = null;
   var currentWindyExt = '';
 
-  // 패널 토글
+  // ── 패널 토글 ────────────────────────────────────────────────────────
   document.getElementById('region-search-btn').addEventListener('click', function() {
     var panel = document.getElementById('region-search-panel');
     var opening = (panel.style.display === 'none' || panel.style.display === '');
     panel.style.display = opening ? 'block' : 'none';
-    if (opening && !initialized) { initialized = true; bindFormEvents(); renderPins(); }
+    if (opening && !panelReady) { panelReady = true; bindEvents(); renderPins(); }
   });
-
-  // 지역칩 클릭 시 패널 닫기
   document.querySelectorAll('.region-chip:not(#region-search-btn)').forEach(function(c) {
     c.addEventListener('click', function() {
       document.getElementById('region-search-panel').style.display = 'none';
     });
   });
 
-  // 포인트 추가 폼 이벤트
-  function bindFormEvents() {
+  // ── 이벤트 바인딩 ────────────────────────────────────────────────────
+  function bindEvents() {
+
+    // ＋ 포인트 추가 버튼
     document.getElementById('add-point-toggle').addEventListener('click', function() {
-      var f = document.getElementById('add-point-form');
-      f.style.display = f.style.display === 'none' ? 'block' : 'none';
+      var form = document.getElementById('add-point-form');
+      var opening = (form.style.display === 'none' || form.style.display === '');
+      form.style.display = opening ? 'block' : 'none';
+      if (opening) initPickMap();
     });
+
+    // 취소
     document.getElementById('new-pt-cancel').addEventListener('click', function() {
-      document.getElementById('add-point-form').style.display = 'none';
-      clearForm();
+      closeForm();
     });
+
+    // 저장
     document.getElementById('new-pt-save').addEventListener('click', function() {
       var name = document.getElementById('new-pt-name').value.trim();
-      var lat  = parseFloat(document.getElementById('new-pt-lat').value);
-      var lon  = parseFloat(document.getElementById('new-pt-lon').value);
       var fish = document.getElementById('new-pt-fish').value.trim() || '두족류';
-      if (!name) { alert('포인트 이름을 입력해주세요.'); return; }
-      if (isNaN(lat) || lat < 33 || lat > 39) { alert('위도를 올바르게 입력해주세요. (예: 34.836)'); return; }
-      if (isNaN(lon) || lon < 124 || lon > 132) { alert('경도를 올바르게 입력해주세요. (예: 128.693)'); return; }
-      points.push({ name:name, lat:lat, lon:lon, fish:fish });
-      savePoints(points);
-      clearForm();
-      document.getElementById('add-point-form').style.display = 'none';
+      if (!name)       { alert('포인트 이름을 입력해주세요.'); return; }
+      if (!pickedLat)  { alert('지도에서 위치를 먼저 탭해주세요.'); return; }
+      points.push({ name:name, lat:pickedLat, lon:pickedLon, fish:fish });
+      savePts(points);
+      closeForm();
       renderPins();
     });
   }
 
-  function clearForm() {
-    ['new-pt-name','new-pt-lat','new-pt-lon','new-pt-fish'].forEach(function(id) {
-      document.getElementById(id).value = '';
+  function closeForm() {
+    document.getElementById('add-point-form').style.display = 'none';
+    document.getElementById('new-pt-name').value = '';
+    document.getElementById('new-pt-fish').value = '';
+    document.getElementById('pick-coord-bar').style.display = 'none';
+    pickedLat = null; pickedLon = null;
+    if (pickMarker && pickMap) { pickMap.removeLayer(pickMarker); pickMarker = null; }
+  }
+
+  // ── Leaflet 지도 초기화 ──────────────────────────────────────────────
+  function initPickMap() {
+    if (pickMap) { pickMap.invalidateSize(); return; }
+
+    pickMap = L.map('leaflet-pick-map', { zoomControl: true, attributionControl: false })
+      .setView([34.95, 128.5], 8);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 17
+    }).addTo(pickMap);
+
+    // 기존 포인트 마커 표시
+    points.forEach(function(pt) {
+      L.circleMarker([pt.lat, pt.lon], {
+        radius: 7, color: '#4BA3CC', fillColor: '#4BA3CC', fillOpacity: 0.9, weight: 2
+      }).addTo(pickMap).bindPopup('<b>' + pt.name + '</b><br>' + pt.fish);
+    });
+
+    // 지도 클릭 → 핀 꽂기
+    pickMap.on('click', function(e) {
+      var lat = e.latlng.lat, lon = e.latlng.lng;
+      pickedLat = parseFloat(lat.toFixed(5));
+      pickedLon = parseFloat(lon.toFixed(5));
+
+      if (pickMarker) pickMap.removeLayer(pickMarker);
+      pickMarker = L.marker([lat, lon], {
+        icon: L.divIcon({
+          className: '',
+          html: '<div style="background:#FF6B6B;width:18px;height:18px;border-radius:50% 50% 50% 0;'
+              + 'border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);'
+              + 'transform:rotate(-45deg);"></div>',
+          iconSize: [18, 18], iconAnchor: [9, 18]
+        })
+      }).addTo(pickMap);
+
+      var bar = document.getElementById('pick-coord-bar');
+      bar.style.display = 'block';
+      document.getElementById('pick-coord-text').textContent =
+        lat.toFixed(4) + ', ' + lon.toFixed(4) + ' — 이름을 입력 후 저장';
     });
   }
 
-  // 핀 버튼 렌더링
+  // ── 포인트 목록 렌더링 ───────────────────────────────────────────────
   function renderPins() {
     var wrap = document.getElementById('quick-pins');
     wrap.innerHTML = '';
+    if (points.length === 0) {
+      wrap.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:8px;">포인트를 추가해주세요.</div>';
+      return;
+    }
     points.forEach(function(pt, i) {
       var row = document.createElement('div');
-      row.style.cssText = 'display:flex;align-items:center;gap:4px;';
+      row.style.cssText = 'display:flex;align-items:center;gap:6px;';
 
-      // 포인트 버튼
       var btn = document.createElement('button');
-      btn.innerHTML = '<span style="background:var(--ocean);color:#fff;border-radius:50%;width:16px;height:16px;'
-        + 'display:inline-flex;align-items:center;justify-content:center;font-size:9px;margin-right:4px;flex-shrink:0">'
-        + (i+1) + '</span><span>' + pt.name + '</span>'
-        + '<span style="font-size:9px;color:var(--muted);margin-left:4px;">(' + pt.fish + ')</span>';
+      btn.innerHTML =
+        '<span style="background:var(--ocean);color:#fff;border-radius:50%;width:18px;height:18px;'
+        + 'display:inline-flex;align-items:center;justify-content:center;font-size:9px;'
+        + 'margin-right:6px;flex-shrink:0;">' + (i + 1) + '</span>'
+        + '<span style="flex:1;text-align:left;">' + pt.name + '</span>'
+        + '<span style="font-size:10px;color:var(--muted);margin-left:6px;white-space:nowrap;">🎣 ' + pt.fish + '</span>';
       btn.dataset.idx = i;
-      btn.style.cssText = 'display:flex;align-items:center;padding:6px 10px;border-radius:20px;'
-        + 'border:1.5px solid var(--border);background:var(--sky);color:var(--deep);'
-        + 'font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;flex:1;';
+      btn.style.cssText = 'display:flex;align-items:center;flex:1;padding:8px 12px;'
+        + 'border-radius:var(--radius-sm);border:1.5px solid var(--border);'
+        + 'background:var(--sky);color:var(--deep);font-size:12px;font-weight:700;'
+        + 'cursor:pointer;transition:all .15s;text-align:left;';
       btn.addEventListener('click', function() {
         wrap.querySelectorAll('[data-idx]').forEach(function(b) {
-          b.style.background='var(--sky)'; b.style.color='var(--deep)';
+          b.style.background = 'var(--sky)'; b.style.color = 'var(--deep)';
+          b.style.borderColor = 'var(--border)';
         });
-        btn.style.background='var(--ocean)'; btn.style.color='#fff';
+        btn.style.background = 'var(--ocean)'; btn.style.color = '#fff';
+        btn.style.borderColor = 'var(--ocean)';
         selectPoint(pt);
       });
 
-      // 삭제 버튼 (기본 5개는 삭제 불가)
       var del = document.createElement('button');
-      del.textContent = '✕';
-      del.title = '삭제';
-      del.style.cssText = 'width:22px;height:22px;border-radius:50%;background:var(--border);'
-        + 'color:var(--muted);font-size:11px;font-weight:700;flex-shrink:0;'
+      del.innerHTML = '🗑';
+      del.title = i < DEFAULT_PTS.length ? '기본 포인트는 삭제할 수 없습니다' : '삭제';
+      del.style.cssText = 'padding:6px 8px;border-radius:var(--radius-sm);font-size:13px;'
+        + 'border:1.5px solid var(--border);background:#fff;flex-shrink:0;'
         + (i < DEFAULT_PTS.length ? 'opacity:0.3;cursor:not-allowed;' : 'cursor:pointer;');
       del.disabled = (i < DEFAULT_PTS.length);
-      del.addEventListener('click', function() {
-        if (i < DEFAULT_PTS.length) return;
-        points.splice(i, 1);
-        savePoints(points);
-        renderPins();
-      });
+      (function(idx) {
+        del.addEventListener('click', function() {
+          if (idx < DEFAULT_PTS.length) return;
+          points.splice(idx, 1);
+          savePts(points);
+          renderPins();
+        });
+      })(i);
 
       row.appendChild(btn);
       row.appendChild(del);
@@ -1891,32 +1974,33 @@ document.getElementById('region-selector').addEventListener('click', e => {
     });
   }
 
+  // ── Windy embed ──────────────────────────────────────────────────────
   function selectPoint(pt) {
-    // Windy embed — detail=false 로 하단 테이블 숨김
-    var windyEmbed = 'https://embed.windy.com/embed2.html'
+    var embed = 'https://embed.windy.com/embed2.html'
       + '?lat='       + pt.lat.toFixed(3)
       + '&lon='       + pt.lon.toFixed(3)
       + '&detailLat=' + pt.lat.toFixed(3)
       + '&detailLon=' + pt.lon.toFixed(3)
-      + '&width=650&height=450&zoom=10'
+      + '&width=650&height=550&zoom=10'
       + '&level=surface&overlay=wind&product=ecmwf'
       + '&menu=&message=true&marker=true&calendar=now'
       + '&pressure=true&type=map&location=coordinates'
-      + '&detail=false&metricWind=m%2Fs&metricTemp=%C2%B0C&radarRange=-1';
-    document.getElementById('windy-iframe').src = windyEmbed;
+      + '&detail=true&metricWind=m%2Fs&metricTemp=%C2%B0C&radarRange=-1';
+    document.getElementById('windy-iframe').src = embed;
     document.getElementById('windy-frame-wrap').style.display = 'block';
-    document.getElementById('windy-pt-label').textContent = '🗺 ' + pt.name + ' — Windy 날씨';
-
-    // 외부 링크
-    currentWindyExt = 'https://www.windy.com/'
+    document.getElementById('windy-pt-label').textContent = '📍 ' + pt.name;
+    var ext = 'https://www.windy.com/'
       + pt.lat.toFixed(3) + '/' + pt.lon.toFixed(3)
       + '?wind,' + pt.lat.toFixed(2) + ',' + pt.lon.toFixed(2) + ',10';
     document.getElementById('open-windy-ext').onclick = function() {
-      window.open(currentWindyExt, '_blank');
+      window.open(ext, '_blank');
     };
   }
 
+
+
 })();
+
 
 // Method tabs
 document.querySelectorAll('.method-tab').forEach(tab => {
