@@ -61,6 +61,7 @@ ul, ol { list-style: none; }
 /* HEADER */
 #header {
   height: var(--header-h);
+  position: relative;
   background: var(--foam);
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center; justify-content: space-between;
@@ -633,6 +634,17 @@ ul, ol { list-style: none; }
       </svg>
       <span class="logo-text">먹물왕 낚시일지</span>
     </div>
+    <!-- 버전 배지 (중앙) -->
+    <div id="version-badge" style="
+      position:absolute; left:50%; transform:translateX(-50%);
+      display:flex; align-items:center; gap:4px;
+      background:linear-gradient(135deg,rgba(75,163,204,.15),rgba(26,110,153,.15));
+      border:1px solid rgba(75,163,204,.3);
+      border-radius:20px; padding:3px 10px;">
+      <span style="font-size:9px;font-weight:900;color:var(--ocean);letter-spacing:.5px;">v1.2</span>
+      <span style="width:3px;height:3px;border-radius:50%;background:var(--ocean);opacity:.5;"></span>
+      <span style="font-size:9px;color:var(--muted);font-weight:600;">BETA</span>
+    </div>
     <div class="weather-badge" id="header-weather">
       <span>🌤</span><span id="hw-text">날씨 로딩중</span>
     </div>
@@ -846,6 +858,16 @@ ul, ol { list-style: none; }
         <div class="p-header"><span class="p-icon">🦐</span><span class="p-name">주꾸미</span></div>
         <span class="p-period">금어기 : 5월 11일 ~ 8월 31일</span>
         <div class="p-desc">매년 동일 기간 적용. 위반 시 과태료 부과. 해당 기간 채비 사용 금지</div>
+      </div>
+      <div class="prohibited-card">
+        <div class="p-header"><span class="p-icon">🏹</span><span class="p-name">화살촉오징어</span></div>
+        <span class="p-period">금어기 : 5월 / 몸통 15cm 이하 방류</span>
+        <div class="p-desc">5월 한 달 금어기. 6월부터 12월까지 시즌. 15cm 이하 소형 개체는 반드시 방류.</div>
+      </div>
+      <div class="prohibited-card">
+        <div class="p-header"><span class="p-icon">🦑</span><span class="p-name">살오징어</span></div>
+        <span class="p-period">금어기 : 4월 1일 ~ 5월 31일</span>
+        <div class="p-desc">매년 4~5월 두 달간 금어기. 금어기 종료 후 첫 출조는 최소 두 달 전 예약 권장.</div>
       </div>
     </section>
 
@@ -1092,6 +1114,56 @@ ul, ol { list-style: none; }
           <div style="padding:2px 0;"><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🟢</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">그린·올리브</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">기본 색상 / 연중 안정적</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🔴</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">핑크·오렌지</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">맑은 날 낮 · 수온 높을 때</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">⚪</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">화이트·야광</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">야간 · 흐린 날 · 깊은 수심</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🔵</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">블루·퍼플</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">맑은 물 · 새벽·해질녘</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">⚫</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">검정·다크</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">탁한 물 · 조류 강할 때</div></div></div></div>
         </div>
       </div>
+
+      <!-- 화살촉오징어 패널 -->
+      <div class="tackle-panel" id="tp-화살촉오징어">
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🏹</span><div><div class="t-name">화살촉오징어 기본 채비</div><div class="t-sub">방파제·연안 야간낚시</div></div></div>
+          <div class="tackle-spec">
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">연질 스피닝대 2.7m</div></div>
+            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">스피닝릴 2000~2500</div></div>
+            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 0.6~1호</div></div>
+            <div class="spec-item"><div class="s-lbl">채비</div><div class="s-val">슷테/스틱 3~5단</div></div>
+            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">10~20호</div></div>
+            <div class="spec-item"><div class="s-lbl">수심층</div><div class="s-val">20~40m</div></div>
+          </div>
+          <div class="tackle-tip">아무 기술 불필요! 집어등 아래 채비 투입 후 입질층만 찾으면 됩니다. 20m 지점 면사 마킹 추천. 폴링 중 입질 집중.</div>
+        </div>
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🎨</span><div><div class="t-name">슷테·스틱 색상 가이드</div><div class="t-sub">시간대·수심별</div></div></div>
+          <div style="padding:2px 0;">
+            <div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">⚪</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">야광·화이트</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">야간 집어등 주변 기본</div></div></div>
+            <div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🔴</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">핑크·레드</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">활성 높을 때 어필</div></div></div>
+            <div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🟡</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">골드·오렌지</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">탁한 물·흐린 날</div></div></div>
+            <div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;"><span style="font-size:15px;flex-shrink:0;">🟢</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">그린야광</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">달 없는 밤·깊은 수심</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 살오징어 패널 -->
+      <div class="tackle-panel" id="tp-살오징어">
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🦑</span><div><div class="t-name">살오징어 선상 채비</div><div class="t-sub">먼바다 야간 선상낚시</div></div></div>
+          <div class="tackle-spec">
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">에깅로드 9ft</div></div>
+            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">스피닝 2500 / 전동릴</div></div>
+            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 0.8~1호</div></div>
+            <div class="spec-item"><div class="s-lbl">쇼크리더</div><div class="s-val">카본 1.7~2호</div></div>
+            <div class="spec-item"><div class="s-lbl">에기/스틱</div><div class="s-val">3~5호 / 오징어스틱</div></div>
+            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">20호</div></div>
+          </div>
+          <div class="tackle-tip">공격성이 강해 다양한 루어에 잘 반응! 바닥 찍고 릴 3~5바퀴 감은 뒤 폴링 반복. 피크타임 자정~새벽 3시. 세 자릿수 마릿수도 가능.</div>
+        </div>
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🎨</span><div><div class="t-name">에기·스틱 색상 가이드</div><div class="t-sub">물색·날씨별</div></div></div>
+          <div style="padding:2px 0;">
+            <div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🟤</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">고동·녹색·회색</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">맑은 물 내추럴계열</div></div></div>
+            <div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🟡</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">노랑·빨강·은색</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">흐린 날 밝은 계열</div></div></div>
+            <div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">⚪</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">야광·화이트</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">야간 집어등 주변</div></div></div>
+            <div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;"><span style="font-size:15px;flex-shrink:0;">🔴</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">핑크·오렌지</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">활성 낮을 때 어필</div></div></div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- =============== PAGE: 매듭법 =============== -->
@@ -1199,26 +1271,19 @@ const SPECIES_DATA = [
     prohibited: '외투장 6cm 미만 방류',
     color: '#FF6B6B',
     svgPath: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
-      <!-- 문어 몸통 -->
       <ellipse cx="40" cy="32" rx="20" ry="18" fill="#E8654A"/>
       <ellipse cx="40" cy="32" rx="20" ry="18" fill="url(#sp-oct-g)"/>
       <defs><radialGradient id="sp-oct-g" cx="40%" cy="35%"><stop offset="0%" stop-color="#FF8A72"/><stop offset="100%" stop-color="#D44A2E"/></radialGradient></defs>
-      <!-- 흡반 패턴 -->
       <circle cx="33" cy="34" r="2.5" fill="#C03020" opacity="0.5"/>
       <circle cx="40" cy="36" r="2.5" fill="#C03020" opacity="0.5"/>
       <circle cx="47" cy="34" r="2.5" fill="#C03020" opacity="0.5"/>
-      <!-- 눈 흰자 -->
       <ellipse cx="34" cy="26" rx="6" ry="7" fill="white"/>
       <ellipse cx="46" cy="26" rx="6" ry="7" fill="white"/>
-      <!-- 눈 동공 -->
       <ellipse cx="34" cy="27" rx="3.5" ry="4" fill="#1A1A2E"/>
       <ellipse cx="46" cy="27" rx="3.5" ry="4" fill="#1A1A2E"/>
-      <!-- 눈 하이라이트 -->
       <circle cx="35.5" cy="25.5" r="1.5" fill="white"/>
       <circle cx="47.5" cy="25.5" r="1.5" fill="white"/>
-      <!-- 입 -->
       <path d="M36 38 Q40 41 44 38" stroke="#C03020" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      <!-- 다리 8개 -->
       <path d="M23 44 C20 50 18 57 21 63 C23 66 25 65 26 62 C27 57 26 51 25 46" fill="#E8654A" stroke="#C03020" stroke-width="0.8"/>
       <path d="M28 47 C25 54 24 62 27 68 C29 71 31 70 32 67 C33 61 31 54 30 48" fill="#E8654A" stroke="#C03020" stroke-width="0.8"/>
       <path d="M34 49 C32 57 32 64 34 70 C35 72 37 72 38 70 C39 64 38 57 37 50" fill="#E8654A" stroke="#C03020" stroke-width="0.8"/>
@@ -1246,27 +1311,21 @@ const SPECIES_DATA = [
     color: '#7B6BB0',
     svgPath: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
       <defs><linearGradient id="sp-han-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9B8EC4"/><stop offset="100%" stop-color="#6A5AA0"/></linearGradient></defs>
-      <!-- 지느러미 (한치 특징: 몸 전체에 지느러미) -->
       <ellipse cx="22" cy="44" rx="9" ry="18" fill="#B0A4D8" opacity="0.75" transform="rotate(-15 22 44)"/>
       <ellipse cx="58" cy="44" rx="9" ry="18" fill="#B0A4D8" opacity="0.75" transform="rotate(15 58 44)"/>
-      <!-- 몸통 (가늘고 긴 유선형) -->
       <ellipse cx="40" cy="44" rx="11" ry="24" fill="url(#sp-han-g)"/>
-      <!-- 머리/지붕 삼각형 -->
       <polygon points="40,10 26,24 54,24" fill="#8878BC"/>
-      <!-- 눈 -->
       <ellipse cx="35" cy="34" rx="4.5" ry="5" fill="white"/>
       <ellipse cx="45" cy="34" rx="4.5" ry="5" fill="white"/>
       <ellipse cx="35" cy="35" rx="2.8" ry="3.2" fill="#1A0A3E"/>
       <ellipse cx="45" cy="35" rx="2.8" ry="3.2" fill="#1A0A3E"/>
       <circle cx="36.2" cy="33.5" r="1.2" fill="white"/>
       <circle cx="46.2" cy="33.5" r="1.2" fill="white"/>
-      <!-- 촉수 10개 -->
       <line x1="34" y1="68" x2="30" y2="78" stroke="#6A5AA0" stroke-width="2.5" stroke-linecap="round"/>
       <line x1="37" y1="68" x2="34" y2="78" stroke="#6A5AA0" stroke-width="2.2" stroke-linecap="round"/>
       <line x1="40" y1="68" x2="38" y2="79" stroke="#8878BC" stroke-width="2.5" stroke-linecap="round"/>
       <line x1="43" y1="68" x2="44" y2="79" stroke="#8878BC" stroke-width="2.2" stroke-linecap="round"/>
       <line x1="46" y1="68" x2="50" y2="78" stroke="#6A5AA0" stroke-width="2.5" stroke-linecap="round"/>
-      <!-- 색소포 무늬 -->
       <ellipse cx="38" cy="50" rx="2.5" ry="1.5" fill="#5A4A8A" opacity="0.5"/>
       <ellipse cx="43" cy="50" rx="2.5" ry="1.5" fill="#5A4A8A" opacity="0.5"/>
       <ellipse cx="40" cy="56" rx="3" ry="1.5" fill="#5A4A8A" opacity="0.4"/>
@@ -1289,20 +1348,15 @@ const SPECIES_DATA = [
     color: '#FF9B71',
     svgPath: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
       <defs><radialGradient id="sp-juk-g" cx="40%" cy="35%"><stop offset="0%" stop-color="#FFAF88"/><stop offset="100%" stop-color="#E07040"/></radialGradient></defs>
-      <!-- 작고 동그란 몸통(주꾸미 특징) -->
       <circle cx="40" cy="30" r="18" fill="url(#sp-juk-g)"/>
-      <!-- 특징: 눈 사이 금빛 링 무늬 -->
       <ellipse cx="40" cy="28" rx="10" ry="6" fill="none" stroke="#FFD166" stroke-width="1.5" opacity="0.7"/>
-      <!-- 눈 -->
       <ellipse cx="34" cy="25" rx="5" ry="6" fill="white"/>
       <ellipse cx="46" cy="25" rx="5" ry="6" fill="white"/>
       <ellipse cx="34" cy="26" rx="3" ry="3.5" fill="#1A1A1A"/>
       <ellipse cx="46" cy="26" rx="3" ry="3.5" fill="#1A1A1A"/>
       <circle cx="35.2" cy="24.5" r="1.3" fill="white"/>
       <circle cx="47.2" cy="24.5" r="1.3" fill="white"/>
-      <!-- 표정 미소 -->
       <path d="M36 35 Q40 38 44 35" stroke="#C06030" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      <!-- 짧은 8개 다리(주꾸미는 짧고 굵음) -->
       <path d="M22 43 C20 49 20 55 22 60 C23 62 25 62 26 60 C27 55 26 49 25 44" fill="#FF9B71" stroke="#D06030" stroke-width="0.8"/>
       <path d="M27 46 C25 52 25 58 27 63 C28 65 30 65 31 63 C32 58 30 52 29 47" fill="#FF9B71" stroke="#D06030" stroke-width="0.8"/>
       <path d="M33 48 C31 54 31 60 33 65 C34 66 36 66 37 65 C37 59 36 53 35 49" fill="#FF9B71" stroke="#D06030" stroke-width="0.8"/>
@@ -1330,28 +1384,22 @@ const SPECIES_DATA = [
     color: '#3BAED4',
     svgPath: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
       <defs><linearGradient id="sp-mun-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5DCDE8"/><stop offset="100%" stop-color="#2A8AAE"/></linearGradient></defs>
-      <!-- 무늬오징어 특징: 넓은 지느러미(몸 양쪽에 크게) -->
       <ellipse cx="18" cy="42" rx="12" ry="20" fill="#80D8F0" opacity="0.8" transform="rotate(-20 18 42)"/>
       <ellipse cx="62" cy="42" rx="12" ry="20" fill="#80D8F0" opacity="0.8" transform="rotate(20 62 42)"/>
-      <!-- 몸통 -->
       <ellipse cx="40" cy="44" rx="13" ry="26" fill="url(#sp-mun-g)"/>
-      <!-- 머리 삼각뿔 -->
       <polygon points="40,8 25,26 55,26" fill="#4AAFC8"/>
-      <!-- 무늬오징어 특유 색소포 무늬 (핵심 특징!) -->
       <ellipse cx="36" cy="38" rx="3.5" ry="2.5" fill="#1A7AA0" opacity="0.6"/>
       <ellipse cx="44" cy="38" rx="3.5" ry="2.5" fill="#1A7AA0" opacity="0.6"/>
       <ellipse cx="40" cy="44" rx="4" ry="2.5" fill="#1A7AA0" opacity="0.5"/>
       <ellipse cx="36" cy="50" rx="3" ry="2" fill="#1A7AA0" opacity="0.5"/>
       <ellipse cx="44" cy="50" rx="3" ry="2" fill="#1A7AA0" opacity="0.5"/>
       <ellipse cx="40" cy="56" rx="3.5" ry="2" fill="#1A7AA0" opacity="0.4"/>
-      <!-- 눈 (무늬오징어: 큰 W형 동공) -->
       <ellipse cx="34" cy="32" rx="5" ry="5.5" fill="white"/>
       <ellipse cx="46" cy="32" rx="5" ry="5.5" fill="white"/>
       <ellipse cx="34" cy="33" rx="3" ry="3.5" fill="#0A2840"/>
       <ellipse cx="46" cy="33" rx="3" ry="3.5" fill="#0A2840"/>
       <circle cx="35.2" cy="31.5" r="1.4" fill="white"/>
       <circle cx="47.2" cy="31.5" r="1.4" fill="white"/>
-      <!-- 촉수 -->
       <line x1="35" y1="70" x2="31" y2="79" stroke="#2A8AAE" stroke-width="2.2" stroke-linecap="round"/>
       <line x1="38" y1="70" x2="35" y2="79" stroke="#2A8AAE" stroke-width="2" stroke-linecap="round"/>
       <line x1="40" y1="70" x2="40" y2="80" stroke="#4AAFC8" stroke-width="2.5" stroke-linecap="round"/>
@@ -1376,33 +1424,108 @@ const SPECIES_DATA = [
     color: '#6CA030',
     svgPath: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
       <defs><radialGradient id="sp-cut-g" cx="45%" cy="40%"><stop offset="0%" stop-color="#A8CC60"/><stop offset="100%" stop-color="#5A8820"/></radialGradient></defs>
-      <!-- 갑오징어 특징: 납작하고 넓은 몸 + 몸 전체 두른 지느러미 -->
-      <!-- 지느러미 (몸 테두리 전체) -->
       <ellipse cx="40" cy="44" rx="22" ry="26" fill="#B8DC78" opacity="0.7"/>
-      <!-- 몸통 (납작하고 타원형) -->
       <ellipse cx="40" cy="44" rx="16" ry="22" fill="url(#sp-cut-g)"/>
-      <!-- 갑 (등껍데기 - 특징!) -->
       <ellipse cx="40" cy="38" rx="13" ry="14" fill="#C8E880" opacity="0.6"/>
       <ellipse cx="40" cy="38" rx="10" ry="11" fill="none" stroke="#7AAA30" stroke-width="1" opacity="0.8"/>
-      <!-- 호피 무늬 (갑오징어 특징) -->
       <ellipse cx="34" cy="36" rx="3.5" ry="2.5" fill="#4A7010" opacity="0.55"/>
       <ellipse cx="46" cy="36" rx="3.5" ry="2.5" fill="#4A7010" opacity="0.55"/>
       <ellipse cx="40" cy="42" rx="4" ry="2.5" fill="#4A7010" opacity="0.5"/>
       <ellipse cx="34" cy="48" rx="3" ry="2" fill="#4A7010" opacity="0.45"/>
       <ellipse cx="46" cy="48" rx="3" ry="2" fill="#4A7010" opacity="0.45"/>
-      <!-- 눈 (갑오징어: W자형 동공, 큰 눈) -->
       <ellipse cx="33" cy="30" rx="5.5" ry="6" fill="white"/>
       <ellipse cx="47" cy="30" rx="5.5" ry="6" fill="white"/>
       <ellipse cx="33" cy="31" rx="3.5" ry="4" fill="#0A1A04"/>
       <ellipse cx="47" cy="31" rx="3.5" ry="4" fill="#0A1A04"/>
       <circle cx="34.5" cy="29.5" r="1.5" fill="white"/>
       <circle cx="48.5" cy="29.5" r="1.5" fill="white"/>
-      <!-- 촉수 8+2개 -->
       <line x1="36" y1="66" x2="32" y2="76" stroke="#5A8820" stroke-width="2.2" stroke-linecap="round"/>
       <line x1="38.5" y1="66" x2="36" y2="76" stroke="#5A8820" stroke-width="2" stroke-linecap="round"/>
       <line x1="40" y1="66" x2="40" y2="77" stroke="#7AAA30" stroke-width="2.5" stroke-linecap="round"/>
       <line x1="41.5" y1="66" x2="44" y2="76" stroke="#5A8820" stroke-width="2" stroke-linecap="round"/>
       <line x1="44" y1="66" x2="48" y2="76" stroke="#5A8820" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>`
+  },
+  {
+    id: 'arrow',
+    name: '화살촉오징어',
+    nameEn: 'Japanese Flying Squid (juvenile)',
+    emoji: '🦑',
+    badge: '여름~가을',
+    sub: '살오징어과 두족류 (살오징어 새끼)',
+    season: [0,0,0,0,0,1,1,1,1,1,1,0],
+    peakMonths: '6~11월',
+    depth: '표층~40m',
+    habitat: '연안 방파제, 항구 주변, 집어등 아래',
+    size: '10~20cm (외투장)',
+    tips: '아무 기술이 필요 없는 마릿수 낚시! 집어등 아래 채비를 내리면 됩니다. 입질층 찾기가 핵심 — 20m 지점에 면사 마킹 추천. 폴링 중 입질이 많으므로 채비가 가라앉는 동안 집중하세요.',
+    prohibited: '금어기 5월 / 몸통 15cm 이하 방류',
+    color: '#E07B39',
+    svgPath: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="sp-arr-g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#F0A060"/><stop offset="100%" stop-color="#C05820"/></linearGradient></defs>
+      <!-- 화살촉오징어: 가늘고 긴 화살 모양 몸통 -->
+      <!-- 지느러미 (화살촉 모양) -->
+      <polygon points="40,8 48,28 40,22 32,28" fill="#E8904A" opacity="0.85"/>
+      <!-- 몸통 (가늘고 길쭉) -->
+      <ellipse cx="40" cy="42" rx="9" ry="28" fill="url(#sp-arr-g)"/>
+      <!-- 광택 -->
+      <ellipse cx="37" cy="32" rx="3" ry="10" fill="white" opacity="0.18"/>
+      <!-- 점무늬 (화살촉오징어 특징) -->
+      <circle cx="36" cy="35" r="2" fill="#A03A08" opacity="0.4"/>
+      <circle cx="44" cy="38" r="1.8" fill="#A03A08" opacity="0.4"/>
+      <circle cx="37" cy="45" r="2" fill="#A03A08" opacity="0.35"/>
+      <circle cx="43" cy="48" r="1.6" fill="#A03A08" opacity="0.35"/>
+      <!-- 눈 -->
+      <ellipse cx="35" cy="26" rx="4.5" ry="5" fill="white"/>
+      <ellipse cx="45" cy="26" rx="4.5" ry="5" fill="white"/>
+      <ellipse cx="35" cy="27" rx="3" ry="3.5" fill="#1A0A00"/>
+      <ellipse cx="45" cy="27" rx="3" ry="3.5" fill="#1A0A00"/>
+      <circle cx="36" cy="25.5" r="1.2" fill="white"/>
+      <circle cx="46" cy="25.5" r="1.2" fill="white"/>
+      <!-- 촉수 -->
+      <line x1="36" y1="70" x2="32" y2="78" stroke="#C05820" stroke-width="1.8" stroke-linecap="round"/>
+      <line x1="38" y1="70" x2="36" y2="79" stroke="#C05820" stroke-width="1.8" stroke-linecap="round"/>
+      <line x1="40" y1="70" x2="40" y2="79" stroke="#E07030" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="42" y1="70" x2="44" y2="79" stroke="#C05820" stroke-width="1.8" stroke-linecap="round"/>
+      <line x1="44" y1="70" x2="48" y2="78" stroke="#C05820" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>`
+  },
+  {
+    id: 'saury',
+    name: '살오징어',
+    nameEn: 'Japanese Flying Squid',
+    emoji: '🦑',
+    badge: '봄~가을',
+    sub: '살오징어과 두족류 (먼바다 원양)',
+    season: [0,0,0,1,1,1,1,1,1,1,0,0],
+    peakMonths: '6~9월 (남해 먼바다)',
+    depth: '표층~40m (입질층 탐색 중요)',
+    habitat: '남해 먼바다 원도권, 동해안',
+    size: '20~40cm (외투장)',
+    tips: '공격성이 강해 다양한 루어에 잘 반응합니다. 입질층 찾기가 최우선 — 바닥에서 3~5바퀴 릴링 후 폴링 반복. 피크타임은 자정~새벽 3시. 집어등 효과 탁월. 세 자릿수 마릿수 조과도 가능!',
+    prohibited: '금어기 4월 1일 ~ 5월 31일',
+    color: '#4A7FC0',
+    svgPath: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="sp-sau-g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#78B0E8"/><stop offset="100%" stop-color="#2A5898"/></linearGradient></defs>
+      <polygon points="40,6 50,24 40,20 30,24" fill="#5A90C8" opacity="0.9"/>
+      <ellipse cx="40" cy="43" rx="12" ry="30" fill="url(#sp-sau-g)"/>
+      <ellipse cx="36" cy="35" rx="3.5" ry="14" fill="white" opacity="0.15"/>
+      <ellipse cx="40" cy="50" rx="8" ry="18" fill="#C8E0F8" opacity="0.25"/>
+      <circle cx="35" cy="33" r="2.2" fill="#1A3870" opacity="0.35"/>
+      <circle cx="45" cy="37" r="2" fill="#1A3870" opacity="0.35"/>
+      <circle cx="36" cy="44" r="2.2" fill="#1A3870" opacity="0.3"/>
+      <circle cx="44" cy="50" r="2" fill="#1A3870" opacity="0.3"/>
+      <ellipse cx="34" cy="24" rx="5.5" ry="6" fill="white"/>
+      <ellipse cx="46" cy="24" rx="5.5" ry="6" fill="white"/>
+      <ellipse cx="34" cy="25" rx="3.8" ry="4.2" fill="#0A1830"/>
+      <ellipse cx="46" cy="25" rx="3.8" ry="4.2" fill="#0A1830"/>
+      <circle cx="35.5" cy="23.5" r="1.4" fill="white"/>
+      <circle cx="47.5" cy="23.5" r="1.4" fill="white"/>
+      <line x1="36" y1="73" x2="31" y2="79" stroke="#2A5898" stroke-width="2" stroke-linecap="round"/>
+      <line x1="38" y1="73" x2="35" y2="79" stroke="#2A5898" stroke-width="2" stroke-linecap="round"/>
+      <line x1="40" y1="73" x2="40" y2="80" stroke="#3A6EC8" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="42" y1="73" x2="45" y2="79" stroke="#2A5898" stroke-width="2" stroke-linecap="round"/>
+      <line x1="44" y1="73" x2="49" y2="79" stroke="#2A5898" stroke-width="2" stroke-linecap="round"/>
     </svg>`
   }
 ];
@@ -1545,11 +1668,13 @@ const GLOSSARY = [
 ];
 
 const SEASON_DATA = [
-  { name:'문어',    icon:'🐙', months:[1,1,1,1,1,0,0,1,1,1,1,1] },
-  { name:'한치',    icon:'🦑', months:[0,0,0,0,0,1,1,1,1,0,0,0] },
-  { name:'주꾸미',  icon:'🐠', months:[0,0,0,0,0,0,0,0,1,1,1,0] },
-  { name:'무늬오징어', icon:'🦑', months:[0,0,1,1,1,0,0,0,1,1,1,0] },
-  { name:'갑오징어', icon:'🦑', months:[0,0,0,0,0,0,0,0,1,1,1,1] },
+  { name:'문어',        spId:'octopus',    months:[1,1,1,1,1,0,0,1,1,1,1,1] },
+  { name:'한치',        spId:'squid-han',  months:[0,0,0,0,0,1,1,1,1,0,0,0] },
+  { name:'주꾸미',      spId:'webfoot',    months:[0,0,0,0,0,0,0,0,1,1,1,0] },
+  { name:'무늬오징어',  spId:'bigfin',     months:[0,0,1,1,1,0,0,0,1,1,1,0] },
+  { name:'갑오징어',    spId:'cuttlefish', months:[0,0,0,0,0,0,0,0,1,1,1,1] },
+  { name:'화살촉오징어', spId:'arrow',     months:[0,0,0,0,0,1,1,1,1,1,1,0] },
+  { name:'살오징어',    spId:'saury',      months:[0,0,0,1,1,1,1,1,1,1,0,0] },
 ];
 
 const WEATHER_MOCK = {
@@ -1642,19 +1767,22 @@ function buildSeasonStrip() {
 function buildSeasonCal() {
   const tbody = document.getElementById('season-cal-body');
   tbody.innerHTML = '';
-  // 캘린더에는 텍스트 이모지 사용 (SVG는 테이블 셀 높이 왜곡 유발)
-  const calIcons = { '문어':'🐙', '한치':'🦑', '주꾸미':'🐠', '무늬오징어':'🦑', '갑오징어':'🦑' };
   const now = new Date().getMonth();
   SEASON_DATA.forEach(s => {
-    const icon = calIcons[s.name] || s.icon;
-    let row = `<tr>
-      <td style="text-align:center;font-size:16px;padding:2px 4px">${icon}</td>
-      <td class="cal-name">${s.name}</td>`;
-    s.months.forEach((m, i) => {
+    const sp = SPECIES_DATA.find(d => d.id === s.spId);
+    // SVG를 24px 미니 아이콘으로 축소
+    const iconSvg = sp ? getSvg(sp) : '';
+    const iconCell = sp
+      ? '<div style="width:28px;height:28px;flex-shrink:0;">' + iconSvg + '</div>'
+      : '<span style="font-size:18px;">🦑</span>';
+    let row = '<tr>'
+      + '<td style="padding:3px 4px;text-align:center;">' + iconCell + '</td>'
+      + '<td class="cal-name">' + s.name + '</td>';
+    s.months.forEach(function(m, i) {
       const isNow = i === now;
-      const cls = m ? (isNow ? 'peak' : 'peak') : 'off';
-      const style = isNow && m ? 'outline:2px solid #FF6B6B;outline-offset:-1px;' : '';
-      row += `<td><div class="cal-bar ${cls}" style="${style}"></div></td>`;
+      const cls = m ? 'peak' : 'off';
+      const style = (isNow && m) ? 'outline:2px solid #FF6B6B;outline-offset:-1px;border-radius:8px;' : '';
+      row += '<td><div class="cal-bar ' + cls + '" style="' + style + '"></div></td>';
     });
     row += '</tr>';
     tbody.innerHTML += row;
@@ -2239,21 +2367,23 @@ document.querySelectorAll('.method-tab').forEach(tab => {
 // Tackle tabs — 동적으로 생성 후 이벤트 등록
 function buildTackleTabs() {
   const TACKLE_LIST = [
-    { key: '문어',   label: '문어',      spId: 'octopus'    },
-    { key: '한치',   label: '한치',      spId: 'squid-han'  },
-    { key: '주꾸미', label: '주꾸미',    spId: 'webfoot'    },
-    { key: '무늬',   label: '무늬오징어', spId: 'bigfin'    },
-    { key: '갑오징어', label: '갑오징어', spId: 'cuttlefish' },
+    { key: '문어',       label: '문어',      spId: 'octopus'    },
+    { key: '한치',       label: '한치',      spId: 'squid-han'  },
+    { key: '주꾸미',     label: '주꾸미',    spId: 'webfoot'    },
+    { key: '무늬',       label: '무늬오징어', spId: 'bigfin'    },
+    { key: '갑오징어',   label: '갑오징어',  spId: 'cuttlefish' },
+    { key: '화살촉오징어', label: '화살촉',  spId: 'arrow'      },
+    { key: '살오징어',   label: '살오징어',  spId: 'saury'      },
   ];
   const container = document.getElementById('tackle-tabs-container');
   container.innerHTML = '';
   TACKLE_LIST.forEach((t, i) => {
     const sp = SPECIES_DATA.find(s => s.id === t.spId);
-    const svg = sp ? `<div class="tt-icon">${getSvg(sp)}</div>` : '';
+    const svg = sp ? '<div class="tt-icon">' + getSvg(sp) + '</div>' : '';
     const btn = document.createElement('button');
     btn.className = 'tackle-tab' + (i === 0 ? ' active' : '');
     btn.dataset.tt = t.key;
-    btn.innerHTML = `${svg}<span class="tt-name">${t.label}</span>`;
+    btn.innerHTML = svg + '<span class="tt-name">' + t.label + '</span>';
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tackle-tab').forEach(tb => tb.classList.remove('active'));
       document.querySelectorAll('.tackle-panel').forEach(p => p.classList.remove('active'));
