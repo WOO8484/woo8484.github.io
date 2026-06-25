@@ -151,17 +151,8 @@ ul, ol { list-style: none; }
 }
 .region-chip-search {
   background: linear-gradient(135deg, var(--ocean), var(--deep)) !important;
-  color: #fff !important;
-  border-color: var(--ocean) !important;
+  color: #fff !important; border-color: var(--ocean) !important;
 }
-/* 지도 핀 */
-.map-pin {
-  cursor: pointer;
-  transition: transform .15s;
-}
-.map-pin:hover, .map-pin.active { transform: scale(1.3); }
-.map-pin circle { transition: fill .15s; }
-.map-pin.active circle:first-child { fill: var(--coral); }
 .region-chip {
   padding: 8px 4px; border-radius: var(--radius-sm);
   font-size: 12px; font-weight: 700; border: 1.5px solid var(--border);
@@ -650,61 +641,32 @@ ul, ol { list-style: none; }
 
     <!-- =============== PAGE: 홈/날씨 =============== -->
     <section class="page active" id="page-home">
-      <!-- 지역 칩 5개 + 검색 버튼 -->
       <div class="region-selector" id="region-selector">
         <button class="region-chip active" data-region="거제">🏝 거제</button>
         <button class="region-chip" data-region="통영">⛵ 통영</button>
         <button class="region-chip" data-region="사천">🎣 사천</button>
         <button class="region-chip" data-region="부산">🌉 부산</button>
         <button class="region-chip" data-region="울산">🐋 울산</button>
-        <button class="region-chip region-chip-search" id="region-search-btn">🔍 검색</button>
+        <button class="region-chip region-chip-search" id="region-search-btn">🌬 날씨검색</button>
       </div>
 
-      <!-- ===== 위치 검색 패널 ===== -->
+      <!-- 날씨 검색 패널 -->
       <div id="region-search-panel" style="display:none;margin-bottom:12px;">
-        <div style="background:var(--foam);border-radius:var(--radius);padding:14px;
-                    border:1.5px solid var(--ocean);box-shadow:0 4px 16px var(--shadow);">
-
-          <div style="font-size:13px;font-weight:700;color:var(--deep);margin-bottom:6px;">
-            📍 지도에서 위치를 탭하여 날씨 확인
-          </div>
-          <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.6;">
-            지도를 탭 → 실시간 날씨 조회 + Windy 바로가기
-          </div>
-
-          <!-- Canvas 지도 -->
-          <div style="position:relative;border-radius:var(--radius-sm);overflow:hidden;border:1.5px solid var(--border);">
-            <canvas id="pick-map-canvas" style="display:block;width:100%;touch-action:none;cursor:crosshair;"></canvas>
-            <!-- 줌 버튼 -->
-            <div style="position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:4px;z-index:10;">
-              <button id="map-zoom-in"  style="width:28px;height:28px;border-radius:6px;background:#fff;border:1px solid var(--border);font-size:16px;font-weight:700;color:var(--deep);line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.2);">+</button>
-              <button id="map-zoom-out" style="width:28px;height:28px;border-radius:6px;background:#fff;border:1px solid var(--border);font-size:16px;font-weight:700;color:var(--deep);line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.2);">−</button>
-            </div>
-            <!-- 범례 -->
-            <div style="position:absolute;bottom:6px;left:8px;font-size:9px;color:#555;background:rgba(255,255,255,.8);padding:2px 6px;border-radius:4px;">
-              🎣 추천포인트 탭 or 바다 어디든 탭
-            </div>
-          </div>
-
-          <!-- 추천 포인트 빠른 버튼 -->
-          <div style="margin-top:10px;">
+        <div style="background:var(--foam);border-radius:var(--radius);padding:14px;border:1.5px solid var(--ocean);box-shadow:0 4px 16px var(--shadow);">
+          <div style="font-size:13px;font-weight:700;color:var(--deep);margin-bottom:8px;">🌬 포인트 선택 → 실시간 날씨 확인</div>
+          <div style="margin-bottom:10px;">
             <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;">⚡ 추천 포인트</div>
             <div id="quick-pins" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
           </div>
-
-          <!-- 날씨 미리보기 카드 -->
-          <div id="weather-preview" style="display:none;margin-top:10px;padding:12px;
-               background:linear-gradient(135deg,var(--deep),var(--ocean));
-               border-radius:var(--radius-sm);color:#fff;">
-            <div style="font-size:11px;opacity:.75;margin-bottom:8px;" id="wp-location">⏳ 날씨 불러오는 중…</div>
-            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;" id="wp-grid"></div>
-            <button id="open-windy-btn" style="margin-top:10px;width:100%;padding:9px;
-              border-radius:var(--radius-sm);background:rgba(255,255,255,.18);
-              color:#fff;font-size:12px;font-weight:700;border:1px solid rgba(255,255,255,.3);">
-              🌬 Windy에서 상세 날씨 보기 →
-            </button>
+          <div id="weather-preview" style="display:none;margin-bottom:10px;padding:12px;background:linear-gradient(135deg,var(--deep),var(--ocean));border-radius:var(--radius-sm);color:#fff;">
+            <div style="font-size:12px;font-weight:700;margin-bottom:8px;" id="wp-location">⏳ 날씨 불러오는 중…</div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;" id="wp-grid"></div>
+            <button id="open-windy-btn" style="width:100%;padding:10px;border-radius:var(--radius-sm);background:rgba(255,255,255,.2);color:#fff;font-size:13px;font-weight:700;border:1.5px solid rgba(255,255,255,.4);">🌬 Windy 상세 날씨 보기 →</button>
           </div>
-
+          <div id="windy-frame-wrap" style="display:none;">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">🗺 Windy 바람·파고 지도</div>
+            <iframe id="windy-iframe" style="width:100%;height:280px;border-radius:var(--radius-sm);border:1.5px solid var(--border);display:block;" frameborder="0" allowfullscreen src="about:blank"></iframe>
+          </div>
         </div>
       </div>
 
@@ -918,46 +880,42 @@ ul, ol { list-style: none; }
       </div>
 
       <div class="tackle-panel" id="tp-한치">
-
         <div class="tackle-card">
-          <div class="t-header"><span class="t-icon">🦑</span><div><div class="t-name">한치 오모리그 채비</div><div class="t-sub">선상낚시 · 가장 기본</div></div></div>
+          <div class="t-header"><span class="t-icon">🦑</span><div><div class="t-name">한치 오모리그 채비</div><div class="t-sub">선상낚시 · 기본</div></div></div>
           <div class="tackle-spec">
             <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">한치 전용 오모리로드 2.1m (L~ML)</div></div>
             <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">수심카운터 소형 베이트릴 (필수!)</div></div>
             <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 합사 0.6~1호 (5색 마킹 추천)</div></div>
             <div class="spec-item"><div class="s-lbl">목줄</div><div class="s-val">카본(플루오로) 3호</div></div>
-            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">오모리그 봉돌 20~30호 (형광/축광)</div></div>
-            <div class="spec-item"><div class="s-lbl">슷테/에기</div><div class="s-val">한치 전용 슷테 2~3단 (화려한 축광)</div></div>
+            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">오모리그 20~30호 (형광/축광)</div></div>
+            <div class="spec-item"><div class="s-lbl">슷테/에기</div><div class="s-val">한치 전용 슷테 2~3단 (축광색)</div></div>
           </div>
-          <div class="tackle-tip">수심 파악이 핵심! 수심 카운터 없는 릴은 5색 합사+마킹 필수. 슷테는 바늘이 얇고 촘촘한 한치 전용으로 준비하세요. 색상보다 바늘 품질이 더 중요합니다.</div>
+          <div class="tackle-tip">수심 파악이 핵심! 수심 카운터 없는 릴은 5색 합사+마킹 필수. 슷테는 바늘이 얇고 촘촘한 한치 전용으로 준비하세요.</div>
         </div>
-
         <div class="tackle-card">
-          <div class="t-header"><span class="t-icon">⚡</span><div><div class="t-name">이카메탈 채비</div><div class="t-sub">선상 수직지깅 · 빠른 수심 탐색</div></div></div>
+          <div class="t-header"><span class="t-icon">⚡</span><div><div class="t-name">이카메탈 채비</div><div class="t-sub">선상 수직지깅</div></div></div>
           <div class="tackle-spec">
             <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">이카메탈 전용 베이트로드 2.1m</div></div>
-            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">소형 베이트릴 또는 경량 전동릴</div></div>
+            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">소형 베이트릴 / 경량 전동릴</div></div>
             <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 합사 0.8~1호</div></div>
-            <div class="spec-item"><div class="s-lbl">이카메탈</div><div class="s-val">80~120g (화려한 축광 메탈 추천)</div></div>
-            <div class="spec-item"><div class="s-lbl">슷테</div><div class="s-val">2~3단 한치 전용 (핫핑크·야광·금색)</div></div>
-            <div class="spec-item"><div class="s-lbl">공략 수심</div><div class="s-val">10~40m (활성도에 따라 부상)</div></div>
+            <div class="spec-item"><div class="s-lbl">이카메탈</div><div class="s-val">80~120g (화려한 축광 메탈)</div></div>
+            <div class="spec-item"><div class="s-lbl">슷테</div><div class="s-val">2~3단 한치 전용 (핫핑크·야광)</div></div>
+            <div class="spec-item"><div class="s-lbl">공략 수심</div><div class="s-val">10~40m (활성도따라 부상)</div></div>
           </div>
-          <div class="tackle-tip">이카메탈은 봉돌+루어 겸용. 80~120g 기본이지만 한치 활성도와 조류에 따라 다양한 무게 준비 권장. 야간에는 야광 슷테 필수!</div>
+          <div class="tackle-tip">이카메탈은 봉돌+루어 겸용. 야간에는 야광 슷테 필수! 한치 활성도에 따라 다양한 무게 준비 권장.</div>
         </div>
-
         <div class="tackle-card">
-          <div class="t-header"><span class="t-icon">🌙</span><div><div class="t-name">야간 다단 거치 채비</div><div class="t-sub">선상 집어등 주변 · 마릿수 공략</div></div></div>
+          <div class="t-header"><span class="t-icon">🌙</span><div><div class="t-name">야간 다단 거치 채비</div><div class="t-sub">집어등 주변 · 마릿수</div></div></div>
           <div class="tackle-spec">
             <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">한치 거치용 로드 2.1m (L~UL)</div></div>
             <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">소형 전동릴 (편의성 최고)</div></div>
             <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 합사 0.6~1호</div></div>
             <div class="spec-item"><div class="s-lbl">채비</div><div class="s-val">시판용 2~3단 이카메탈 채비</div></div>
-            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">20~30호 슬림 롱타입 (밑걸림 최소화)</div></div>
-            <div class="spec-item"><div class="s-lbl">포인트</div><div class="s-val">집어등 빛/어둠 경계선 주변</div></div>
+            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">20~30호 슬림 롱타입</div></div>
+            <div class="spec-item"><div class="s-lbl">포인트</div><div class="s-val">집어등 빛/어둠 경계선</div></div>
           </div>
-          <div class="tackle-tip">시판 완성 채비가 편리. 입질은 로드 끝 떨림으로 확인. 전동릴 사용 시 마릿수 폭발 기대! 집어등 불빛과 어둠의 경계선을 집중 공략하세요.</div>
+          <div class="tackle-tip">시판 완성 채비가 편리. 입질은 로드 끝 떨림으로 확인. 집어등 불빛 경계선을 집중 공략하세요.</div>
         </div>
-
       </div>
 
       <div class="tackle-panel" id="tp-주꾸미">
@@ -1100,7 +1058,6 @@ ul, ol { list-style: none; }
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
 // ============================================================
 // DATA
 // ============================================================
@@ -1402,15 +1359,27 @@ const BOAT_DATA = {
   '거제': [
     { name: '거제 블루피쉬호', phone: '055-681-0000', fish: '무늬오징어·문어', depart: '장승포항', price: '1인 6만원~', web: 'https://sunsung24.com' },
     { name: '거제 에깅마스터호', phone: '055-682-1111', fish: '무늬오징어 전용', depart: '고현항', price: '1인 7만원~', web: 'https://sunsung24.com' },
-    { name: '아쿠아프린세스호', phone: '010-2222-3333', fish: '갑오징어·한치', depart: '구조라 선착장', price: '1인 5만원~', web: 'https://sunsung24.com' },
+    { name: '아쿠아프린세스호', phone: '010-2222-3333', fish: '갑오징어·한치', depart: '일운면 구조라', price: '1인 5만원~', web: 'https://sunsung24.com' },
   ],
   '통영': [
     { name: '통영 남해낚시호', phone: '055-644-0000', fish: '한치·무늬오징어', depart: '통영항', price: '1인 6만원~', web: 'https://sunsung24.com' },
     { name: '통영 이순신호', phone: '055-645-1234', fish: '문어·갑오징어', depart: '미수동 선착장', price: '1인 5만원~', web: 'https://sunsung24.com' },
   ],
+  '고성': [
+    { name: '고성 공룡호', phone: '055-673-0000', fish: '갑오징어·주꾸미', depart: '자란만', price: '1인 4만원~', web: 'https://sunsung24.com' },
+    { name: '고성 하이낚시호', phone: '055-674-5678', fish: '문어·무늬오징어', depart: '당항포', price: '1인 5만원~', web: 'https://sunsung24.com' },
+  ],
+  '남해': [
+    { name: '남해 보물섬호', phone: '055-860-0000', fish: '무늬오징어·한치', depart: '남해 창선선착장', price: '1인 6만원~', web: 'https://sunsung24.com' },
+    { name: '남해 플라이피쉬호', phone: '055-861-7890', fish: '갑오징어·주꾸미', depart: '미조항', price: '1인 5만원~', web: 'https://sunsung24.com' },
+  ],
   '사천': [
     { name: '사천 삼천포호', phone: '055-831-0000', fish: '갑오징어·주꾸미', depart: '삼천포항', price: '1인 4만원~', web: 'https://sunsung24.com' },
     { name: '사천 실안낚시호', phone: '055-832-1357', fish: '문어·에깅', depart: '실안선착장', price: '1인 4만5천원~', web: 'https://sunsung24.com' },
+  ],
+  '창원': [
+    { name: '창원 진해만호', phone: '055-548-0000', fish: '갑오징어·문어', depart: '진해 용원', price: '1인 5만원~', web: 'https://sunsung24.com' },
+    { name: '창원 마산호', phone: '055-245-2468', fish: '주꾸미·갑오징어', depart: '마산항', price: '1인 4만원~', web: 'https://sunsung24.com' },
   ],
   '부산': [
     { name: '부산 대왕낚시호', phone: '051-401-0000', fish: '무늬오징어·문어', depart: '기장 대변항', price: '1인 7만원~', web: 'https://sunsung24.com' },
@@ -1425,17 +1394,16 @@ const BOAT_DATA = {
 };
 
 const WALK_SPOTS = [
-  { region:'거제', name:'장승포 방파제', icon:'🏖', fish:['무늬오징어','문어'], desc:'거제 동쪽 장승포 외항 방파제. 야간 에깅 명소. 테트라포드 주변 무늬오징어 봄·가을 조황 우수.' },
+  { region:'거제', name:'장승포 방파제', icon:'🏖', fish:['무늬오징어','문어'], desc:'거제 동쪽 장승포 외항 방파제. 야간 에깅 명소. 테트라포드 주변 무늬오징어 시즌(봄·가을) 조황 우수.' },
   { region:'거제', name:'외도 인근 갯바위', icon:'🪨', fish:['무늬오징어'], desc:'외도 주변 갯바위. 봄철 무늬오징어 산란 포인트. 조류 빠르므로 주의.' },
-  { region:'거제', name:'지심도 갯바위', icon:'🪨', fish:['무늬오징어','문어'], desc:'거제 지심도(동백섬) 갯바위. 도선 이용. 청정 환경의 프리미엄 낚시 포인트.' },
-  { region:'통영', name:'서호항 방파제', icon:'🏖', fish:['갑오징어','한치'], desc:'통영 서호항 방파제. 집어등 주변 한치 야간낚시 명소. 10~11월 갑오징어도 풍성.' },
+  { region:'통영', name:'통영 서호항 방파제', icon:'🏖', fish:['갑오징어','한치'], desc:'통영 서호항 방파제. 집어등 주변 한치 야간낚시 명소. 10~11월 갑오징어도 풍성.' },
   { region:'통영', name:'사량도 갯바위', icon:'🪨', fish:['무늬오징어'], desc:'사량도 섬 내 갯바위. 에깅 명소로 유명. 도선 이용 접근.' },
-  { region:'사천', name:'삼천포항 방파제', icon:'🏖', fish:['갑오징어','주꾸미'], desc:'삼천포 대교 인근 방파제. 가을 주꾸미·갑오징어 시즌 인기 낚시터.' },
-  { region:'사천', name:'실안 갯바위', icon:'🪨', fish:['문어','갑오징어'], desc:'실안낙조 명소 인근. 문어 루어낚시와 갑오징어 에깅 포인트.' },
+  { region:'남해', name:'미조항 방파제', icon:'🏖', fish:['무늬오징어','갑오징어'], desc:'미조항 방파제 및 인근 갯바위. 에깅 조황이 꾸준하고 초보자도 즐길 수 있는 환경.' },
   { region:'부산', name:'기장 대변항 방파제', icon:'🏖', fish:['무늬오징어','문어'], desc:'기장군 대변항 방파제. 에깅·문어 낚시 명소. 새벽·야간 조황 우수.' },
   { region:'부산', name:'영도 절영해안 산책로', icon:'🏖', fish:['갑오징어','문어'], desc:'영도 북쪽 절영해안. 접근성 좋은 도보 낚시터. 가을 갑오징어 시즌 인기.' },
-  { region:'울산', name:'방어진 항구', icon:'🏖', fish:['무늬오징어','한치'], desc:'울산 방어진 항구 및 방파제. 에깅과 야간 한치낚시 포인트. 여름~가을 시즌 활성.' },
+  { region:'울산', name:'방어진 도구해수욕장', icon:'🏖', fish:['무늬오징어','한치'], desc:'울산 방어진 인근 모래해변 및 방파제. 에깅과 야간 한치낚시 포인트. 여름~가을 시즌 활성.' },
   { region:'울산', name:'강동 화암추 갯바위', icon:'🪨', fish:['무늬오징어'], desc:'울산 강동해변 북쪽 화암추 갯바위. 에깅 명포인트. 봄·가을 무늬오징어 조황 우수.' },
+  { region:'거제', name:'지심도 갯바위', icon:'🪨', fish:['무늬오징어','문어'], desc:'거제 지심도(동백섬) 갯바위. 도선 이용. 청정 환경의 프리미엄 낚시 포인트.' },
 ];
 
 const GLOSSARY = [
@@ -1478,40 +1446,6 @@ const TIDE_MOCK = {
   '사천': { cur:'270cm', type:'11', fish:'⭐ 나쁨',   high:'07:30', low:'13:28', sun:'05:22', set:'19:48' },
   '부산': { cur:'300cm', type:'6', fish:'⭐⭐⭐ 좋음', high:'06:50', low:'12:48', sun:'05:19', set:'19:45' },
   '울산': { cur:'290cm', type:'7', fish:'⭐⭐⭐ 좋음', high:'06:58', low:'12:55', sun:'05:18', set:'19:44' },
-};
-
-// ── 지역별 바다 낚시 포인트 (위경도 + 정보) ────────────────────────────────
-// 지도 투영: 남해안 bbox  lon 128.0~129.5  lat 34.5~35.6
-const SEA_POINTS = {
-  '거제': [
-    { name:'장승포 방파제', lat:34.836, lon:128.693, fish:'무늬오징어·문어', type:'방파제', tip:'야간 에깅 명소. 테트라포드 주변 봄·가을 조황 우수.' },
-    { name:'지심도 갯바위', lat:34.869, lon:128.737, fish:'무늬오징어·문어', type:'갯바위', tip:'도선 이용. 청정 환경의 프리미엄 포인트.' },
-    { name:'외도 인근 갯바위', lat:34.789, lon:128.607, fish:'무늬오징어', type:'갯바위', tip:'봄철 무늬오징어 산란 포인트. 조류 빠름 주의.' },
-    { name:'구조라 선착장', lat:34.805, lon:128.672, fish:'갑오징어·한치', type:'방파제', tip:'선상낚시 출조 거점. 가을 갑오징어 좋음.' },
-  ],
-  '통영': [
-    { name:'서호항 방파제', lat:34.845, lon:128.430, fish:'갑오징어·한치', type:'방파제', tip:'야간 집어등 주변 한치 명소. 10~11월 갑오징어 풍성.' },
-    { name:'사량도 갯바위', lat:34.768, lon:128.254, fish:'무늬오징어', type:'갯바위', tip:'에깅 명소. 도선 이용 접근.' },
-    { name:'통영 욕지도', lat:34.628, lon:128.350, fish:'무늬오징어·문어', type:'섬·갯바위', tip:'먼바다 원도 낚시. 대형급 무늬오징어 기대.' },
-    { name:'한산도 방파제', lat:34.786, lon:128.475, fish:'갑오징어·주꾸미', type:'방파제', tip:'이충무공 유적지 근처. 가을 갑오징어 시즌 인기.' },
-  ],
-  '사천': [
-    { name:'삼천포항 방파제', lat:34.923, lon:128.064, fish:'갑오징어·주꾸미', type:'방파제', tip:'삼천포 대교 인근. 가을 주꾸미·갑오징어 시즌.' },
-    { name:'실안 선착장', lat:34.902, lon:128.041, fish:'문어·갑오징어', type:'방파제', tip:'실안낙조 명소. 문어 루어낚시 포인트.' },
-    { name:'늑도 갯바위', lat:34.877, lon:128.052, fish:'무늬오징어', type:'갯바위', tip:'늑도 인근 갯바위. 에깅 포인트.' },
-  ],
-  '부산': [
-    { name:'기장 대변항', lat:35.244, lon:129.222, fish:'무늬오징어·문어', type:'방파제', tip:'에깅·문어 낚시 명소. 새벽·야간 조황 우수.' },
-    { name:'영도 절영해안', lat:35.082, lon:129.061, fish:'갑오징어·문어', type:'도보', tip:'접근성 좋은 도보 낚시터. 가을 갑오징어 인기.' },
-    { name:'다대포 방파제', lat:35.044, lon:128.964, fish:'주꾸미·갑오징어', type:'방파제', tip:'낙동강 하구 인근. 주꾸미 풍어 포인트.' },
-    { name:'송정 방파제', lat:35.186, lon:129.200, fish:'무늬오징어', type:'방파제', tip:'해수욕장 옆 소형 방파제. 에깅 입문지.' },
-  ],
-  '울산': [
-    { name:'방어진 항구', lat:35.491, lon:129.437, fish:'무늬오징어·한치', type:'방파제', tip:'에깅과 야간 한치낚시 포인트. 여름~가을 활성.' },
-    { name:'강동 화암추 갯바위', lat:35.564, lon:129.440, fish:'무늬오징어', type:'갯바위', tip:'에깅 명포인트. 봄·가을 무늬오징어 조황 우수.' },
-    { name:'정자항 방파제', lat:35.652, lon:129.449, fish:'갑오징어·주꾸미', type:'방파제', tip:'북구 정자항. 가을 갑오징어 시즌 인기.' },
-    { name:'일산 방파제', lat:35.502, lon:129.428, fish:'문어·무늬오징어', type:'방파제', tip:'울산 시내 접근 편리. 야간 에깅 가능.' },
-  ],
 };
 
 // ============================================================
@@ -1797,7 +1731,7 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
   btn.addEventListener('click', () => navigate(btn.dataset.page));
 });
 
-// Region chips (5개 고정 칩만 처리 — 검색버튼은 setupPickMap에서 별도 처리)
+// Region chips
 document.getElementById('region-selector').addEventListener('click', e => {
   const chip = e.target.closest('.region-chip');
   if (!chip || chip.id === 'region-search-btn') return;
@@ -1805,299 +1739,158 @@ document.getElementById('region-selector').addEventListener('click', e => {
   chip.classList.add('active');
   currentRegion = chip.dataset.region;
   updateWeather(currentRegion);
+  document.getElementById('region-search-panel').style.display = 'none';
 });
 
-// ── 지역 검색 + 지도 렌더링 ───────────────────────────────────────────────
-// ── 위치 탭 + Canvas 지도 + Open-Meteo + Windy ────────────────────────────
-(function setupPickMap() {
-
-  // ── 지도 데이터 ──────────────────────────────────────────────────────────
-  // 남해안 육지 윤곽 폴리곤 [lon, lat] (시계방향, 간략화)
-  const LAND = [
-    [127.8,35.8],[129.7,35.8],[129.7,35.45],
-    [129.44,35.49],[129.38,35.35],[129.22,35.12],
-    [129.07,35.07],[128.98,35.09],[128.82,35.19],
-    [128.72,34.96],[128.70,34.88],[128.60,34.82],
-    [128.42,34.80],[128.30,34.82],[128.18,34.90],
-    [128.08,34.96],[128.02,35.12],[127.90,35.20],
-    [127.80,35.35]
-  ];
-  const ISLAND_GEOJE = [[128.52,34.88],[128.72,34.88],[128.72,34.78],[128.52,34.78]];
-
-  const QUICK = [
+// ── Windy + Open-Meteo 날씨 검색 ─────────────────────────────────────────
+(function setupWindySearch() {
+  const POINTS = [
     { name:'거제 장승포', lat:34.836, lon:128.693, fish:'무늬오징어·문어' },
     { name:'통영 서호항', lat:34.845, lon:128.430, fish:'갑오징어·한치' },
     { name:'사천 삼천포', lat:34.923, lon:128.064, fish:'갑오징어·주꾸미' },
     { name:'부산 대변항', lat:35.244, lon:129.222, fish:'무늬오징어·문어' },
     { name:'울산 방어진', lat:35.491, lon:129.437, fish:'무늬오징어·한치' },
   ];
+  let initialized = false;
 
-  // ── 지도 상태 ────────────────────────────────────────────────────────────
-  const CANVAS_W = 360, CANVAS_H = 260;
-  let view = { lonMin:127.6, lonMax:129.9, latMin:34.3, latMax:35.85 };
-  let pickedLat = null, pickedLon = null, pickedLabel = null;
-  let windyUrl = null;
-  let mapReady = false;
+  document.getElementById('region-search-btn').addEventListener('click', function() {
+    const panel = document.getElementById('region-search-panel');
+    const opening = (panel.style.display === 'none' || panel.style.display === '');
+    panel.style.display = opening ? 'block' : 'none';
+    if (opening && !initialized) { initialized = true; buildPins(); }
+  });
 
-  function lonToX(lon) { return ((lon - view.lonMin) / (view.lonMax - view.lonMin)) * CANVAS_W; }
-  function latToY(lat) { return ((view.latMax - lat) / (view.latMax - view.latMin)) * CANVAS_H; }
-  function xToLon(x)   { return view.lonMin + (x / CANVAS_W) * (view.lonMax - view.lonMin); }
-  function yToLat(y)   { return view.latMax  - (y / CANVAS_H) * (view.latMax - view.latMin); }
-
-  function drawMap() {
-    const canvas = document.getElementById('pick-map-canvas');
-    if (!canvas) return;
-    canvas.width  = CANVAS_W;
-    canvas.height = CANVAS_H;
-    const ctx = canvas.getContext('2d');
-
-    // 바다
-    const seaGrad = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
-    seaGrad.addColorStop(0, '#a8d5f0');
-    seaGrad.addColorStop(1, '#5ba8d4');
-    ctx.fillStyle = seaGrad;
-    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-
-    // 육지
-    function drawPoly(poly, fill, stroke) {
-      ctx.beginPath();
-      poly.forEach(([lon, lat], i) => {
-        const x = lonToX(lon), y = latToY(lat);
-        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  function buildPins() {
+    const wrap = document.getElementById('quick-pins');
+    POINTS.forEach(function(pt, i) {
+      const btn = document.createElement('button');
+      btn.innerHTML = '<span style="background:var(--ocean);color:#fff;border-radius:50%;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;margin-right:4px;flex-shrink:0">' + (i+1) + '</span>' + pt.name;
+      btn.style.cssText = 'display:flex;align-items:center;padding:6px 10px;border-radius:20px;border:1.5px solid var(--border);background:var(--sky);color:var(--deep);font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;';
+      btn.addEventListener('click', function() {
+        wrap.querySelectorAll('button').forEach(function(b){ b.style.background='var(--sky)'; b.style.color='var(--deep)'; });
+        btn.style.background='var(--ocean)'; btn.style.color='#fff';
+        selectPoint(pt);
       });
-      ctx.closePath();
-      ctx.fillStyle = fill; ctx.fill();
-      ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke();
-    }
-    drawPoly(LAND, '#c8dba8', '#8fba60');
-
-    // 섬들 (간략 원형)
-    const ISLANDS = [
-      { name:'거제도', lon:128.62, lat:34.83, r:16 },
-      { name:'통영', lon:128.43, lat:34.84, r:6 },
-      { name:'남해도', lon:127.92, lat:34.82, r:10 },
-      { name:'욕지도', lon:128.35, lat:34.63, r:4 },
-      { name:'사량도', lon:128.25, lat:34.78, r:4 },
-    ];
-    ISLANDS.forEach(isl => {
-      const x = lonToX(isl.lon), y = latToY(isl.lat);
-      ctx.beginPath(); ctx.arc(x, y, isl.r, 0, Math.PI*2);
-      ctx.fillStyle = '#c8dba8'; ctx.fill();
-      ctx.strokeStyle = '#8fba60'; ctx.lineWidth = 0.8; ctx.stroke();
+      wrap.appendChild(btn);
     });
-
-    // 지역 라벨
-    const LABELS = [
-      { name:'거제',   lon:128.63, lat:34.88 },
-      { name:'통영',   lon:128.42, lat:34.90 },
-      { name:'사천',   lon:128.07, lat:34.98 },
-      { name:'부산',   lon:129.04, lat:35.20 },
-      { name:'울산',   lon:129.32, lat:35.55 },
-      { name:'남해',   lon:127.91, lat:34.87 },
-    ];
-    ctx.font = 'bold 10px sans-serif';
-    ctx.textAlign = 'center';
-    LABELS.forEach(lb => {
-      const x = lonToX(lb.lon), y = latToY(lb.lat);
-      ctx.fillStyle = 'rgba(255,255,255,0.7)';
-      ctx.fillRect(x - 14, y - 10, 28, 13);
-      ctx.fillStyle = '#2a5a20'; ctx.fillText(lb.name, x, y);
-    });
-
-    // 추천 포인트 핀
-    QUICK.forEach((pt, i) => {
-      const x = lonToX(pt.lon), y = latToY(pt.lat);
-      const isActive = pickedLat !== null &&
-        Math.abs(pickedLat - pt.lat) < 0.01 && Math.abs(pickedLon - pt.lon) < 0.01;
-      // 그림자
-      ctx.beginPath(); ctx.arc(x+1, y+1, 10, 0, Math.PI*2);
-      ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.fill();
-      // 핀
-      ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI*2);
-      ctx.fillStyle = isActive ? '#FF6B6B' : '#4BA3CC';
-      ctx.fill();
-      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
-      // 번호
-      ctx.font = 'bold 9px sans-serif'; ctx.fillStyle = '#fff'; ctx.textAlign = 'center';
-      ctx.fillText(i + 1, x, y + 3);
-    });
-
-    // 선택된 위치 핀
-    if (pickedLat !== null) {
-      const x = lonToX(pickedLon), y = latToY(pickedLat);
-      // 파동 효과
-      ctx.beginPath(); ctx.arc(x, y, 16, 0, Math.PI*2);
-      ctx.fillStyle = 'rgba(255,107,107,.2)'; ctx.fill();
-      ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI*2);
-      ctx.fillStyle = '#FF6B6B'; ctx.fill();
-      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5; ctx.stroke();
-      ctx.font = 'bold 10px sans-serif'; ctx.fillStyle = '#fff'; ctx.textAlign = 'center';
-      ctx.fillText('✓', x, y + 4);
-      // 좌표 말풍선
-      const label = pickedLabel || `${pickedLat.toFixed(3)}, ${pickedLon.toFixed(3)}`;
-      const tw = ctx.measureText(label).width + 12;
-      let bx = Math.min(x - tw/2, CANVAS_W - tw - 4);
-      bx = Math.max(bx, 4);
-      const by = Math.max(y - 28, 4);
-      ctx.fillStyle = 'rgba(26,110,153,.9)';
-      ctx.beginPath();
-      ctx.roundRect ? ctx.roundRect(bx, by, tw, 18, 4)
-        : (ctx.rect(bx, by, tw, 18));
-      ctx.fill();
-      ctx.font = '10px sans-serif'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
-      ctx.fillText(label, bx + 6, by + 13);
-    }
   }
 
-  // ── 위치 선택 처리 ──────────────────────────────────────────────────────
-  function setPick(lat, lon, label) {
-    pickedLat = lat; pickedLon = lon; pickedLabel = label || null;
-    windyUrl = `https://www.windy.com/${lat.toFixed(3)}/${lon.toFixed(3)}?wind,${lat.toFixed(2)},${lon.toFixed(2)},9,i:pressure`;
-    drawMap();
-    fetchWeather(lat, lon, label);
-    // Windy 버튼
-    const wb = document.getElementById('open-windy-btn');
-    if (wb) wb.onclick = () => window.open(windyUrl, '_blank');
+  function selectPoint(pt) {
+    const windyEmbed = 'https://embed.windy.com/embed2.html?lat=' + pt.lat.toFixed(3)
+      + '&lon=' + pt.lon.toFixed(3) + '&detailLat=' + pt.lat.toFixed(3)
+      + '&detailLon=' + pt.lon.toFixed(3)
+      + '&width=650&height=450&zoom=9&level=surface&overlay=wind&product=ecmwf'
+      + '&menu=&message=true&marker=true&calendar=now&pressure=true'
+      + '&type=map&location=coordinates&detail=true&metricWind=m%2Fs&metricTemp=%C2%B0C&radarRange=-1';
+    document.getElementById('windy-iframe').src = windyEmbed;
+    document.getElementById('windy-frame-wrap').style.display = 'block';
+    const windyExt = 'https://www.windy.com/' + pt.lat.toFixed(3) + '/' + pt.lon.toFixed(3) + '?wind,' + pt.lat.toFixed(2) + ',' + pt.lon.toFixed(2) + ',9';
+    document.getElementById('open-windy-btn').onclick = function(){ window.open(windyExt,'_blank'); };
+    fetchWeather(pt.lat, pt.lon, pt.name);
   }
 
-  // ── Canvas 탭/클릭 이벤트 ───────────────────────────────────────────────
-  function handleCanvasTap(e) {
-    const canvas = document.getElementById('pick-map-canvas');
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = CANVAS_W / rect.width;
-    const scaleY = CANVAS_H / rect.height;
-    const cx = e.touches ? e.touches[0].clientX : e.clientX;
-    const cy = e.touches ? e.touches[0].clientY : e.clientY;
-    const x = (cx - rect.left) * scaleX;
-    const y = (cy - rect.top)  * scaleY;
-    const lon = xToLon(x), lat = yToLat(y);
-
-    // 추천 포인트 근처인지 체크 (20px 이내)
-    let nearPt = null, minD = 999;
-    QUICK.forEach(pt => {
-      const dx = lonToX(pt.lon) - x, dy = latToY(pt.lat) - y;
-      const d = Math.sqrt(dx*dx + dy*dy);
-      if (d < minD) { minD = d; nearPt = pt; }
-    });
-    if (minD < 22) {
-      setPick(nearPt.lat, nearPt.lon, nearPt.name);
-    } else {
-      // 범위 체크
-      if (lat < 33.5 || lat > 37 || lon < 125 || lon > 131) return;
-      setPick(lat, lon, null);
-    }
-  }
-
-  // ── 줌 ──────────────────────────────────────────────────────────────────
-  function zoom(factor) {
-    const cLon = (view.lonMin + view.lonMax) / 2;
-    const cLat = (view.latMin + view.latMax) / 2;
-    const dLon = (view.lonMax - view.lonMin) * factor / 2;
-    const dLat = (view.latMax - view.latMin) * factor / 2;
-    view = { lonMin: cLon-dLon, lonMax: cLon+dLon, latMin: cLat-dLat, latMax: cLat+dLat };
-    drawMap();
-  }
-
-  // ── 날씨 API (Open-Meteo, 무료·무키) ─────────────────────────────────────
   async function fetchWeather(lat, lon, label) {
     const el = document.getElementById('weather-preview');
     el.style.display = 'block';
     document.getElementById('wp-location').textContent = '⏳ 날씨 불러오는 중…';
     document.getElementById('wp-grid').innerHTML = '';
     try {
-      const url = 'https://api.open-meteo.com/v1/forecast'
-        + '?latitude=' + lat.toFixed(4)
-        + '&longitude=' + lon.toFixed(4)
-        + '&current=temperature_2m,apparent_temperature,wind_speed_10m,'
-        + 'wind_direction_10m,weather_code,relative_humidity_2m'
-        + '&hourly=wave_height&forecast_days=1&timezone=Asia%2FSeoul';
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('API error ' + res.status);
+      const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat.toFixed(4) + '&longitude=' + lon.toFixed(4) + '&current=temperature_2m,apparent_temperature,wind_speed_10m,wind_direction_10m,weather_code,relative_humidity_2m&hourly=wave_height&forecast_days=1&timezone=Asia%2FSeoul');
+      if (!res.ok) throw new Error(res.status);
       const d = await res.json();
       const c = d.current;
       const wArr = d.hourly && d.hourly.wave_height;
-      const h = new Date().getHours();
-      const wave = wArr ? (wArr[h] != null ? wArr[h] : wArr[0]) : null;
-      const wd = wmoDesc(c.weather_code);
-      document.getElementById('wp-location').textContent =
-        '📍 ' + (label || lat.toFixed(3)+', '+lon.toFixed(3)) + '  ' + wd.icon + ' ' + wd.text;
-      const items = [
-        ['🌡 기온',   c.temperature_2m + '°C'],
-        ['🌡 체감',   c.apparent_temperature + '°C'],
-        ['💨 풍속',   c.wind_speed_10m + ' m/s ' + degToDir(c.wind_direction_10m)],
-        ['💧 습도',   c.relative_humidity_2m + '%'],
-        ['🌊 파고',   wave != null ? wave.toFixed(1) + ' m' : '—'],
-        ['☁️ 날씨',   wd.text],
-      ];
-      document.getElementById('wp-grid').innerHTML = items.map(([l,v]) =>
-        '<div style="background:rgba(255,255,255,.15);border-radius:6px;padding:8px 10px;">'
-        + '<div style="font-size:9px;opacity:.75;margin-bottom:2px;">' + l + '</div>'
-        + '<div style="font-size:13px;font-weight:700;">' + v + '</div></div>'
-      ).join('');
-    } catch(err) {
-      document.getElementById('wp-location').textContent = '⚠️ 날씨 정보를 가져올 수 없습니다.';
-      console.warn('Weather fetch error:', err);
+      const wave = wArr ? wArr[new Date().getHours()] : null;
+      const wd = wmoCode(c.weather_code);
+      document.getElementById('wp-location').textContent = '📍 ' + label + '  ' + wd.i + ' ' + wd.t;
+      const rows = [['🌡 기온',c.temperature_2m+'°C'],['🌡 체감',c.apparent_temperature+'°C'],['💨 풍속',c.wind_speed_10m+' m/s '+dir(c.wind_direction_10m)],['💧 습도',c.relative_humidity_2m+'%'],['🌊 파고',wave!=null?wave.toFixed(1)+' m':'—'],['☁️ 날씨',wd.t]];
+      document.getElementById('wp-grid').innerHTML = rows.map(function(r){ return '<div style="background:rgba(255,255,255,.15);border-radius:6px;padding:8px 10px;"><div style="font-size:9px;opacity:.75;margin-bottom:2px;">'+r[0]+'</div><div style="font-size:13px;font-weight:700;">'+r[1]+'</div></div>'; }).join('');
+    } catch(e) {
+      document.getElementById('wp-location').textContent = '⚠️ 날씨 정보를 불러올 수 없습니다.';
     }
   }
-
-  function wmoDesc(code) {
-    const m = {0:['☀️','맑음'],1:['🌤','대체로 맑음'],2:['⛅','구름조금'],3:['☁️','흐림'],
-      45:['🌫','안개'],48:['🌫','짙은 안개'],51:['🌦','이슬비'],53:['🌦','이슬비'],
-      55:['🌧','강한 이슬비'],61:['🌧','비'],63:['🌧','비'],65:['🌧','강한 비'],
-      71:['🌨','눈'],73:['🌨','눈'],75:['❄️','강한 눈'],80:['🌦','소나기'],
-      81:['🌧','소나기'],82:['⛈','강한 소나기'],95:['⛈','뇌우'],99:['⛈','뇌우+우박']};
-    const v = m[code] || ['🌡','코드'+code];
-    return { icon: v[0], text: v[1] };
-  }
-  function degToDir(d) {
-    return ['N','NE','E','SE','S','SW','W','NW'][Math.round(d/45)%8];
-  }
-
-  // ── 패널 열기/닫기 + 초기화 ──────────────────────────────────────────────
-  document.getElementById('region-search-btn').addEventListener('click', function() {
-    const panel = document.getElementById('region-search-panel');
-    const opening = panel.style.display === 'none' || panel.style.display === '';
-    panel.style.display = opening ? 'block' : 'none';
-    if (opening && !mapReady) {
-      mapReady = true;
-      // 추천 핀 버튼
-      const qEl = document.getElementById('quick-pins');
-      QUICK.forEach(function(q, i) {
-        const btn = document.createElement('button');
-        btn.innerHTML = '<span style="background:var(--ocean);color:#fff;border-radius:50%;'
-          + 'width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;'
-          + 'font-size:9px;margin-right:4px;">' + (i+1) + '</span>' + q.name;
-        btn.style.cssText = 'padding:5px 10px;border-radius:20px;border:1.5px solid var(--border);'
-          + 'background:var(--sky);color:var(--deep);font-size:11px;font-weight:700;cursor:pointer;'
-          + 'display:flex;align-items:center;';
-        btn.addEventListener('click', function() { setPick(q.lat, q.lon, q.name); });
-        qEl.appendChild(btn);
-      });
-      // 캔버스 이벤트
-      const canvas = document.getElementById('pick-map-canvas');
-      canvas.addEventListener('click', handleCanvasTap);
-      canvas.addEventListener('touchend', function(e) {
-        e.preventDefault();
-        handleCanvasTap(e);
-      }, { passive: false });
-      // 줌 버튼
-      document.getElementById('map-zoom-in').addEventListener('click', function() { zoom(0.6); });
-      document.getElementById('map-zoom-out').addEventListener('click', function() { zoom(1.6); });
-      drawMap();
-    }
-  });
-
-  // 지역 칩 클릭 시 패널 닫기
-  document.querySelectorAll('.region-chip:not(#region-search-btn)').forEach(function(c) {
-    c.addEventListener('click', function() {
-      document.getElementById('region-search-panel').style.display = 'none';
-    });
-  });
-
+  function wmoCode(c){ var m={0:['☀️','맑음'],1:['🌤','대체로 맑음'],2:['⛅','구름조금'],3:['☁️','흐림'],45:['🌫','안개'],51:['🌦','이슬비'],61:['🌧','비'],65:['🌧','강한 비'],71:['🌨','눈'],80:['🌦','소나기'],95:['⛈','뇌우']}; var v=m[c]||['🌡','기타']; return {i:v[0],t:v[1]}; }
+  function dir(d){ return ['N','NE','E','SE','S','SW','W','NW'][Math.round(d/45)%8]; }
 })();
 
-}); // end DOMContentLoaded
+// Method tabs
+document.querySelectorAll('.method-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.method-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.method-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('mp-' + tab.dataset.mt).classList.add('active');
+  });
+});
 
+// Tackle tabs — 동적으로 생성 후 이벤트 등록
+function buildTackleTabs() {
+  const TACKLE_LIST = [
+    { key: '문어',   label: '문어',      spId: 'octopus'    },
+    { key: '한치',   label: '한치',      spId: 'squid-han'  },
+    { key: '주꾸미', label: '주꾸미',    spId: 'webfoot'    },
+    { key: '무늬',   label: '무늬오징어', spId: 'bigfin'    },
+    { key: '갑오징어', label: '갑오징어', spId: 'cuttlefish' },
+  ];
+  const container = document.getElementById('tackle-tabs-container');
+  container.innerHTML = '';
+  TACKLE_LIST.forEach((t, i) => {
+    const sp = SPECIES_DATA.find(s => s.id === t.spId);
+    const svg = sp ? `<div class="tt-icon">${getSvg(sp)}</div>` : '';
+    const btn = document.createElement('button');
+    btn.className = 'tackle-tab' + (i === 0 ? ' active' : '');
+    btn.dataset.tt = t.key;
+    btn.innerHTML = `${svg}<span class="tt-name">${t.label}</span>`;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tackle-tab').forEach(tb => tb.classList.remove('active'));
+      document.querySelectorAll('.tackle-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tp-' + t.key).classList.add('active');
+    });
+    container.appendChild(btn);
+  });
+}
+
+// Info tabs
+document.querySelectorAll('.info-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.info-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.info-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('ip-' + tab.dataset.it).classList.add('active');
+  });
+});
+
+// Marina region tabs
+document.getElementById('marina-region-tabs').addEventListener('click', e => {
+  const tab = e.target.closest('.marina-region-tab');
+  if (!tab) return;
+  document.querySelectorAll('.marina-region-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.marina-panel').forEach(p => p.classList.remove('active'));
+  tab.classList.add('active');
+  const panel = document.getElementById('mr-' + tab.dataset.mr);
+  if (panel) panel.classList.add('active');
+});
+
+// Modal overlay close
+document.getElementById('species-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('species-modal')) closeModal();
+});
+
+// ============================================================
+// INIT
+// ============================================================
+(function init() {
+  updateWeather('거제');
+  buildSeasonStrip();
+  buildSeasonCal();
+  buildSpeciesGrid();
+  buildTackleTabs();
+  buildKnots();
+  buildBoats();
+  buildWalkSpots();
+  buildGlossary();
+})();
 </script>
 </body>
 </html>
