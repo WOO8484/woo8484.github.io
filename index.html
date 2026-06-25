@@ -1,346 +1,1107 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🦑 두족류 낚시 가이드 - 울산~남해</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="manifest" href="manifest.json">
-    <link rel="preconnect" href="https://cdn.tailwindcss.com">
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <style>
-        body { font-family: 'Noto Sans KR', system-ui, sans-serif; }
-        .section { display: none; }
-        .section.active { display: block; }
-        .toast {
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1e2937;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 9999px;
-            font-size: 14px;
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-            z-index: 9999;
-            display: none;
-            align-items: center;
-            gap: 8px;
-        }
-        .pull-to-refresh {
-            text-align: center;
-            padding: 8px;
-            color: #64748b;
-            font-size: 12px;
-            display: none;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0ea5e9">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="두낚이">
+<title>두낚이 • 두족류 낚시 가이드</title>
+
+<!-- PWA Manifest (인라인) -->
+<script>
+  const manifestData = {
+    name: "두낚이 - 두족류 낚시 가이드",
+    short_name: "두낚이",
+    description: "주꾸미·문어·한치·갑오징어 낚시 가이드 앱",
+    start_url: "./",
+    display: "standalone",
+    background_color: "#ffffff",
+    theme_color: "#0ea5e9",
+    orientation: "portrait",
+    icons: [
+      { src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%230ea5e9'/><text y='140' font-size='130' text-anchor='middle' x='96'>🦑</text></svg>", sizes: "192x192", type: "image/svg+xml" },
+      { src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%230ea5e9'/><text y='380' font-size='340' text-anchor='middle' x='256'>🦑</text></svg>", sizes: "512x512", type: "image/svg+xml" }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifestData)], { type: 'application/json' });
+  const manifestURL = URL.createObjectURL(blob);
+  document.addEventListener('DOMContentLoaded', () => {
+    const link = document.createElement('link');
+    link.rel = 'manifest';
+    link.href = manifestURL;
+    document.head.appendChild(link);
+  });
+</script>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+  :root {
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
+    --safe-left: env(safe-area-inset-left);
+    --safe-right: env(safe-area-inset-right);
+  }
+
+  body {
+    font-family: 'Noto Sans KR', system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-container {
+    max-width: 480px;
+    margin: 0 auto;
+    background: white;
+    min-height: 100vh;
+    box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
+  }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  @keyframes modalPop {
+    from { opacity: 0; transform: translateY(40px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .modal-pop { animation: modalPop 0.2s ease-out forwards; }
+
+  .cute-shadow {
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.06),
+                0 4px 6px -4px rgb(0 0 0 / 0.06);
+  }
+
+  /* 네비게이션 활성 스타일 */
+  .nav-item {
+    transition: all 0.15s ease;
+    opacity: 0.4;
+    position: relative;
+  }
+  .nav-item.nav-active {
+    opacity: 1;
+  }
+  .nav-item.nav-active .nav-label {
+    color: #0ea5e9;
+    font-weight: 600;
+  }
+  .nav-item.nav-active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 3px;
+    background: #0ea5e9;
+    border-radius: 9999px;
+  }
+  .nav-item:active { transform: scale(0.92); }
+
+  .install-btn {
+    background: linear-gradient(to right, #0ea5e9, #0284c8);
+    color: white;
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 6px -1px rgb(14 165 233 / 0.25);
+  }
+
+  .species-card {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .species-card:active { transform: scale(0.97); }
+
+  .spot-card {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .spot-card:active { transform: scale(0.97); }
+
+  .modal-content { overscroll-behavior: contain; }
+
+  .search-input { transition: all 0.2s ease; }
+  .search-input:focus { box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1); }
+
+  .bottom-nav {
+    padding-bottom: var(--safe-bottom);
+    background: rgba(255,255,255,0.98);
+    backdrop-filter: blur(20px);
+  }
+
+  .heart-btn {
+    transition: all 0.15s ease;
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+  .heart-btn:active { transform: scale(1.25); }
+
+  .metric {
+    background: linear-gradient(145deg, #f8fafc, #ffffff);
+  }
+
+  /* 기록 카드 수정 버튼 */
+  .log-card-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+</style>
 </head>
-<body class="bg-white text-slate-800 max-w-[480px] mx-auto">
-    
-    <!-- Header -->
-    <div class="sticky top-0 z-50 bg-white border-b px-4 py-3 flex items-center justify-between">
-        <div class="flex items-center gap-x-3">
-            <div class="w-11 h-11">
-                <svg viewBox="0 0 48 48" class="w-full h-full"><ellipse cx="24" cy="20" rx="11" ry="14" fill="#06b6d4"/></svg>
-            </div>
-            <div>
-                <h1 class="text-2xl font-bold">두족류 낚시 가이드</h1>
-                <p class="text-[10px] text-slate-500">울산 ~ 남해 • v2.4</p>
-            </div>
+<body class="bg-slate-100">
+<div class="app-container mx-auto min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <div class="bg-white border-b px-5 pt-4 pb-3 sticky top-0 z-50" style="padding-top: max(16px, var(--safe-top));">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-x-3">
+        <div class="w-10 h-10 bg-sky-100 rounded-2xl flex items-center justify-center">
+          <span class="text-3xl">🦑</span>
         </div>
-        <div onclick="installPWA()" class="bg-[#06b6d4] text-white text-xs px-3 py-1.5 rounded-2xl cursor-pointer">
-            <i class="fa-solid fa-download mr-1"></i> 앱 설치
+        <div>
+          <h1 class="text-[22px] font-bold tracking-tighter text-slate-900">두낚이</h1>
+          <p class="text-[10px] text-sky-600 font-medium -mt-1">두족류 낚시 가이드 v1.5</p>
         </div>
+      </div>
+      <button id="install-btn" onclick="installPWA()"
+              class="install-btn hidden items-center text-white text-xs px-3.5 py-1.5 rounded-3xl font-medium active:scale-95 transition-transform">
+        <span>⬇️</span><span>앱 설치</span>
+      </button>
     </div>
+  </div>
 
-    <!-- Pull to Refresh Indicator -->
-    <div id="pull-indicator" class="pull-to-refresh">
-        <i class="fa-solid fa-sync fa-spin mr-1"></i> 새로고침 중...
-    </div>
+  <div class="flex-1 pb-20 overflow-y-auto" id="main-content">
 
-    <div class="pb-20">
-        <!-- HOME -->
-        <section id="home" class="section active px-4 pt-4">
-            <h2 class="text-3xl font-bold mb-4">오늘의 낚시 컨디션</h2>
-            
-            <div onclick="switchSection('weather')" class="bg-white border rounded-3xl p-5 mb-6 cursor-pointer active:bg-slate-50 transition-colors">
-                <div class="flex justify-between">
-                    <div>
-                        <div id="home-temp" class="text-5xl font-bold">—</div>
-                        <div id="home-desc" class="text-slate-600">날씨 로딩 중...</div>
-                    </div>
-                    <div id="home-icon" class="text-6xl">🌡️</div>
-                </div>
-                <div class="mt-4 pt-4 border-t grid grid-cols-2 text-sm">
-                    <div>바람: <span id="home-wind">—</span></div>
-                    <div>파도: <span id="home-wave">—</span></div>
-                </div>
-            </div>
-        </section>
+    <!-- HOME -->
+    <div id="page-home" class="section active px-5 pt-5">
 
-        <!-- WEATHER -->
-        <section id="weather" class="section px-4 pt-4">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-2xl font-bold">날씨 &amp; 조석</h2>
-                <button onclick="loadWeather(true)" 
-                        class="text-sm px-3 py-1.5 bg-slate-100 rounded-2xl flex items-center gap-x-1 active:bg-slate-200">
-                    <i class="fa-solid fa-sync text-xs"></i>
-                    <span>새로고침</span>
-                </button>
-            </div>
-            <div id="weather-content" class="bg-white border rounded-3xl p-5 min-h-[120px]">
-                로딩 중...
-            </div>
-        </section>
-
-        <!-- SPECIES -->
-        <section id="species" class="section px-4 pt-4 pb-24">
-            <h2 class="text-2xl font-bold mb-4">두족류 도감</h2>
-            <div id="species-grid" class="grid grid-cols-2 gap-3"></div>
-        </section>
-
-        <!-- GUIDE -->
-        <section id="guide" class="section px-4 pt-4">
-            <h2 class="text-2xl font-bold mb-4">가이드북</h2>
-            <div class="flex bg-slate-100 rounded-2xl p-1 mb-4">
-                <div onclick="switchGuideTab(0)" class="flex-1 text-center py-2 rounded-[14px] cursor-pointer font-medium bg-white" id="guide-tab-0">낚시 방법</div>
-                <div onclick="switchGuideTab(1)" class="flex-1 text-center py-2 rounded-[14px] cursor-pointer font-medium" id="guide-tab-1">매듭</div>
-            </div>
-            <div id="guide-content-0">
-                <div class="bg-white border rounded-3xl p-5">도보 / 선상 정보</div>
-            </div>
-            <div id="guide-content-1" class="hidden">
-                <div class="bg-white border rounded-3xl p-5">FG Knot + 영상 링크</div>
-            </div>
-        </section>
-    </div>
-
-    <!-- Toast -->
-    <div id="toast" class="toast">
-        <span id="toast-message"></span>
-    </div>
-
-    <!-- Bottom Nav -->
-    <div class="fixed bottom-0 bg-white border-t w-full max-w-[480px] mx-auto z-50">
-        <div class="grid grid-cols-4 text-center text-xs py-2">
-            <div onclick="switchSection('home')" class="cursor-pointer py-1">🏠<br><span class="text-[10px]">홈</span></div>
-            <div onclick="switchSection('weather')" class="cursor-pointer py-1">🌤️<br><span class="text-[10px]">날씨</span></div>
-            <div onclick="switchSection('species')" class="cursor-pointer py-1">🦑<br><span class="text-[10px]">어종</span></div>
-            <div onclick="switchSection('guide')" class="cursor-pointer py-1">📖<br><span class="text-[10px]">가이드</span></div>
+      <!-- Weather -->
+      <div class="bg-white rounded-3xl p-5 cute-shadow mb-5 border border-slate-100">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-x-2">
+            <span class="text-xl">🌤️</span>
+            <span class="font-semibold text-slate-800">실시간 날씨 + 낚시 지수</span>
+          </div>
+          <button onclick="getWeather()"
+                  class="text-xs px-3.5 py-1.5 bg-sky-100 active:bg-sky-300 text-sky-700 rounded-2xl flex items-center gap-x-1.5 font-medium active:scale-95 transition-all">
+            <span>📍</span><span>위치</span>
+          </button>
         </div>
+        <div id="weather-content">
+          <div class="text-sm text-slate-500 py-2">위치 버튼을 눌러 실시간 날씨를 확인하세요</div>
+        </div>
+      </div>
+
+      <!-- Today's Recommendation -->
+      <div class="mb-5">
+        <div class="px-1 mb-2.5">
+          <span class="font-semibold text-slate-800">오늘의 추천</span>
+        </div>
+        <div id="today-recommend-card" class="cursor-pointer active:scale-[0.985] transition-all rounded-3xl p-5 flex items-center gap-x-4"></div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="grid grid-cols-2 gap-3 mb-6">
+        <div onclick="showPage('page-log')" class="bg-white border border-slate-100 rounded-3xl p-4 cursor-pointer active:bg-slate-50">
+          <div class="text-xs text-slate-500">내 기록</div>
+          <div class="flex items-baseline gap-x-1 mt-1">
+            <span id="quick-catch-count" class="text-3xl font-bold text-slate-900">0</span>
+            <span class="text-sm text-slate-500">마리</span>
+          </div>
+        </div>
+        <div onclick="showPage('page-log')" class="bg-white border border-slate-100 rounded-3xl p-4 cursor-pointer active:bg-slate-50">
+          <div class="text-xs text-slate-500">가장 많이 잡은</div>
+          <div id="quick-favorite" class="mt-1 text-lg font-semibold text-slate-800">아직 없어요</div>
+        </div>
+      </div>
+
+      <!-- Tide -->
+      <div class="bg-white rounded-3xl p-5 border border-slate-100 mb-2">
+        <div class="flex justify-between items-center mb-3">
+          <div class="font-semibold flex items-center gap-x-2 text-slate-800">
+            <span>🌊</span><span>물때 정보</span>
+          </div>
+          <span class="text-[10px] bg-amber-100 text-amber-700 px-2 py-px rounded">샘플</span>
+        </div>
+        <div class="mb-3">
+          <select id="tide-port" onchange="updateTideInfo()"
+                  class="w-full text-sm border border-slate-200 rounded-2xl px-4 py-2.5 focus:outline-none focus:border-sky-300">
+            <option value="busan">부산</option>
+            <option value="yeosu">여수</option>
+            <option value="incheon">인천</option>
+            <option value="tongyeong">통영</option>
+          </select>
+        </div>
+        <div id="tide-content" class="text-sm"></div>
+        <div class="mt-3 text-[10px] text-slate-400 leading-snug">
+          ※ 실제 정확한 물때는 <span class="font-medium">바다타임</span> 또는 <span class="font-medium">한국해양조사원</span> 앱을 이용하세요.
+        </div>
+      </div>
     </div>
 
-    <script>
-        // ==================== Toast System ====================
-        function showToast(message, duration = 2500) {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toast-message');
-            
-            toastMsg.textContent = message;
-            toast.style.display = 'flex';
-            
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, duration);
-        }
+    <!-- SPECIES -->
+    <div id="page-species" class="section px-5 pt-5">
+      <div class="mb-4 px-1">
+        <input type="text" id="species-search" placeholder="어종 검색 (예: 주꾸미)"
+               onkeyup="debounceSearchSpecies()"
+               class="search-input w-full bg-white border border-slate-200 focus:border-sky-300 rounded-3xl px-5 py-3 text-sm outline-none">
+      </div>
+      <div id="species-grid" class="grid grid-cols-2 gap-3"></div>
+    </div>
 
-        // ==================== Pull to Refresh ====================
-        let startY = 0;
-        let isPulling = false;
+    <!-- TACKLE -->
+    <div id="page-tackle" class="section px-5 pt-5">
+      <div class="flex gap-x-2 mb-4">
+        <button onclick="showTackleTab('rig')" id="tab-rig"
+                class="flex-1 py-2.5 text-sm font-medium rounded-3xl bg-sky-600 text-white transition-colors">추천 채비</button>
+        <button onclick="showTackleTab('knot')" id="tab-knot"
+                class="flex-1 py-2.5 text-sm font-medium rounded-3xl bg-white border text-slate-600 transition-colors">매듭 묶는 법</button>
+      </div>
+      <div id="tackle-rig-content"><div class="space-y-3" id="rig-list"></div></div>
+      <div id="tackle-knot-content" class="hidden"><div class="space-y-3" id="knot-list"></div></div>
+    </div>
 
-        function initPullToRefresh() {
-            const homeSection = document.getElementById('home');
-            const indicator = document.getElementById('pull-indicator');
+    <!-- SPOTS -->
+    <div id="page-spots" class="section px-5 pt-5">
+      <div class="mb-4">
+        <input type="text" id="spot-search" placeholder="포인트 검색"
+               onkeyup="debounceSearchSpots()"
+               class="search-input w-full bg-white border border-slate-200 rounded-3xl px-5 py-3 text-sm outline-none mb-3">
+        <div class="flex gap-x-2 flex-wrap">
+          <button onclick="filterSpotsByType('all')" class="spot-filter-btn px-4 py-1.5 text-xs rounded-3xl bg-sky-600 text-white" data-type="all">전체</button>
+          <button onclick="filterSpotsByType('선상')" class="spot-filter-btn px-4 py-1.5 text-xs rounded-3xl bg-white border" data-type="선상">선상</button>
+          <button onclick="filterSpotsByType('도보')" class="spot-filter-btn px-4 py-1.5 text-xs rounded-3xl bg-white border" data-type="도보">도보</button>
+        </div>
+      </div>
+      <div id="spots-list" class="space-y-3"></div>
+    </div>
 
-            homeSection.addEventListener('touchstart', (e) => {
-                if (window.scrollY === 0) {
-                    startY = e.touches[0].clientY;
-                    isPulling = true;
-                }
-            });
+    <!-- LOG -->
+    <div id="page-log" class="section px-5 pt-5">
+      <div class="flex justify-between items-end mb-4 px-1">
+        <div>
+          <div class="font-semibold text-lg">내 낚시 기록</div>
+          <div class="text-xs text-slate-500">브라우저에 안전하게 저장됩니다</div>
+        </div>
+        <button onclick="showCatchModal()"
+                class="bg-emerald-600 active:bg-emerald-800 transition-colors text-white text-sm px-5 py-2 rounded-3xl flex items-center gap-x-2 font-medium active:scale-95">
+          <span>➕</span><span>기록 추가</span>
+        </button>
+      </div>
+      <div class="bg-white rounded-3xl p-5 mb-4 border border-slate-100">
+        <div class="grid grid-cols-3 gap-4 text-center">
+          <div><div class="text-xs text-slate-500">총 마릿수</div><div id="log-total" class="text-3xl font-bold text-emerald-600 mt-1">0</div></div>
+          <div><div class="text-xs text-slate-500">가장 많이 잡은</div><div id="log-favorite" class="font-semibold text-slate-800 mt-1 text-sm">--</div></div>
+          <div><div class="text-xs text-slate-500">기록 수</div><div id="log-count" class="text-3xl font-bold text-slate-700 mt-1">0</div></div>
+        </div>
+      </div>
+      <div id="log-list" class="space-y-3"></div>
+    </div>
+  </div>
 
-            homeSection.addEventListener('touchmove', (e) => {
-                if (!isPulling) return;
-                const currentY = e.touches[0].clientY;
-                const diff = currentY - startY;
+  <!-- Bottom Navigation -->
+  <div class="fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto bg-white border-t z-50 bottom-nav">
+    <div class="grid grid-cols-5 text-center py-1">
+      <div onclick="showPage('page-home')" class="nav-item flex flex-col items-center justify-center py-2 cursor-pointer" data-page="page-home">
+        <span class="text-2xl">🏠</span>
+        <span class="nav-label text-[10px] text-slate-500 mt-0.5">홈</span>
+      </div>
+      <div onclick="showPage('page-species')" class="nav-item flex flex-col items-center justify-center py-2 cursor-pointer" data-page="page-species">
+        <span class="text-2xl">🦑</span>
+        <span class="nav-label text-[10px] text-slate-500 mt-0.5">어종</span>
+      </div>
+      <div onclick="showPage('page-tackle')" class="nav-item flex flex-col items-center justify-center py-2 cursor-pointer" data-page="page-tackle">
+        <span class="text-2xl">🎣</span>
+        <span class="nav-label text-[10px] text-slate-500 mt-0.5">채비/매듭</span>
+      </div>
+      <div onclick="showPage('page-spots')" class="nav-item flex flex-col items-center justify-center py-2 cursor-pointer" data-page="page-spots">
+        <span class="text-2xl">📍</span>
+        <span class="nav-label text-[10px] text-slate-500 mt-0.5">포인트</span>
+      </div>
+      <div onclick="showPage('page-log')" class="nav-item flex flex-col items-center justify-center py-2 cursor-pointer" data-page="page-log">
+        <span class="text-2xl">📖</span>
+        <span class="nav-label text-[10px] text-slate-500 mt-0.5">기록</span>
+      </div>
+    </div>
+  </div>
+</div>
 
-                if (diff > 80) {
-                    indicator.style.display = 'block';
-                }
-            });
+<!-- 공용 모달 (어종/매듭/포인트 상세) -->
+<div id="species-modal" onclick="if(event.target.id==='species-modal') hideSpeciesModal()"
+     class="hidden fixed inset-0 bg-black/60 z-[100] items-end">
+  <div onclick="event.stopImmediatePropagation()"
+       class="modal-pop bg-white w-full max-w-[480px] mx-auto rounded-t-3xl p-6 max-h-[88vh] overflow-y-auto modal-content">
+    <div class="flex justify-between items-start mb-4">
+      <div id="modal-species-header"></div>
+      <button onclick="hideSpeciesModal()" class="text-3xl leading-none text-slate-300 active:text-slate-600 ml-4 flex-shrink-0">×</button>
+    </div>
+    <div id="modal-species-content"></div>
+  </div>
+</div>
 
-            homeSection.addEventListener('touchend', (e) => {
-                if (!isPulling) return;
-                const currentY = e.changedTouches[0].clientY;
-                const diff = currentY - startY;
+<!-- 기록 추가/수정 모달 -->
+<div id="catch-modal" onclick="if(event.target.id==='catch-modal') hideCatchModal()"
+     class="hidden fixed inset-0 bg-black/60 z-[100] items-end">
+  <div onclick="event.stopImmediatePropagation()"
+       class="modal-pop bg-white w-full max-w-[480px] mx-auto rounded-t-3xl p-6 max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between mb-5 items-center">
+      <div id="catch-modal-title" class="font-bold text-xl">새 기록 추가</div>
+      <button onclick="hideCatchModal()" class="text-2xl text-slate-400">×</button>
+    </div>
+    <div class="space-y-4 text-sm">
+      <div>
+        <label class="block text-xs text-slate-500 mb-1.5 font-medium">어종</label>
+        <select id="catch-species" class="w-full border border-slate-200 rounded-2xl px-4 py-3"></select>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs text-slate-500 mb-1.5 font-medium">크기 (cm)</label>
+          <input type="number" id="catch-size" class="w-full border border-slate-200 rounded-2xl px-4 py-3" placeholder="35">
+        </div>
+        <div>
+          <label class="block text-xs text-slate-500 mb-1.5 font-medium">무게 (g)</label>
+          <input type="number" id="catch-weight" class="w-full border border-slate-200 rounded-2xl px-4 py-3" placeholder="선택">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs text-slate-500 mb-1.5 font-medium">포인트 / 지역</label>
+        <input type="text" id="catch-spot" class="w-full border border-slate-200 rounded-2xl px-4 py-3" placeholder="부산 오륙도">
+      </div>
+      <div>
+        <label class="block text-xs text-slate-500 mb-1.5 font-medium">날짜</label>
+        <input type="date" id="catch-date" class="w-full border border-slate-200 rounded-2xl px-4 py-3">
+      </div>
+      <div>
+        <label class="block text-xs text-slate-500 mb-1.5 font-medium">메모</label>
+        <textarea id="catch-notes" rows="2" class="w-full border border-slate-200 rounded-2xl px-4 py-3" placeholder="오늘 컨디션 좋았음"></textarea>
+      </div>
+    </div>
+    <input type="hidden" id="catch-edit-id">
+    <button onclick="saveCatch()"
+            class="mt-6 w-full bg-emerald-600 active:bg-emerald-800 text-white font-semibold py-3.5 rounded-3xl active:scale-[0.985] transition-all">
+      기록 저장하기
+    </button>
+  </div>
+</div>
 
-                if (diff > 80) {
-                    indicator.style.display = 'block';
-                    loadWeather(true).finally(() => {
-                        indicator.style.display = 'none';
-                        showToast('날씨가 업데이트되었습니다');
-                    });
-                } else {
-                    indicator.style.display = 'none';
-                }
-                isPulling = false;
-            });
-        }
+<!-- 토스트 -->
+<div id="toast" class="hidden fixed bottom-[90px] left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm px-6 py-3 rounded-3xl shadow-2xl z-[200] whitespace-nowrap"></div>
 
-        // ==================== Weather ====================
-        async function loadWeather(showLoading = false) {
-            const homeDesc = document.getElementById('home-desc');
-            const weatherContent = document.getElementById('weather-content');
+<script>
+  // ==================== PWA ====================
+  let deferredPrompt;
 
-            if (showLoading) {
-                homeDesc.textContent = '업데이트 중...';
-                weatherContent.innerHTML = `<div class="flex items-center justify-center py-6 text-slate-400">
-                    <i class="fa-solid fa-spinner fa-spin mr-2"></i> 불러오는 중...
-                </div>`;
-            }
+  function setupPWA() {
+    // Service Worker 등록
+    if ('serviceWorker' in navigator) {
+      const swCode = `
+        const CACHE = 'dunaki-v1';
+        const ASSETS = [location.href];
+        self.addEventListener('install', e => {
+          e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+          self.skipWaiting();
+        });
+        self.addEventListener('activate', e => {
+          e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k!==CACHE).map(k => caches.delete(k)))));
+          self.clients.claim();
+        });
+        self.addEventListener('fetch', e => {
+          e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match(e.request))));
+        });
+      `;
+      const blob = new Blob([swCode], { type: 'application/javascript' });
+      const swURL = URL.createObjectURL(blob);
+      navigator.serviceWorker.register(swURL).catch(() => {});
+    }
 
-            try {
-                const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=35.5394&longitude=129.3114&current=temperature_2m,wind_speed_10m,weather_code&timezone=Asia%2FSeoul');
-                
-                if (!res.ok) throw new Error('API 오류');
+    const installBtn = document.getElementById('install-btn');
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.classList.remove('hidden');
+      installBtn.classList.add('flex');
+    });
+    window.addEventListener('appinstalled', () => {
+      installBtn.classList.add('hidden');
+      deferredPrompt = null;
+    });
+  }
 
-                const data = await res.json();
-                const temp = Math.round(data.current.temperature_2m);
-                const wind = Math.round(data.current.wind_speed_10m);
-                const wave = wind > 15 ? "1.2~1.8m" : "0.6~1.0m";
+  function installPWA() {
+    if (!deferredPrompt) {
+      alert('브라우저 메뉴 → "홈 화면에 추가"를 눌러주세요!');
+      return;
+    }
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((r) => {
+      if (r.outcome === 'accepted') document.getElementById('install-btn').classList.add('hidden');
+      deferredPrompt = null;
+    });
+  }
 
-                document.getElementById('home-temp').textContent = temp;
-                document.getElementById('home-desc').textContent = "현재 날씨";
-                document.getElementById('home-wind').textContent = wind + " km/h";
-                document.getElementById('home-wave').textContent = wave;
+  // ==================== APP DATA ====================
+  const APP_DATA = {
+    species: [
+      { id: "jukkumi", name: "주꾸미", emoji: "🦑", season: "3~11월 (가을 피크)",
+        gradient: "from-pink-500 to-rose-500",
+        desc: "한국에서 가장 인기 있는 두족류 낚시 대상입니다.",
+        boat: "선상 에기 지깅 정석. PE 0.8~1.0호 + 2.0~2.5호 에기 + 가벼운 봉돌.",
+        shore: "도보권에서도 가능하지만 선상에 비해 조과가 떨어집니다.",
+        rig: "메인라인 → 도래 → 리더(1.5~2호) → 에기. 봉돌은 상황에 따라 조절.",
+        tips: ["에기는 형광/야광이 효과적", "입질 시 살살 감아 올리기", "조류 세기에 따라 채비 무게 조정"],
+        best: "야간 ~ 새벽" },
 
-                weatherContent.innerHTML = `
-                    <div class="space-y-2">
-                        <div class="flex justify-between">
-                            <span class="text-slate-600">온도</span>
-                            <span class="font-semibold text-lg">${temp}°C</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-slate-600">바람</span>
-                            <span class="font-semibold">${wind} km/h</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-slate-600">파도</span>
-                            <span class="font-semibold">${wave}</span>
-                        </div>
-                        <div class="pt-2 mt-2 border-t text-xs text-slate-500">
-                            조석 정보: 만조 14:30경 (예시)
-                        </div>
-                    </div>
-                `;
+      { id: "munoe", name: "문어", emoji: "🐙", season: "연중 (남해 가을~겨울 강세)",
+        gradient: "from-orange-500 to-amber-500",
+        desc: "최근 워킹 문어 낚시가 크게 인기입니다. 손맛이 강력해요.",
+        boat: "에기 또는 생미끼 채비. 수심에 따라 봉돌 무게 조절.",
+        shore: "고흥, 여수, 통영 등 남해권에서 워킹 문어가 활발합니다.",
+        rig: "에기 3개 + 봉돌 1개 조합이 흔함. 생미끼(게, 새우)도 좋음.",
+        tips: ["문어는 바닥에 붙어있으므로 채비를 끝까지 내려주세요", "급한 챔질 금지"],
+        best: "오전~오후" },
 
-                if (showLoading) {
-                    showToast('날씨 정보가 업데이트되었습니다');
-                }
+      { id: "hanchi", name: "한치", emoji: "🦑", season: "여름~가을",
+        gradient: "from-sky-500 to-blue-500",
+        desc: "중층에서 유영하는 한치. 에기 액션이 핵심입니다.",
+        boat: "선상 전문. 에기를 중층에 머물게 하고 부드러운 액션.",
+        shore: "일부 방파제 가능하지만 선상이 훨씬 유리합니다.",
+        rig: "한치 전용 에기 사용. 반유동 또는 찌 채비로 3~4m 띄우기.",
+        tips: ["한치는 위에서 내려오는 먹이를 선호", "에기 액션 너무 빠르지 않게"],
+        best: "야간" },
 
-            } catch (e) {
-                console.error('Weather error:', e);
-                weatherContent.innerHTML = `
-                    <div class="text-center py-4 text-red-500">
-                        <i class="fa-solid fa-exclamation-triangle mb-2 text-xl"></i><br>
-                        날씨 정보를 불러오지 못했습니다.<br>
-                        <span class="text-xs">네트워크를 확인해주세요.</span>
-                    </div>
-                `;
-                document.getElementById('home-desc').textContent = "로딩 실패";
-            }
-        }
+      { id: "munui", name: "무늬오징어", emoji: "🦑", season: "여름~가을 (제주 강세)",
+        gradient: "from-violet-500 to-purple-500",
+        desc: "큰 체구와 화려한 무늬가 특징입니다.",
+        boat: "선상 에깅. 비교적 큰 에기 사용.",
+        shore: "제주 등 일부 지역에서 도보 에깅 가능.",
+        rig: "무늬오징어 전용 에기 (머리 아래, 꼬리 위 형태).",
+        tips: ["무늬오징어는 위에서 먹이를 덮치는 습성", "에기 색상과 크기 상황에 맞게 변경"],
+        best: "오후~야간" },
 
-        // ==================== Species ====================
-        function renderSpecies() {
-            const grid = document.getElementById('species-grid');
-            const data = [
-                {name:"주꾸미", emoji:"🐙", tip:"바닥 접촉"},
-                {name:"갑오징어", emoji:"🦑", tip:"20~50cm 띄움"},
-                {name:"문어", emoji:"🐙", tip:"강한 힘 주의"},
-                {name:"한치", emoji:"🦑", tip:"선상 전문"},
-                {name:"무늬오징어", emoji:"🦑", tip:"예민"}
-            ];
-            grid.innerHTML = data.map(s => `
-                <div class="bg-white border rounded-3xl p-4 active:bg-slate-50 transition-colors">
-                    <div class="text-5xl mb-2">${s.emoji}</div>
-                    <div class="font-bold">${s.name}</div>
-                    <div class="text-sm text-slate-600">${s.tip}</div>
-                </div>
-            `).join('');
-        }
+      { id: "gapo", name: "갑오징어", emoji: "🦑", season: "봄·가을",
+        gradient: "from-teal-500 to-emerald-500",
+        desc: "가을에 특히 마릿수가 좋은 두족류입니다.",
+        boat: "가짓줄 채비 또는 일반 에기 채비. 봉돌과 에기 분리 매듭 중요.",
+        shore: "일부 도보권에서 가능.",
+        rig: "가짓줄 채비 추천. 에기가 걸려도 봉돌을 살릴 수 있는 구조.",
+        tips: ["갑오징어는 수평으로 먹이를 덮침", "에기와 봉돌 분리 매듭 연습 필수"],
+        best: "오전~오후" }
+    ],
 
-        // ==================== Navigation ====================
-        function switchSection(id) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            
-            if (id === 'weather') {
-                loadWeather();
-            }
-        }
+    spots: [
+      { id: 1, name: "부산 오륙도 방파제",        type: "도보", region: "부산",     desc: "도보권 인기 포인트. 문어와 주꾸미가 자주 올라옵니다.", tips: "파도 높을 때 안전 주의. 안전화 착용." },
+      { id: 2, name: "여수 선상 주꾸미 포인트",   type: "선상", region: "전남 여수", desc: "가을 주꾸미 시즌 최고의 선상 포인트.", tips: "선장님과 조류·수심 소통 중요." },
+      { id: 3, name: "고흥 장계 방파제",           type: "도보", region: "전남 고흥", desc: "최근 워킹 문어로 유명해진 포인트.", tips: "슬로프 지역이 특히 좋습니다." },
+      { id: 4, name: "삼천포 선상 갑오징어",       type: "선상", region: "경남 사천", desc: "갑오징어와 주꾸미 복합 공략 가능.", tips: "가을 시즌 조황이 좋습니다." },
+      { id: 5, name: "인천 송도 방파제",           type: "도보", region: "인천",     desc: "수도권 접근성 좋은 도보권 포인트.", tips: "물때에 따라 조황 차이 큼." }
+    ],
 
-        function switchGuideTab(tab) {
-            document.querySelectorAll('[id^="guide-content-"]').forEach(el => el.classList.add('hidden'));
-            document.getElementById('guide-content-' + tab).classList.remove('hidden');
-        }
+    rigs: [
+      { name: "기본 주꾸미 채비",     desc: "PE 0.8~1.0호 + 리더 1.5~2호 + 2.0~2.5호 에기 + 가벼운 봉돌", tip: "조류 약할 때는 봉돌 더 가볍게" },
+      { name: "갑오징어 가짓줄 채비", desc: "봉돌과 에기를 분리하는 구조. 에기가 걸려도 봉돌 살릴 수 있음",  tip: "고가 에기 사용할 때 특히 추천" },
+      { name: "한치 중층 채비",       desc: "에기를 중층에 머물게 하는 반유동 또는 찌 채비",                  tip: "한치는 바닥이 아닌 중층 노려야 함" }
+    ],
 
-        function installPWA() {
-            showToast('브라우저 메뉴 → "홈 화면에 추가"를 눌러주세요!');
-        }
+    // ③ Knot 유튜브 링크 → 실제 인기 튜토리얼 영상으로 교체
+    knots: [
+      { id: "dorae", name: "도래 매듭", use: "PE라인과 리더 연결, 에기 연결에 가장 많이 사용", difficulty: "쉬움",
+        youtube: "https://www.youtube.com/watch?v=TNMNkZxJEhk",
+        steps: ["PE라인 끝을 도래에 2번 감아 고정", "리더를 도래에 끼운 후 PE라인으로 5~6번 감음", "끝을 도래 구멍에 넣고 당겨 조임", "여분의 줄 잘라 마무리"] },
+      { id: "uni", name: "유니 매듭 (Uni Knot)", use: "에기나 봉돌 연결에 강력 추천", difficulty: "보통",
+        youtube: "https://www.youtube.com/watch?v=CvdB4Z7JLTU",
+        steps: ["줄을 에기 고리에 통과시킴", "줄 끝을 5~6번 감아 고리 만듦", "고리 안으로 줄 끝 통과", "천천히 당겨 조이면서 마무리"] },
+      { id: "allbright", name: "올브라이트 변형", use: "봉돌과 에기를 분리하는 가짓줄 채비에 유용", difficulty: "보통",
+        youtube: "https://www.youtube.com/watch?v=LcWZBpxJXNw",
+        steps: ["메인라인에 작은 고리 만들기", "리더를 고리에 통과 후 여러 번 감음", "강하게 조여 고정", "에기와 봉돌 각각 연결"] }
+    ]
+  };
 
-        // ==================== Service Worker ====================
-        function checkForUpdate() {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.ready.then(reg => {
-                    reg.update();
-                });
-            }
-        }
+  // ==================== STATE ====================
+  let currentPage = 'page-home';
+  let currentSpotFilter = 'all';
+  let catches = [];
+  let savedSpots = [];
+  let searchTimeout = null;
 
-        function initServiceWorker() {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => {
-                        console.log('%c[SW] 등록 완료', 'color:#06b6d4');
-                        
-                        reg.addEventListener('updatefound', () => {
-                            const newWorker = reg.installing;
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    showToast('새 버전이 있습니다. 앱을 다시 시작해주세요.', 4000);
-                                }
-                            });
-                        });
-                    })
-                    .catch(err => console.error('SW 등록 실패:', err));
-            }
+  // ==================== UTILS ====================
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.remove('hidden');
+    toast.classList.add('flex', 'items-center', 'justify-center');
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => {
+      toast.classList.add('hidden');
+      toast.classList.remove('flex', 'items-center', 'justify-center');
+    }, 2300);
+  }
 
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-                window.location.reload();
-            });
-        }
+  // ⑤ 네비게이션 활성 상태 시각 개선
+  function updateNavActive(pageId) {
+    document.querySelectorAll('.nav-item').forEach(el => {
+      el.classList.remove('nav-active');
+    });
+    const active = document.querySelector(`.nav-item[data-page="${pageId}"]`);
+    if (active) active.classList.add('nav-active');
+  }
 
-        // ==================== Init ====================
-        function init() {
-            renderSpecies();
-            loadWeather();
-            initPullToRefresh();
-            initServiceWorker();
-            checkForUpdate();
+  function showPage(pageId) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(pageId).classList.add('active');
+    document.getElementById('main-content').scrollTop = 0;
+    currentPage = pageId;
+    updateNavActive(pageId);
+    if (pageId === 'page-log')     renderLog();
+    if (pageId === 'page-species') renderSpecies();
+    if (pageId === 'page-spots')   renderSpots();
+  }
 
-            console.log('%c[v2.4] Pull-to-Refresh + Toast + 개선된 캐싱 전략 적용 완료', 'color:#06b6d4');
-            
-            // 첫 실행 시 환영 토스트 (선택)
-            setTimeout(() => {
-                // showToast('앱이 시작되었습니다');
-            }, 1500);
-        }
+  // ==================== 검색 ====================
+  function debounceSearchSpecies() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      const kw = document.getElementById('species-search').value.toLowerCase();
+      renderSpecies(APP_DATA.species.filter(s =>
+        s.name.toLowerCase().includes(kw) || s.desc.toLowerCase().includes(kw)));
+    }, 250);
+  }
 
-        window.onload = init;
-    </script>
+  function debounceSearchSpots() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      const kw = document.getElementById('spot-search').value.toLowerCase();
+      renderSpots(APP_DATA.spots.filter(s =>
+        s.name.toLowerCase().includes(kw) || s.region.toLowerCase().includes(kw) || s.desc.toLowerCase().includes(kw)));
+    }, 250);
+  }
+
+  // ==================== WEATHER ====================
+  async function getWeather() {
+    const container = document.getElementById('weather-content');
+    if (!navigator.geolocation) {
+      container.innerHTML = `<div class="text-red-500 text-sm py-3">위치 기능을 지원하지 않습니다.</div>`;
+      return;
+    }
+    container.innerHTML = `<div class="flex justify-center py-6 text-3xl">⏳</div>`;
+
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      try {
+        const { latitude: lat, longitude: lon } = pos.coords;
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m,precipitation,rain,is_day&timezone=Asia%2FSeoul`);
+        const data = await res.json();
+        const cur = data.current;
+
+        const temp  = Math.round(cur.temperature_2m);
+        const wind  = Math.round(cur.wind_speed_10m);
+        const precip = cur.precipitation || cur.rain || 0;
+        const isDay = cur.is_day !== undefined ? cur.is_day : (new Date().getHours() >= 6 && new Date().getHours() < 20 ? 1 : 0);
+
+        let score = 62;
+        if (wind < 12) score += 20; else if (wind > 26) score -= 25;
+        if (precip > 0.5) score -= 15;
+        if (cur.weather_code <= 2) score += 10;
+        score = Math.max(30, Math.min(95, score));
+
+        let icon = '🌤️', desc = '좋음';
+        if      (cur.weather_code >= 61) { icon = '🌧️'; desc = '비'; }
+        else if (cur.weather_code >= 45) { icon = '🌫️'; desc = '안개'; }
+        else if (cur.weather_code >= 3)  { icon = '☁️';  desc = '흐림'; }
+        else if (isDay)                  { icon = '☀️';  desc = '맑음'; }
+        else                             { icon = '🌙';  desc = '맑음(야간)'; }
+
+        const scoreColor = score > 75 ? 'text-emerald-600' : score > 55 ? 'text-amber-600' : 'text-red-500';
+        const scoreMsg   = score > 75 ? '선상 낚시하기 좋은 날씨입니다!' : score > 55 ? '조심스럽게 출조하세요' : '바람/비 주의!';
+
+        container.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div><div class="text-sm text-slate-500">현재 위치</div>
+              <div class="text-5xl font-bold text-slate-900 mt-1">${temp}°</div></div>
+            <div class="text-right"><div class="text-6xl mb-1">${icon}</div>
+              <div class="text-sm text-slate-600">${desc}</div></div>
+          </div>
+          <div class="mt-5 grid grid-cols-3 gap-3">
+            <div class="metric rounded-2xl p-3 text-center">
+              <div class="text-xs text-slate-500">바람</div>
+              <div class="font-semibold">${wind} km/h</div>
+            </div>
+            <div class="metric rounded-2xl p-3 text-center">
+              <div class="text-xs text-slate-500">낚시 지수</div>
+              <div class="font-extrabold text-2xl ${scoreColor}">${score}</div>
+            </div>
+            <div class="metric rounded-2xl p-3 text-center">
+              <div class="text-xs text-slate-500">강수</div>
+              <div class="font-semibold">${precip}mm</div>
+            </div>
+          </div>
+          <div class="text-center mt-4 text-xs ${scoreColor} font-medium">${scoreMsg}</div>`;
+      } catch {
+        container.innerHTML = `<div class="text-red-500 text-sm py-4 text-center">날씨 정보를 불러오지 못했습니다.<br>
+          <button onclick="getWeather()" class="underline text-sky-600 mt-1">다시 시도</button></div>`;
+      }
+    }, () => {
+      container.innerHTML = `<div class="text-sm text-center py-4 text-slate-500">위치 접근이 거부되었습니다.<br>설정에서 위치 권한을 허용해주세요.</div>`;
+    });
+  }
+
+  // ==================== TIDE ====================
+  function updateTideInfo() {
+    const port = document.getElementById('tide-port').value;
+    const dayOffset = new Date().getDate() % 4;
+    const tideTable = {
+      busan:     [{ current:"간조 후 +1시간 40분", nextHigh:"14:25 (+2.9m)", nextLow:"20:40 (+0.3m)" },
+                  { current:"만조 직전 30분",       nextHigh:"11:10 (+3.0m)", nextLow:"17:30 (+0.4m)" },
+                  { current:"만조 후 +2시간",        nextHigh:"15:05 (+2.8m)", nextLow:"21:20 (+0.3m)" },
+                  { current:"간조 직전",             nextHigh:"13:40 (+2.9m)", nextLow:"19:55 (+0.4m)" }],
+      yeosu:     [{ current:"만조 후 +2시간 10분",  nextHigh:"15:50 (+3.1m)", nextLow:"21:55 (+0.5m)" },
+                  { current:"간조 후 +1시간",        nextHigh:"12:30 (+3.2m)", nextLow:"18:40 (+0.6m)" },
+                  { current:"만조 직전",             nextHigh:"14:15 (+3.0m)", nextLow:"20:30 (+0.5m)" },
+                  { current:"간조 직후",             nextHigh:"13:00 (+3.1m)", nextLow:"19:10 (+0.5m)" }],
+      incheon:   [{ current:"간조 후 +0시간 50분",  nextHigh:"13:10 (+7.8m)", nextLow:"19:25 (+1.2m)" },
+                  { current:"만조 후 +3시간",        nextHigh:"14:50 (+7.6m)", nextLow:"21:00 (+1.3m)" },
+                  { current:"간조 직전",             nextHigh:"12:35 (+7.9m)", nextLow:"18:50 (+1.2m)" },
+                  { current:"만조 직후",             nextHigh:"15:20 (+7.7m)", nextLow:"21:30 (+1.1m)" }],
+      tongyeong: [{ current:"만조 직전",             nextHigh:"14:05 (+2.6m)", nextLow:"20:15 (+0.4m)" },
+                  { current:"간조 후 +2시간",        nextHigh:"13:20 (+2.7m)", nextLow:"19:35 (+0.4m)" },
+                  { current:"만조 후 +1시간",        nextHigh:"15:40 (+2.5m)", nextLow:"21:50 (+0.5m)" },
+                  { current:"간조 직전",             nextHigh:"12:00 (+2.6m)", nextLow:"18:10 (+0.4m)" }]
+    };
+    const t = tideTable[port][dayOffset];
+    document.getElementById('tide-content').innerHTML = `
+      <div class="text-sm"><span class="font-semibold text-emerald-600">${t.current}</span></div>
+      <div class="mt-2.5 grid grid-cols-2 gap-x-4 text-xs text-slate-600">
+        <div>다음 만조 <span class="font-medium text-slate-800">${t.nextHigh}</span></div>
+        <div>다음 간조 <span class="font-medium text-slate-800">${t.nextLow}</span></div>
+      </div>`;
+  }
+
+  // ==================== TODAY RECOMMEND ====================
+  function renderTodayRecommend() {
+    const month = new Date().getMonth() + 1;
+    const seasonMap = { 3:'봄', 4:'봄', 5:'봄', 6:'여름', 7:'여름', 8:'여름', 9:'가을', 10:'가을', 11:'가을', 12:'겨울', 1:'겨울', 2:'겨울' };
+    const pickMap   = { 봄:'gapo', 여름:'hanchi', 가을:'jukkumi', 겨울:'munoe' };
+    const season = seasonMap[month];
+    const pick = APP_DATA.species.find(s => s.id === pickMap[season]);
+    const card = document.getElementById('today-recommend-card');
+    card.className = `bg-gradient-to-br ${pick.gradient} text-white rounded-3xl p-5 flex items-center gap-x-4 cursor-pointer active:scale-[0.985] transition-all`;
+    card.onclick = () => showSpeciesDetail(pick.id);
+    card.innerHTML = `
+      <div class="text-6xl drop-shadow">${pick.emoji}</div>
+      <div class="flex-1">
+        <div class="font-bold text-2xl tracking-tight">${pick.name} 낚시</div>
+        <div class="text-white/80 text-sm mt-0.5">${season}철 최고의 선택!</div>
+        <div class="inline-block mt-3 text-xs bg-white/25 px-4 py-1 rounded-2xl font-medium">지금 출조 추천</div>
+      </div>`;
+  }
+
+  // ==================== SPECIES ====================
+  function getFishSVG(id) {
+    const svgs = {
+      munoe: `<svg width="64" height="64" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="25" r="16" fill="#fb923c"/><circle cx="24" cy="22" r="4.5" fill="#1e2937"/><circle cx="40" cy="22" r="4.5" fill="#1e2937"/><circle cx="25.5" cy="21" r="1.6" fill="#fff"/><circle cx="41.5" cy="21" r="1.6" fill="#fff"/><path d="M18 38 Q11 50 21 59" stroke="#c2410f" stroke-width="4" fill="none"/><path d="M25 41 Q18 54 26 61" stroke="#c2410f" stroke-width="4" fill="none"/><path d="M39 41 Q46 54 38 61" stroke="#c2410f" stroke-width="4" fill="none"/><path d="M46 38 Q53 50 43 59" stroke="#c2410f" stroke-width="4" fill="none"/></svg>`,
+      jukkumi: `<svg width="64" height="64" viewBox="0 0 64 64" fill="none"><ellipse cx="32" cy="27" rx="12" ry="14" fill="#f472b6"/><ellipse cx="32" cy="27" rx="8" ry="10" fill="#f9a8d4"/><circle cx="25" cy="23" r="3.2" fill="#1e2937"/><circle cx="39" cy="23" r="3.2" fill="#1e2937"/><circle cx="26.2" cy="22.2" r="1.1" fill="#fff"/><circle cx="40.2" cy="22.2" r="1.1" fill="#fff"/><path d="M24 40 Q21 48 27 53" stroke="#be185d" stroke-width="3" fill="none"/><path d="M32 42 Q32 50 32 56" stroke="#be185d" stroke-width="3" fill="none"/><path d="M40 40 Q43 48 37 53" stroke="#be185d" stroke-width="3" fill="none"/></svg>`,
+      hanchi: `<svg width="64" height="64" viewBox="0 0 64 64" fill="none"><ellipse cx="32" cy="28" rx="10" ry="17" fill="#38bdf8"/><ellipse cx="32" cy="28" rx="6.5" ry="12" fill="#7dd3fc"/><path d="M22 22 Q12 30 22 38" stroke="#0369a1" stroke-width="5" fill="none"/><path d="M42 22 Q52 30 42 38" stroke="#0369a1" stroke-width="5" fill="none"/><circle cx="26" cy="24" r="3" fill="#1e2937"/><circle cx="38" cy="24" r="3" fill="#1e2937"/><circle cx="27" cy="23.3" r="1" fill="#fff"/><circle cx="39" cy="23.3" r="1" fill="#fff"/><path d="M26 44 Q23 52 29 57" stroke="#0369a1" stroke-width="2.5" fill="none"/><path d="M32 46 Q32 54 32 59" stroke="#0369a1" stroke-width="2.5" fill="none"/><path d="M38 44 Q41 52 35 57" stroke="#0369a1" stroke-width="2.5" fill="none"/></svg>`,
+      munui: `<svg width="64" height="64" viewBox="0 0 64 64" fill="none"><ellipse cx="32" cy="27" rx="14" ry="15" fill="#a855f7"/><ellipse cx="32" cy="27" rx="9" ry="10" fill="#c084fc"/><path d="M18 20 Q8 30 18 40" stroke="#6b21a8" stroke-width="6" fill="none"/><path d="M46 20 Q56 30 46 40" stroke="#6b21a8" stroke-width="6" fill="none"/><circle cx="24" cy="23" r="3.5" fill="#1e2937"/><circle cx="40" cy="23" r="3.5" fill="#1e2937"/><circle cx="25.5" cy="22" r="1.2" fill="#fff"/><circle cx="41.5" cy="22" r="1.2" fill="#fff"/><path d="M23 43 Q19 52 27 58" stroke="#6b21a8" stroke-width="3" fill="none"/><path d="M32 45 Q32 54 32 60" stroke="#6b21a8" stroke-width="3" fill="none"/><path d="M41 43 Q45 52 37 58" stroke="#6b21a8" stroke-width="3" fill="none"/></svg>`,
+      gapo: `<svg width="64" height="64" viewBox="0 0 64 64" fill="none"><ellipse cx="32" cy="28" rx="15" ry="12" fill="#14b8a6"/><ellipse cx="32" cy="28" rx="10" ry="8" fill="#5eead4"/><path d="M17 22 Q8 29 17 36" stroke="#0f766e" stroke-width="7" fill="none"/><path d="M47 22 Q56 29 47 36" stroke="#0f766e" stroke-width="7" fill="none"/><circle cx="24" cy="25" r="3.2" fill="#1e2937"/><circle cx="40" cy="25" r="3.2" fill="#1e2937"/><circle cx="25.3" cy="24.2" r="1.1" fill="#fff"/><circle cx="41.3" cy="24.2" r="1.1" fill="#fff"/><path d="M24 40 Q20 49 28 55" stroke="#0f766e" stroke-width="2.8" fill="none"/><path d="M32 42 Q32 51 32 57" stroke="#0f766e" stroke-width="2.8" fill="none"/><path d="M40 40 Q44 49 36 55" stroke="#0f766e" stroke-width="2.8" fill="none"/></svg>`
+    };
+    return svgs[id] || `<div class="text-5xl">🦑</div>`;
+  }
+
+  function renderSpecies(filtered = null) {
+    const grid = document.getElementById('species-grid');
+    grid.innerHTML = '';
+    (filtered || APP_DATA.species).forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'species-card bg-white border border-slate-100 rounded-3xl p-4 cursor-pointer';
+      card.innerHTML = `
+        <div class="flex flex-col items-center text-center">
+          <div class="w-16 h-16 flex items-center justify-center mb-3">${getFishSVG(s.id)}</div>
+          <div class="font-bold text-lg">${s.name}</div>
+          <div class="text-xs text-slate-500 mt-0.5">${s.season}</div>
+          <div class="mt-3 text-xs px-4 py-1 bg-sky-100 text-sky-700 rounded-2xl">자세히 보기</div>
+        </div>`;
+      card.onclick = () => showSpeciesDetail(s.id);
+      grid.appendChild(card);
+    });
+  }
+
+  // ④ 어종 상세 모달에 "기록하기" 버튼 추가
+  function showSpeciesDetail(id) {
+    const s = APP_DATA.species.find(x => x.id === id);
+    if (!s) return;
+    const modal   = document.getElementById('species-modal');
+    const header  = document.getElementById('modal-species-header');
+    const content = document.getElementById('modal-species-content');
+
+    header.innerHTML = `
+      <div class="flex items-center gap-x-4">
+        <div class="w-14 h-14 flex items-center justify-center">${getFishSVG(s.id)}</div>
+        <div><div class="font-bold text-2xl">${s.name}</div>
+          <div class="text-sm text-slate-500">${s.season}</div></div>
+      </div>`;
+
+    content.innerHTML = `
+      <div class="text-sm text-slate-600 leading-relaxed">${s.desc}</div>
+      <div class="mt-6 space-y-5 text-sm">
+        <div><div class="font-semibold text-sky-700 flex items-center gap-x-2 mb-1.5"><span>🚢</span> 선상 방법</div>
+          <p class="text-slate-600">${s.boat}</p></div>
+        <div><div class="font-semibold text-emerald-700 flex items-center gap-x-2 mb-1.5"><span>🚶</span> 도보 방법</div>
+          <p class="text-slate-600">${s.shore}</p></div>
+        <div><div class="font-semibold text-amber-700 flex items-center gap-x-2 mb-1.5"><span>🔗</span> 추천 채비</div>
+          <p class="text-slate-600">${s.rig}</p></div>
+        <div><div class="font-semibold text-rose-700 flex items-center gap-x-2 mb-1.5"><span>💡</span> 핵심 팁</div>
+          <ul class="space-y-1 text-slate-600">
+            ${s.tips.map(t => `<li class="flex gap-x-2"><span class="text-rose-400">•</span>${t}</li>`).join('')}
+          </ul></div>
+      </div>
+      <div class="mt-5 pt-4 border-t text-xs text-slate-400 flex items-center gap-x-2">
+        <span>🕐</span><span>최적 시간: ${s.best}</span>
+      </div>
+      <button onclick="hideSpeciesModal(); showCatchModal('${s.id}')"
+              class="mt-5 w-full bg-emerald-600 active:bg-emerald-800 text-white font-semibold py-3 rounded-3xl text-sm transition-all active:scale-[0.985]">
+        ✏️ 이 어종으로 기록 추가
+      </button>`;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  function hideSpeciesModal() {
+    const modal = document.getElementById('species-modal');
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+  }
+
+  // ==================== TACKLE ====================
+  function showTackleTab(tab) {
+    const rigC  = document.getElementById('tackle-rig-content');
+    const knotC = document.getElementById('tackle-knot-content');
+    const rigB  = document.getElementById('tab-rig');
+    const knotB = document.getElementById('tab-knot');
+    if (tab === 'rig') {
+      rigC.classList.remove('hidden'); knotC.classList.add('hidden');
+      rigB.classList.add('bg-sky-600','text-white'); rigB.classList.remove('bg-white','border','text-slate-600');
+      knotB.classList.remove('bg-sky-600','text-white'); knotB.classList.add('bg-white','border','text-slate-600');
+    } else {
+      rigC.classList.add('hidden'); knotC.classList.remove('hidden');
+      knotB.classList.add('bg-sky-600','text-white'); knotB.classList.remove('bg-white','border','text-slate-600');
+      rigB.classList.remove('bg-sky-600','text-white'); rigB.classList.add('bg-white','border','text-slate-600');
+    }
+  }
+
+  function renderTackle() {
+    document.getElementById('rig-list').innerHTML = APP_DATA.rigs.map(r => `
+      <div class="bg-white border border-slate-100 rounded-3xl p-4">
+        <div class="font-semibold">${r.name}</div>
+        <div class="text-sm text-slate-600 mt-1">${r.desc}</div>
+        <div class="mt-2 text-xs inline-block bg-amber-50 text-amber-700 px-3 py-1 rounded-2xl">${r.tip}</div>
+      </div>`).join('');
+
+    document.getElementById('knot-list').innerHTML = APP_DATA.knots.map(k => `
+      <div onclick="showKnotDetail('${k.id}')" class="bg-white border border-slate-100 rounded-3xl p-4 cursor-pointer active:bg-slate-50">
+        <div class="flex justify-between">
+          <div><div class="font-semibold">${k.name}</div>
+            <div class="text-xs text-slate-500 mt-0.5">${k.use}</div></div>
+          <span class="text-xs px-2.5 h-fit py-0.5 rounded-xl ${k.difficulty==='쉬움'?'bg-emerald-100 text-emerald-700':'bg-amber-100 text-amber-700'}">${k.difficulty}</span>
+        </div>
+        <div class="mt-2.5 text-xs text-sky-600 font-medium">자세한 방법 보기 →</div>
+      </div>`).join('');
+  }
+
+  function showKnotDetail(id) {
+    const k = APP_DATA.knots.find(x => x.id === id);
+    if (!k) return;
+    const modal   = document.getElementById('species-modal');
+    const header  = document.getElementById('modal-species-header');
+    const content = document.getElementById('modal-species-content');
+
+    header.innerHTML = `<div><div class="font-bold text-xl">${k.name}</div>
+      <div class="text-sm text-slate-500">${k.use}</div></div>`;
+
+    content.innerHTML = `
+      <div class="mb-4">
+        <span class="px-3 py-1 text-xs rounded-2xl ${k.difficulty==='쉬움'?'bg-emerald-100 text-emerald-700':'bg-amber-100 text-amber-700'}">${k.difficulty}</span>
+      </div>
+      <div class="font-semibold mb-3">묶는 방법</div>
+      ${k.steps.map((step, i) => `
+        <div class="flex gap-x-3 mb-3">
+          <div class="w-6 h-6 flex-shrink-0 bg-sky-100 text-sky-700 rounded-full flex items-center justify-center text-xs font-bold">${i+1}</div>
+          <div class="text-sm pt-0.5 text-slate-700">${step}</div>
+        </div>`).join('')}
+      <a href="${k.youtube}" target="_blank" rel="noopener noreferrer"
+         class="mt-5 flex items-center justify-center gap-x-2 w-full bg-red-600 active:bg-red-800 transition-colors text-white py-3 rounded-3xl text-sm font-semibold">
+        <span>▶️</span><span>유튜브 튜토리얼 영상 보기</span>
+      </a>
+      <div class="text-center text-xs text-slate-400 mt-4">실제로는 영상으로 따라 하는 걸 가장 추천해요</div>`;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  // ==================== SPOTS ====================
+  function loadSavedSpots() {
+    try { savedSpots = JSON.parse(localStorage.getItem('dunaki_saved_spots_v1') || '[]'); }
+    catch { savedSpots = []; }
+  }
+
+  function saveSpotsToStorage() {
+    try { localStorage.setItem('dunaki_saved_spots_v1', JSON.stringify(savedSpots)); } catch {}
+  }
+
+  function toggleSpotSave(spotId, e) {
+    e.stopImmediatePropagation();
+    const idx = savedSpots.indexOf(spotId);
+    if (idx === -1) { savedSpots.push(spotId); showToast('포인트가 저장되었어요!'); }
+    else            { savedSpots.splice(idx, 1); showToast('저장이 해제되었어요'); }
+    saveSpotsToStorage();
+    renderSpots();
+  }
+
+  function renderSpots(filtered = null) {
+    const container = document.getElementById('spots-list');
+    container.innerHTML = '';
+    let list = filtered || APP_DATA.spots;
+    if (currentSpotFilter !== 'all') list = list.filter(s => s.type === currentSpotFilter);
+    if (list.length === 0) {
+      container.innerHTML = `<div class="text-center py-8 text-sm text-slate-400">조건에 맞는 포인트가 없습니다.</div>`;
+      return;
+    }
+    list.forEach(spot => {
+      const isSaved = savedSpots.includes(spot.id);
+      const div = document.createElement('div');
+      div.className = 'spot-card bg-white border border-slate-100 rounded-3xl p-4 cursor-pointer';
+      div.innerHTML = `
+        <div class="flex justify-between">
+          <div><div class="font-semibold">${spot.name}</div>
+            <div class="flex items-center gap-x-2 mt-1">
+              <span class="text-xs px-2.5 py-0.5 rounded-2xl ${spot.type==='선상'?'bg-blue-100 text-blue-700':'bg-emerald-100 text-emerald-700'}">${spot.type}</span>
+              <span class="text-xs text-slate-500">${spot.region}</span>
+            </div></div>
+          <button class="heart-btn p-2" onclick="toggleSpotSave(${spot.id}, event)">${isSaved ? '❤️' : '🤍'}</button>
+        </div>
+        <div class="text-sm text-slate-600 mt-3">${spot.desc}</div>`;
+      div.onclick = () => showSpotDetail(spot);
+      container.appendChild(div);
+    });
+  }
+
+  function filterSpotsByType(type) {
+    currentSpotFilter = type;
+    document.querySelectorAll('.spot-filter-btn').forEach(b => {
+      const isActive = b.dataset.type === type;
+      b.className = `spot-filter-btn px-4 py-1.5 text-xs rounded-3xl transition-all ${isActive ? 'bg-sky-600 text-white' : 'bg-white border text-slate-600'}`;
+    });
+    renderSpots();
+  }
+
+  function showSpotDetail(spot) {
+    const modal   = document.getElementById('species-modal');
+    const header  = document.getElementById('modal-species-header');
+    const content = document.getElementById('modal-species-content');
+    header.innerHTML = `
+      <div><div class="font-bold text-xl">${spot.name}</div>
+        <div class="flex items-center gap-x-2 mt-1">
+          <span class="text-xs px-3 py-0.5 rounded-2xl ${spot.type==='선상'?'bg-blue-100 text-blue-700':'bg-emerald-100 text-emerald-700'}">${spot.type}</span>
+          <span class="text-sm text-slate-500">${spot.region}</span>
+        </div></div>`;
+    content.innerHTML = `
+      <p class="text-slate-600">${spot.desc}</p>
+      <div class="mt-5"><div class="font-semibold text-emerald-700 mb-1.5">낚시 팁</div>
+        <p class="text-sm text-slate-600">${spot.tips}</p></div>
+      <div class="mt-6 p-4 bg-sky-50 rounded-2xl text-xs">
+        <span class="font-medium text-sky-700">💡 선상이라면</span><br>
+        <span class="text-sky-600">현지 선사 예약 후 출조하는 걸 추천합니다.</span>
+      </div>`;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  // ==================== CATCH LOG ====================
+  function loadCatches() {
+    try { catches = JSON.parse(localStorage.getItem('dunaki_catches_v2') || '[]'); }
+    catch { catches = []; }
+  }
+
+  function saveCatchesToStorage() {
+    try { localStorage.setItem('dunaki_catches_v2', JSON.stringify(catches)); }
+    catch { showToast('저장에 실패했습니다 (저장 공간 부족)'); }
+  }
+
+  function renderLog() {
+    document.getElementById('log-total').textContent = catches.length;
+    document.getElementById('log-count').textContent = catches.length;
+
+    const favEl      = document.getElementById('log-favorite');
+    const quickFavEl = document.getElementById('quick-favorite');
+
+    if (catches.length > 0) {
+      const map = {};
+      catches.forEach(c => map[c.speciesId] = (map[c.speciesId] || 0) + 1);
+      const topId = Object.keys(map).sort((a,b) => map[b]-map[a])[0];
+      const sp = APP_DATA.species.find(s => s.id === topId);
+      const display = sp ? `${sp.emoji} ${sp.name}` : '알 수 없음';
+      favEl.textContent = quickFavEl.textContent = display;
+    } else {
+      favEl.textContent = quickFavEl.textContent = '아직 없어요';
+    }
+
+    document.getElementById('quick-catch-count').textContent = catches.length;
+    const list = document.getElementById('log-list');
+    list.innerHTML = '';
+
+    if (catches.length === 0) {
+      list.innerHTML = `<div class="text-center py-8 text-sm text-slate-400">아직 기록이 없어요. 첫 기록을 추가해보세요!</div>`;
+      return;
+    }
+
+    [...catches].sort((a,b) => b.date.localeCompare(a.date)).forEach(item => {
+      const sp = APP_DATA.species.find(s => s.id === item.speciesId);
+      if (!sp) return;
+      const div = document.createElement('div');
+      div.className = 'bg-white border border-slate-100 rounded-3xl p-4 flex gap-x-3 items-center';
+      div.innerHTML = `
+        <div class="w-11 h-11 flex-shrink-0 rounded-2xl flex items-center justify-center bg-purple-50">
+          ${getFishSVG(sp.id)}
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex justify-between items-start">
+            <div class="font-semibold">${sp.name}</div>
+            <div class="text-xs text-slate-400 ml-2 flex-shrink-0">${item.date}</div>
+          </div>
+          <div class="text-sm text-slate-600 mt-0.5">
+            ${[item.size ? item.size+'cm' : '', item.weight ? item.weight+'g' : '', item.spot || ''].filter(Boolean).join(' · ')}
+          </div>
+          ${item.notes ? `<div class="text-xs text-slate-500 mt-1 line-clamp-1">${item.notes}</div>` : ''}
+        </div>
+        <div class="log-card-actions flex-shrink-0">
+          <button onclick="editCatch(${item.id}, event)" class="p-1.5 text-base">✏️</button>
+          <button onclick="deleteCatch(${item.id}, event)" class="p-1.5 text-base">🗑️</button>
+        </div>`;
+      list.appendChild(div);
+    });
+  }
+
+  // ① 기록 추가/수정 통합 모달
+  function showCatchModal(presetSpeciesId = null) {
+    const modal  = document.getElementById('catch-modal');
+    const select = document.getElementById('catch-species');
+    select.innerHTML = APP_DATA.species.map(s =>
+      `<option value="${s.id}" ${s.id === presetSpeciesId ? 'selected' : ''}>${s.name}</option>`).join('');
+
+    document.getElementById('catch-modal-title').textContent = '새 기록 추가';
+    document.getElementById('catch-edit-id').value = '';
+    document.getElementById('catch-size').value   = '';
+    document.getElementById('catch-weight').value = '';
+    document.getElementById('catch-spot').value   = '';
+    document.getElementById('catch-notes').value  = '';
+    document.getElementById('catch-date').value   = new Date().toISOString().split('T')[0];
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  function editCatch(id, e) {
+    e.stopImmediatePropagation();
+    const item = catches.find(c => c.id === id);
+    if (!item) return;
+
+    const modal  = document.getElementById('catch-modal');
+    const select = document.getElementById('catch-species');
+    select.innerHTML = APP_DATA.species.map(s =>
+      `<option value="${s.id}" ${s.id === item.speciesId ? 'selected' : ''}>${s.name}</option>`).join('');
+
+    document.getElementById('catch-modal-title').textContent = '기록 수정';
+    document.getElementById('catch-edit-id').value  = id;
+    document.getElementById('catch-size').value     = item.size   || '';
+    document.getElementById('catch-weight').value   = item.weight || '';
+    document.getElementById('catch-spot').value     = item.spot   || '';
+    document.getElementById('catch-notes').value    = item.notes  || '';
+    document.getElementById('catch-date').value     = item.date   || new Date().toISOString().split('T')[0];
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  function hideCatchModal() {
+    const modal = document.getElementById('catch-modal');
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+  }
+
+  function saveCatch() {
+    const speciesId = document.getElementById('catch-species').value;
+    const size      = document.getElementById('catch-size').value;
+    const weight    = document.getElementById('catch-weight').value;
+    const spot      = document.getElementById('catch-spot').value.trim();
+    const notes     = document.getElementById('catch-notes').value.trim();
+    const date      = document.getElementById('catch-date').value || new Date().toISOString().split('T')[0];
+    const editId    = document.getElementById('catch-edit-id').value;
+
+    if (!speciesId) return showToast('어종을 선택해주세요');
+
+    if (editId) {
+      // 수정 모드
+      const idx = catches.findIndex(c => c.id === parseInt(editId));
+      if (idx !== -1) {
+        catches[idx] = { ...catches[idx], speciesId, size: size ? parseInt(size) : null,
+          weight: weight ? parseInt(weight) : null, spot, notes, date };
+        saveCatchesToStorage();
+        hideCatchModal();
+        showToast('기록이 수정되었어요!');
+        renderLog();
+      }
+    } else {
+      // 신규 추가
+      catches.unshift({ id: Date.now(), speciesId, size: size ? parseInt(size) : null,
+        weight: weight ? parseInt(weight) : null, spot, notes, date });
+      saveCatchesToStorage();
+      hideCatchModal();
+      showToast('기록이 저장되었어요!');
+      renderLog();
+    }
+  }
+
+  function deleteCatch(id, e) {
+    e.stopImmediatePropagation();
+    if (!confirm('이 기록을 삭제할까요?')) return;
+    catches = catches.filter(c => c.id !== id);
+    saveCatchesToStorage();
+    renderLog();
+    showToast('기록이 삭제되었습니다');
+  }
+
+  // ==================== INIT ====================
+  function initApp() {
+    setupPWA();
+    loadCatches();
+    loadSavedSpots();
+
+    renderSpecies();
+    renderTackle();
+    renderSpots();
+    renderLog();
+    renderTodayRecommend();
+
+    setTimeout(() => { updateTideInfo(); }, 300);
+
+    showPage('page-home');
+
+    document.documentElement.style.overflowX = 'hidden';
+    document.body.style.overflowX = 'hidden';
+
+    if (!localStorage.getItem('dunaki_welcomed_v3')) {
+      setTimeout(() => {
+        showToast('두낚이에 오신 걸 환영해요! 🎣');
+        localStorage.setItem('dunaki_welcomed_v3', 'true');
+      }, 1400);
+    }
+  }
+
+  window.onload = initApp;
+</script>
 </body>
 </html>
