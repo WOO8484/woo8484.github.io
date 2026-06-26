@@ -6,6 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#4BA3CC">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -626,6 +627,32 @@ ul, ol { list-style: none; }
 /* ============================================================
    SVG SPECIES ICONS (inline)
    ============================================================ */
+
+/* ============================================================
+   조황 메모
+   ============================================================ */
+.memo-sheet {
+  display:none; position:fixed;
+  top:0; bottom:0; left:50%; transform:translateX(-50%);
+  width:100%; max-width:480px;
+  background:rgba(26,110,153,0.35); z-index:300;
+  align-items:flex-end; justify-content:center;
+}
+.memo-sheet.open { display:flex; }
+.memo-inner {
+  background:var(--foam); border-radius:20px 20px 0 0;
+  padding:20px 20px 40px; width:100%; max-height:80dvh;
+  overflow-y:auto;
+}
+.memo-entry {
+  background:var(--sky); border-radius:var(--radius-sm);
+  padding:10px 12px; margin-bottom:8px;
+  border-left:3px solid var(--ocean);
+}
+.memo-entry .me-date { font-size:10px; color:var(--muted); font-weight:700; margin-bottom:3px; }
+.memo-entry .me-text { font-size:12px; line-height:1.6; color:var(--ink); }
+.memo-entry .me-fish { font-size:10px; color:var(--mint); font-weight:700; margin-top:4px; }
+.memo-del { float:right; font-size:11px; color:var(--coral); font-weight:700; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -644,7 +671,7 @@ ul, ol { list-style: none; }
         background:linear-gradient(135deg,rgba(75,163,204,.15),rgba(26,110,153,.15));
         border:1px solid rgba(75,163,204,.3);
         border-radius:20px;padding:2px 7px;margin-left:2px;flex-shrink:0;">
-        <span style="font-size:9px;font-weight:900;color:var(--ocean);letter-spacing:.5px;">v1.4</span>
+        <span style="font-size:9px;font-weight:900;color:var(--ocean);letter-spacing:.5px;">v2.0</span>
         <span style="width:3px;height:3px;border-radius:50%;background:var(--ocean);opacity:.5;"></span>
         <span style="font-size:9px;color:var(--muted);font-weight:600;">BETA</span>
       </div>
@@ -680,16 +707,20 @@ ul, ol { list-style: none; }
                      color:#fff;font-size:11px;font-weight:700;">＋ 포인트 추가</button>
           </div>
 
-          <!-- ★ 포인트 추가 모드 (Leaflet 지도) -->
-          <div id="add-point-form" style="display:none;margin-bottom:12px;">
+          <!-- 포인트 버튼 목록 -->
+          <div id="quick-pins" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
+
+          <!-- 상시 표시 지도 -->
+          <div id="leaflet-pick-map"
+            style="width:100%;height:220px;border-radius:var(--radius-sm);
+                   overflow:hidden;border:1px solid var(--border);margin-bottom:8px;"></div>
+
+          <!-- 포인트 추가 모드 (지도 아래 폼) -->
+          <div id="add-point-form" style="display:none;margin-bottom:4px;">
             <div style="background:var(--sky);border-radius:var(--radius-sm);padding:10px;border:1.5px solid var(--ocean);">
               <div style="font-size:11px;font-weight:700;color:var(--deep);margin-bottom:6px;">
-                🗺 지도를 탭해서 위치를 선택하세요
+                🗺 위쪽 지도를 탭해서 위치 선택 후 저장하세요
               </div>
-              <!-- Leaflet 지도 -->
-              <div id="leaflet-pick-map"
-                style="width:100%;height:240px;border-radius:var(--radius-sm);
-                       overflow:hidden;border:1px solid var(--border);margin-bottom:8px;"></div>
               <!-- 선택된 좌표 표시 -->
               <div id="pick-coord-bar"
                 style="display:none;background:#fff;border-radius:var(--radius-sm);
@@ -705,7 +736,6 @@ ul, ol { list-style: none; }
                 <input id="new-pt-fish" type="text" placeholder="주요 어종 (예: 무늬오징어·문어)"
                   style="padding:8px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);
                          font-size:12px;font-family:inherit;background:#fff;outline:none;">
-                <!-- 위도/경도는 숨김 — 지도 탭으로 자동 입력 -->
                 <input id="new-pt-lat" type="hidden">
                 <input id="new-pt-lon" type="hidden">
                 <div style="display:flex;gap:6px;">
@@ -723,9 +753,6 @@ ul, ol { list-style: none; }
               </div>
             </div>
           </div>
-
-          <!-- 포인트 버튼 목록 -->
-          <div id="quick-pins" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
 
           <!-- 날씨 패널 -->
           <div id="wx-panel" style="display:none;">
@@ -848,6 +875,7 @@ ul, ol { list-style: none; }
 
       <!-- 금어기 정보 -->
       <div class="page-title" style="margin-top:4px">⛔ 금어기 정보</div>
+      <div id="prohibited-alert" style="display:none;background:#fff0f0;border:1.5px solid var(--coral);border-radius:var(--radius);padding:10px 14px;margin-bottom:10px;font-size:12px;color:var(--coral);font-weight:700;"></div>
       <div class="prohibited-card">
         <div class="p-header"><span class="p-icon" data-fish="bigfin">🦑</span><span class="p-name">무늬오징어 (흰꼴뚜기)</span></div>
         <span class="p-period">금어기 없음 (연중 가능)</span>
@@ -865,7 +893,7 @@ ul, ol { list-style: none; }
       </div>
       <div class="prohibited-card">
         <div class="p-header"><span class="p-icon" data-fish="arrow">🏹</span><span class="p-name">화살촉오징어</span></div>
-        <span class="p-period">금어기 : 5월 / 몸통 15cm 이하 방류</span>
+        <span class="p-period">금어기 : 5월 1일 ~ 5월 31일 / 몸통 15cm 이하 방류</span>
         <div class="p-desc">5월 한 달 금어기. 6월부터 12월까지 시즌. 15cm 이하 소형 개체는 반드시 방류.</div>
       </div>
       <div class="prohibited-card">
@@ -1182,10 +1210,11 @@ ul, ol { list-style: none; }
     <!-- =============== PAGE: 정보 =============== -->
     <section class="page" id="page-info">
       <div class="page-title">📍 낚시 정보</div>
-      <div class="info-tabs">
-        <button class="info-tab active" data-it="선사">🚢 선사 정보</button>
-        <button class="info-tab" data-it="도보">🚶 도보 포인트</button>
-        <button class="info-tab" data-it="용어">📖 낚시 용어</button>
+      <div class="info-tabs" style="flex-wrap:wrap;gap:6px;">
+        <button class="info-tab active" data-it="선사">🚢 선사</button>
+        <button class="info-tab" data-it="방법">🎣 낚시방법</button>
+        <button class="info-tab" data-it="도보">🚶 도보</button>
+        <button class="info-tab" data-it="용어">📖 용어</button>
       </div>
 
       <!-- 선사 정보 패널 -->
@@ -1201,6 +1230,16 @@ ul, ol { list-style: none; }
           <button class="marina-region-tab" data-mr="울산">🐋 울산</button>
         </div>
         <div id="marina-panels-container"></div>
+      </div>
+
+      <!-- 낚시방법 패널 -->
+      <div class="info-panel" id="ip-방법">
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;" id="method-tabs-inner">
+          <button class="method-tab active" data-mt="선상" style="flex:1;min-width:80px;">🚢 선상낚시</button>
+          <button class="method-tab" data-mt="도보" style="flex:1;min-width:80px;">🚶 도보낚시</button>
+          <button class="method-tab" data-mt="어종별" style="flex:1;min-width:80px;">🐙 어종별</button>
+        </div>
+        <div id="method-panels-inner"></div>
       </div>
 
       <!-- 도보 포인트 패널 -->
@@ -1242,6 +1281,37 @@ ul, ol { list-style: none; }
       <span class="nav-label">정보</span>
     </button>
   </nav>
+</div>
+
+
+<!-- ===== 조황 메모 시트 ===== -->
+<div class="memo-sheet" id="memo-sheet">
+  <div class="memo-inner">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="font-size:16px;font-weight:900;color:var(--ink);">📝 조황 메모</div>
+      <button onclick="closeMemoSheet()" style="font-size:20px;color:var(--muted);padding:4px;">✕</button>
+    </div>
+    <div id="memo-point-name" style="font-size:13px;font-weight:700;color:var(--deep);margin-bottom:12px;"></div>
+    <!-- 입력 폼 -->
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+      <textarea id="memo-input" placeholder="조황 기록을 입력하세요 (날씨, 마릿수, 사용 채비 등)"
+        style="padding:10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);
+               font-size:12px;font-family:inherit;background:#fff;outline:none;
+               resize:none;height:80px;line-height:1.6;"></textarea>
+      <input id="memo-catch" type="text" placeholder="주요 어종 (예: 무늬오징어 3마리)"
+        style="padding:8px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);
+               font-size:12px;font-family:inherit;background:#fff;outline:none;">
+      <button onclick="saveMemo()"
+        style="padding:10px;border-radius:var(--radius-sm);background:var(--ocean);
+               color:#fff;font-size:13px;font-weight:700;">
+        ✓ 기록 저장
+      </button>
+    </div>
+    <!-- 과거 기록 -->
+    <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">📋 과거 기록</div>
+    <div id="memo-list"></div>
+  </div>
 </div>
 
 <!-- ===== SPECIES DETAIL MODAL ===== -->
@@ -1333,39 +1403,39 @@ const KNOT_DATA = [
 
 const BOAT_DATA = {
   '거제': [
-    { name: '거제 블루피쉬호', phone: '055-681-0000', fish: '무늬오징어·문어', depart: '장승포항', price: '1인 6만원~', web: 'https://sunsung24.com' },
-    { name: '거제 에깅마스터호', phone: '055-682-1111', fish: '무늬오징어 전용', depart: '고현항', price: '1인 7만원~', web: 'https://sunsung24.com' },
-    { name: '아쿠아프린세스호', phone: '010-2222-3333', fish: '갑오징어·한치', depart: '일운면 구조라', price: '1인 5만원~', web: 'https://sunsung24.com' },
+    { name: '거제 블루피쉬호', fish: '무늬오징어·문어', depart: '장승포항', price: '1인 6만원~', web: 'https://sunsung24.com' },
+    { name: '거제 에깅마스터호', fish: '무늬오징어 전용', depart: '고현항', price: '1인 7만원~', web: 'https://sunsung24.com' },
+    { name: '아쿠아프린세스호', fish: '갑오징어·한치', depart: '일운면 구조라', price: '1인 5만원~', web: 'https://sunsung24.com' },
   ],
   '통영': [
-    { name: '통영 남해낚시호', phone: '055-644-0000', fish: '한치·무늬오징어', depart: '통영항', price: '1인 6만원~', web: 'https://sunsung24.com' },
-    { name: '통영 이순신호', phone: '055-645-1234', fish: '문어·갑오징어', depart: '미수동 선착장', price: '1인 5만원~', web: 'https://sunsung24.com' },
+    { name: '통영 남해낚시호', fish: '한치·무늬오징어', depart: '통영항', price: '1인 6만원~', web: 'https://sunsung24.com' },
+    { name: '통영 이순신호', fish: '문어·갑오징어', depart: '미수동 선착장', price: '1인 5만원~', web: 'https://sunsung24.com' },
   ],
   '고성': [
-    { name: '고성 공룡호', phone: '055-673-0000', fish: '갑오징어·주꾸미', depart: '자란만', price: '1인 4만원~', web: 'https://sunsung24.com' },
-    { name: '고성 하이낚시호', phone: '055-674-5678', fish: '문어·무늬오징어', depart: '당항포', price: '1인 5만원~', web: 'https://sunsung24.com' },
+    { name: '고성 공룡호', fish: '갑오징어·주꾸미', depart: '자란만', price: '1인 4만원~', web: 'https://sunsung24.com' },
+    { name: '고성 하이낚시호', fish: '문어·무늬오징어', depart: '당항포', price: '1인 5만원~', web: 'https://sunsung24.com' },
   ],
   '남해': [
-    { name: '남해 보물섬호', phone: '055-860-0000', fish: '무늬오징어·한치', depart: '남해 창선선착장', price: '1인 6만원~', web: 'https://sunsung24.com' },
-    { name: '남해 플라이피쉬호', phone: '055-861-7890', fish: '갑오징어·주꾸미', depart: '미조항', price: '1인 5만원~', web: 'https://sunsung24.com' },
+    { name: '남해 보물섬호', fish: '무늬오징어·한치', depart: '남해 창선선착장', price: '1인 6만원~', web: 'https://sunsung24.com' },
+    { name: '남해 플라이피쉬호', fish: '갑오징어·주꾸미', depart: '미조항', price: '1인 5만원~', web: 'https://sunsung24.com' },
   ],
   '사천': [
-    { name: '사천 삼천포호', phone: '055-831-0000', fish: '갑오징어·주꾸미', depart: '삼천포항', price: '1인 4만원~', web: 'https://sunsung24.com' },
-    { name: '사천 실안낚시호', phone: '055-832-1357', fish: '문어·에깅', depart: '실안선착장', price: '1인 4만5천원~', web: 'https://sunsung24.com' },
+    { name: '사천 삼천포호', fish: '갑오징어·주꾸미', depart: '삼천포항', price: '1인 4만원~', web: 'https://sunsung24.com' },
+    { name: '사천 실안낚시호', fish: '문어·에깅', depart: '실안선착장', price: '1인 4만5천원~', web: 'https://sunsung24.com' },
   ],
   '창원': [
-    { name: '창원 진해만호', phone: '055-548-0000', fish: '갑오징어·문어', depart: '진해 용원', price: '1인 5만원~', web: 'https://sunsung24.com' },
-    { name: '창원 마산호', phone: '055-245-2468', fish: '주꾸미·갑오징어', depart: '마산항', price: '1인 4만원~', web: 'https://sunsung24.com' },
+    { name: '창원 진해만호', fish: '갑오징어·문어', depart: '진해 용원', price: '1인 5만원~', web: 'https://sunsung24.com' },
+    { name: '창원 마산호', fish: '주꾸미·갑오징어', depart: '마산항', price: '1인 4만원~', web: 'https://sunsung24.com' },
   ],
   '부산': [
-    { name: '부산 대왕낚시호', phone: '051-401-0000', fish: '무늬오징어·문어', depart: '기장 대변항', price: '1인 7만원~', web: 'https://sunsung24.com' },
-    { name: '부산 해운대블루호', phone: '051-742-1111', fish: '한치·갑오징어', depart: '해운대 미포', price: '1인 6만원~', web: 'https://sunsung24.com' },
-    { name: '부산 감천항낚시호', phone: '051-204-3333', fish: '문어·주꾸미', depart: '감천항', price: '1인 5만원~', web: 'https://sunsung24.com' },
+    { name: '부산 대왕낚시호', fish: '무늬오징어·문어', depart: '기장 대변항', price: '1인 7만원~', web: 'https://sunsung24.com' },
+    { name: '부산 해운대블루호', fish: '한치·갑오징어', depart: '해운대 미포', price: '1인 6만원~', web: 'https://sunsung24.com' },
+    { name: '부산 감천항낚시호', fish: '문어·주꾸미', depart: '감천항', price: '1인 5만원~', web: 'https://sunsung24.com' },
   ],
   '울산': [
-    { name: '울산 방어진호', phone: '052-261-0000', fish: '무늬오징어·문어', depart: '방어진항', price: '1인 7만원~', web: 'https://sunsung24.com' },
-    { name: '울산 강동낚시호', phone: '052-254-1234', fish: '한치·갑오징어', depart: '강동항', price: '1인 6만원~', web: 'https://sunsung24.com' },
-    { name: '울산 정자항호', phone: '052-261-5678', fish: '갑오징어·주꾸미', depart: '정자항', price: '1인 5만원~', web: 'https://sunsung24.com' },
+    { name: '울산 방어진호', fish: '무늬오징어·문어', depart: '방어진항', price: '1인 7만원~', web: 'https://sunsung24.com' },
+    { name: '울산 강동낚시호', fish: '한치·갑오징어', depart: '강동항', price: '1인 6만원~', web: 'https://sunsung24.com' },
+    { name: '울산 정자항호', fish: '갑오징어·주꾸미', depart: '정자항', price: '1인 5만원~', web: 'https://sunsung24.com' },
   ],
 };
 
@@ -1703,8 +1773,7 @@ function buildBoats() {
           ${b.fish.split('·').map(f => `<span class="b-tag">🎣 ${f.trim()}</span>`).join('')}
         </div>
         <div class="b-actions">
-          <a href="tel:${b.phone}" class="b-btn call">📞 전화 예약</a>
-          <a href="${b.web}" target="_blank" class="b-btn web">🌐 선상24</a>
+          <a href="${b.web}" target="_blank" class="b-btn web" style="background:var(--ocean);color:#fff;">🌐 선상24에서 예약</a>
         </div>
       </div>`).join('');
     container.innerHTML += `<div class="marina-panel ${region === '거제' ? 'active' : ''}" id="mr-${region}">${boats}</div>`;
@@ -1801,6 +1870,7 @@ document.getElementById('region-selector').addEventListener('click', e => {
     var opening = (panel.style.display === 'none' || panel.style.display === '');
     panel.style.display = opening ? 'block' : 'none';
     if (opening && !panelReady) { panelReady = true; bindEvents(); renderPins(); }
+    if (opening) { setTimeout(function(){ initPickMap(); }, 80); }
   });
   document.querySelectorAll('.region-chip:not(#region-search-btn)').forEach(function(c) {
     c.addEventListener('click', function() {
@@ -1816,7 +1886,7 @@ document.getElementById('region-selector').addEventListener('click', e => {
       var form = document.getElementById('add-point-form');
       var opening = (form.style.display === 'none' || form.style.display === '');
       form.style.display = opening ? 'block' : 'none';
-      if (opening) { setTimeout(function(){ initPickMap(); }, 50); }
+      // 지도는 이미 상시 표시 중 - 추가 폼만 토글
     });
 
     // 취소
@@ -1938,7 +2008,18 @@ document.getElementById('region-selector').addEventListener('click', e => {
         });
       })(i);
 
+      // 메모 버튼
+      var memo = document.createElement('button');
+      memo.innerHTML = '📝';
+      memo.title = '조황 메모';
+      memo.style.cssText = 'padding:6px 8px;border-radius:var(--radius-sm);font-size:13px;'
+        + 'border:1.5px solid var(--border);background:#fff;flex-shrink:0;cursor:pointer;';
+      (function(ptRef) {
+        memo.addEventListener('click', function() { openMemoSheet(ptRef); });
+      })(pt);
+
       row.appendChild(btn);
+      row.appendChild(memo);
       row.appendChild(del);
       wrap.appendChild(row);
     });
@@ -1948,6 +2029,10 @@ document.getElementById('region-selector').addEventListener('click', e => {
   function selectPoint(pt) {
     document.getElementById('wx-panel').style.display = 'block';
     document.getElementById('wx-pt-title').textContent = '📍 ' + pt.name;
+    // 지도 해당 위치로 이동
+    if (pickMap) {
+      pickMap.setView([pt.lat, pt.lon], 11, {animate: true});
+    }
 
     // 🐙 Windy 버튼 링크
     var windyUrl = 'https://www.windy.com/'
@@ -2135,6 +2220,143 @@ document.getElementById('region-selector').addEventListener('click', e => {
 })();
 
 
+
+// ============================================================
+// 조황 메모 기능
+// ============================================================
+var MEMO_KEY = 'fishing_memo_v1';
+var currentMemoPoint = null;
+
+function loadMemos() {
+  try { var s = localStorage.getItem(MEMO_KEY); return s ? JSON.parse(s) : {}; }
+  catch(e) { return {}; }
+}
+function saveMemos(m) { try { localStorage.setItem(MEMO_KEY, JSON.stringify(m)); } catch(e) {} }
+
+function openMemoSheet(pt) {
+  currentMemoPoint = pt;
+  document.getElementById('memo-point-name').textContent = '📍 ' + pt.name + ' (' + pt.fish + ')';
+  document.getElementById('memo-input').value = '';
+  document.getElementById('memo-catch').value = '';
+  renderMemoList(pt);
+  document.getElementById('memo-sheet').classList.add('open');
+}
+window.closeMemoSheet = function() {
+  document.getElementById('memo-sheet').classList.remove('open');
+  currentMemoPoint = null;
+};
+window.saveMemo = function() {
+  if (!currentMemoPoint) return;
+  var text = document.getElementById('memo-input').value.trim();
+  if (!text) { alert('내용을 입력해주세요.'); return; }
+  var fish = document.getElementById('memo-catch').value.trim();
+  var memos = loadMemos();
+  var key = currentMemoPoint.name;
+  if (!memos[key]) memos[key] = [];
+  memos[key].unshift({
+    date: new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
+    text: text,
+    fish: fish
+  });
+  saveMemos(memos);
+  document.getElementById('memo-input').value = '';
+  document.getElementById('memo-catch').value = '';
+  renderMemoList(currentMemoPoint);
+};
+window.deleteMemo = function(ptName, idx) {
+  var memos = loadMemos();
+  if (!memos[ptName]) return;
+  memos[ptName].splice(idx, 1);
+  saveMemos(memos);
+  if (currentMemoPoint && currentMemoPoint.name === ptName) renderMemoList(currentMemoPoint);
+};
+function renderMemoList(pt) {
+  var memos = loadMemos();
+  var list = document.getElementById('memo-list');
+  var entries = memos[pt.name] || [];
+  if (entries.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;">아직 기록이 없습니다.<br>첫 조황을 기록해보세요! 🎣</div>';
+    return;
+  }
+  list.innerHTML = entries.map(function(e, i) {
+    return '<div class="memo-entry">'
+      + '<span class="memo-del" onclick="deleteMemo('' + pt.name.replace(/'/g,"\'") + '',' + i + ')">삭제</span>'
+      + '<div class="me-date">' + e.date + '</div>'
+      + '<div class="me-text">' + e.text.replace(/\n/g,'<br>') + '</div>'
+      + (e.fish ? '<div class="me-fish">🎣 ' + e.fish + '</div>' : '')
+      + '</div>';
+  }).join('');
+}
+// 메모시트 오버레이 클릭 시 닫기
+document.getElementById('memo-sheet').addEventListener('click', function(e) {
+  if (e.target === this) closeMemoSheet();
+});
+
+// ============================================================
+// 바람 화살표 오버레이 (Leaflet 위)
+// ============================================================
+var _windLayer = null;
+function drawWindArrows(map, lat, lon, windSpeed, windDir) {
+  if (_windLayer) { map.removeLayer(_windLayer); _windLayer = null; }
+  if (!windSpeed || !windDir) return;
+  var spread = 0.08;
+  var arrows = [];
+  var dirs = [
+    [lat, lon],
+    [lat+spread, lon+spread], [lat-spread, lon-spread],
+    [lat+spread, lon-spread], [lat-spread, lon+spread],
+    [lat, lon+spread*1.5],    [lat, lon-spread*1.5],
+    [lat+spread*1.5, lon],    [lat-spread*1.5, lon],
+  ];
+  // 풍향 반대 방향 (바람이 오는 방향) → 화살표는 바람 진행 방향
+  var arrowDeg = (windDir + 180) % 360;
+  var rad = arrowDeg * Math.PI / 180;
+  var speed = parseFloat(windSpeed);
+  var color = speed < 5 ? '#52C4A0' : speed < 10 ? '#FFD166' : speed < 15 ? '#FF6B6B' : '#c0392b';
+  var markers = dirs.map(function(pos) {
+    return L.marker(pos, {
+      icon: L.divIcon({
+        className: '',
+        html: '<div style="transform:rotate(' + arrowDeg + 'deg);font-size:16px;color:' + color + ';'
+            + 'text-shadow:0 0 3px rgba(0,0,0,.3);line-height:1;">➤</div>',
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+      }),
+      interactive: false
+    });
+  });
+  _windLayer = L.layerGroup(markers).addTo(map);
+}
+
+// ============================================================
+// 낚시방법 통합 - 정보 탭 내 동적 로드
+// ============================================================
+function buildMethodInInfo() {
+  var container = document.getElementById('method-panels-inner');
+  if (!container || container.innerHTML.trim()) return;
+  var src = document.getElementById('mp-선상');
+  if (!src) return;
+  ['선상','도보','어종별'].forEach(function(key) {
+    var srcEl = document.getElementById('mp-' + key);
+    if (!srcEl) return;
+    var div = document.createElement('div');
+    div.id = 'imp-' + key;
+    div.className = 'method-panel' + (key === '선상' ? ' active' : '');
+    div.innerHTML = srcEl.innerHTML;
+    container.appendChild(div);
+  });
+  // 이벤트 바인딩
+  document.getElementById('method-tabs-inner').querySelectorAll('.method-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.getElementById('method-tabs-inner').querySelectorAll('.method-tab').forEach(function(t) { t.classList.remove('active'); });
+      container.querySelectorAll('.method-panel').forEach(function(p) { p.classList.remove('active'); });
+      tab.classList.add('active');
+      var panel = document.getElementById('imp-' + tab.dataset.mt);
+      if (panel) panel.classList.add('active');
+    });
+  });
+}
+
 // Method tabs
 document.querySelectorAll('.method-tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -2220,6 +2442,7 @@ document.querySelectorAll('.info-tab').forEach(tab => {
     document.querySelectorAll('.info-panel').forEach(p => p.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById('ip-' + tab.dataset.it).classList.add('active');
+    if (tab.dataset.it === '방법') buildMethodInInfo();
   });
 });
 
@@ -2254,10 +2477,38 @@ document.getElementById('species-modal').addEventListener('click', e => {
   buildBoats();
   buildWalkSpots();
   buildGlossary();
+  checkProhibitedAlert();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
   }
 })();
+
+// 금어기 오늘 날짜 기준 알림
+function checkProhibitedAlert() {
+  const today = new Date();
+  const mm = today.getMonth() + 1;
+  const dd = today.getDate();
+  const alerts = [];
+
+  // 주꾸미: 5/11 ~ 8/31
+  if ((mm === 5 && dd >= 11) || (mm >= 6 && mm <= 7) || (mm === 8 && dd <= 31)) {
+    alerts.push('🐙 주꾸미 금어기 중 (5/11~8/31) — 채비 사용 금지');
+  }
+  // 화살촉오징어: 5/1 ~ 5/31
+  if (mm === 5) {
+    alerts.push('🏹 화살촉오징어 금어기 중 (5/1~5/31)');
+  }
+  // 살오징어: 4/1 ~ 5/31
+  if (mm === 4 || mm === 5) {
+    alerts.push('🦑 살오징어 금어기 중 (4/1~5/31)');
+  }
+
+  const el = document.getElementById('prohibited-alert');
+  if (alerts.length > 0 && el) {
+    el.style.display = 'block';
+    el.innerHTML = '⛔ <strong>오늘 금어기 어종:</strong> ' + alerts.join(' · ');
+  }
+}
 </script>
 </body>
 </html>
