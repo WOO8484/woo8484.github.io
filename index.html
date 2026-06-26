@@ -6,7 +6,6 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#4BA3CC">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -628,9 +627,7 @@ ul, ol { list-style: none; }
    SVG SPECIES ICONS (inline)
    ============================================================ */
 
-/* ============================================================
-   조황 메모
-   ============================================================ */
+/* 조황 메모 */
 .memo-sheet {
   display:none; position:fixed;
   top:0; bottom:0; left:50%; transform:translateX(-50%);
@@ -641,8 +638,7 @@ ul, ol { list-style: none; }
 .memo-sheet.open { display:flex; }
 .memo-inner {
   background:var(--foam); border-radius:20px 20px 0 0;
-  padding:20px 20px 40px; width:100%; max-height:80dvh;
-  overflow-y:auto;
+  padding:20px 20px 40px; width:100%; max-height:80dvh; overflow-y:auto;
 }
 .memo-entry {
   background:var(--sky); border-radius:var(--radius-sm);
@@ -707,20 +703,16 @@ ul, ol { list-style: none; }
                      color:#fff;font-size:11px;font-weight:700;">＋ 포인트 추가</button>
           </div>
 
-          <!-- 포인트 버튼 목록 -->
-          <div id="quick-pins" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
-
-          <!-- 상시 표시 지도 -->
-          <div id="leaflet-pick-map"
-            style="width:100%;height:220px;border-radius:var(--radius-sm);
-                   overflow:hidden;border:1px solid var(--border);margin-bottom:8px;"></div>
-
-          <!-- 포인트 추가 모드 (지도 아래 폼) -->
-          <div id="add-point-form" style="display:none;margin-bottom:4px;">
+          <!-- 포인트 추가 모드 -->
+          <div id="add-point-form" style="display:none;margin-bottom:12px;">
             <div style="background:var(--sky);border-radius:var(--radius-sm);padding:10px;border:1.5px solid var(--ocean);">
               <div style="font-size:11px;font-weight:700;color:var(--deep);margin-bottom:6px;">
-                🗺 위쪽 지도를 탭해서 위치 선택 후 저장하세요
+                🗺 지도를 탭해서 위치를 선택하세요
               </div>
+              <!-- Leaflet 지도 -->
+              <div id="leaflet-pick-map"
+                style="width:100%;height:220px;border-radius:var(--radius-sm);
+                       overflow:hidden;border:1px solid var(--border);margin-bottom:8px;"></div>
               <!-- 선택된 좌표 표시 -->
               <div id="pick-coord-bar"
                 style="display:none;background:#fff;border-radius:var(--radius-sm);
@@ -736,6 +728,7 @@ ul, ol { list-style: none; }
                 <input id="new-pt-fish" type="text" placeholder="주요 어종 (예: 무늬오징어·문어)"
                   style="padding:8px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);
                          font-size:12px;font-family:inherit;background:#fff;outline:none;">
+                <!-- 위도/경도는 숨김 — 지도 탭으로 자동 입력 -->
                 <input id="new-pt-lat" type="hidden">
                 <input id="new-pt-lon" type="hidden">
                 <div style="display:flex;gap:6px;">
@@ -753,6 +746,9 @@ ul, ol { list-style: none; }
               </div>
             </div>
           </div>
+
+          <!-- 포인트 버튼 목록 -->
+          <div id="quick-pins" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
 
           <!-- 날씨 패널 -->
           <div id="wx-panel" style="display:none;">
@@ -874,8 +870,8 @@ ul, ol { list-style: none; }
       </div>
 
       <!-- 금어기 정보 -->
-      <div class="page-title" style="margin-top:4px">⛔ 금어기 정보</div>
       <div id="prohibited-alert" style="display:none;background:#fff0f0;border:1.5px solid var(--coral);border-radius:var(--radius);padding:10px 14px;margin-bottom:10px;font-size:12px;color:var(--coral);font-weight:700;"></div>
+      <div class="page-title" style="margin-top:4px">⛔ 금어기 정보</div>
       <div class="prohibited-card">
         <div class="p-header"><span class="p-icon" data-fish="bigfin">🦑</span><span class="p-name">무늬오징어 (흰꼴뚜기)</span></div>
         <span class="p-period">금어기 없음 (연중 가능)</span>
@@ -1293,30 +1289,25 @@ ul, ol { list-style: none; }
     <div class="modal-handle"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div style="font-size:16px;font-weight:900;color:var(--ink);">📝 조황 메모</div>
-      <button onclick="closeMemoSheet()" style="font-size:20px;color:var(--muted);padding:4px;">✕</button>
+      <button id="memo-close-btn" style="font-size:20px;color:var(--muted);padding:4px;">✕</button>
     </div>
     <div id="memo-point-name" style="font-size:13px;font-weight:700;color:var(--deep);margin-bottom:12px;"></div>
-    <!-- 입력 폼 -->
     <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
-      <textarea id="memo-input" placeholder="조황 기록을 입력하세요 (날씨, 마릿수, 사용 채비 등)"
+      <textarea id="memo-input" placeholder="조황 기록 (날씨, 마릿수, 채비 등)"
         style="padding:10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);
                font-size:12px;font-family:inherit;background:#fff;outline:none;
                resize:none;height:80px;line-height:1.6;"></textarea>
       <input id="memo-catch" type="text" placeholder="주요 어종 (예: 무늬오징어 3마리)"
         style="padding:8px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);
                font-size:12px;font-family:inherit;background:#fff;outline:none;">
-      <button onclick="saveMemo()"
+      <button id="memo-save-btn"
         style="padding:10px;border-radius:var(--radius-sm);background:var(--ocean);
-               color:#fff;font-size:13px;font-weight:700;">
-        ✓ 기록 저장
-      </button>
+               color:#fff;font-size:13px;font-weight:700;">✓ 기록 저장</button>
     </div>
-    <!-- 과거 기록 -->
     <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">📋 과거 기록</div>
     <div id="memo-list"></div>
   </div>
 </div>
-
 <!-- ===== SPECIES DETAIL MODAL ===== -->
 <div class="modal-overlay" id="species-modal">
   <div class="modal-sheet">
@@ -1328,14 +1319,6 @@ ul, ol { list-style: none; }
 
 <script src="species-svg.js"></script>
 <script>
-// SPECIES_DATA → species-svg.js
-
-// ============================================================
-// DATA
-// ============================================================
-
-// SPECIES_DATA → species-svg.js
-
 const KNOT_DATA = [
   {
     name: '클린치 노트 (기본 훅매듭)',
@@ -1849,6 +1832,7 @@ document.getElementById('region-selector').addEventListener('click', e => {
 
 // ── Windy 포인트 날씨 ────────────────────────────────────────────────────
 (function setupWindySearch() {
+  try {
 
   var STORAGE_KEY = 'fishing_points_v2';
   var DEFAULT_PTS = [
@@ -1893,7 +1877,7 @@ document.getElementById('region-selector').addEventListener('click', e => {
       var form = document.getElementById('add-point-form');
       var opening = (form.style.display === 'none' || form.style.display === '');
       form.style.display = opening ? 'block' : 'none';
-      // 지도는 이미 상시 표시 중 - 추가 폼만 토글
+      if (opening) { setTimeout(function(){ initPickMap(); }, 50); }
     });
 
     // 취소
@@ -1925,13 +1909,12 @@ document.getElementById('region-selector').addEventListener('click', e => {
 
   // ── Leaflet 지도 초기화 ──────────────────────────────────────────────
   function initPickMap() {
+    if (pickMap) { setTimeout(function(){ pickMap.invalidateSize(); }, 50); return; }
     if (typeof L === 'undefined') {
-      document.getElementById('leaflet-pick-map').innerHTML =
-        '<div style="display:flex;align-items:center;justify-content:center;height:100%;'
-        + 'background:#f0f4f8;color:var(--muted);font-size:12px;font-weight:700;">🗺 지도를 불러올 수 없습니다 (네트워크 확인)</div>';
+      var el = document.getElementById('leaflet-pick-map');
+      if (el) el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#eef4f9;color:#4BA3CC;font-size:12px;font-weight:700;">🗺 지도는 배포 환경에서 이용 가능합니다</div>';
       return;
     }
-    if (pickMap) { setTimeout(function(){ pickMap.invalidateSize(); }, 50); return; }
 
     pickMap = L.map('leaflet-pick-map', { zoomControl: true, attributionControl: false })
       .setView([34.95, 128.5], 8);
@@ -2021,16 +2004,11 @@ document.getElementById('region-selector').addEventListener('click', e => {
         });
       })(i);
 
-      // 메모 버튼
       var memo = document.createElement('button');
       memo.innerHTML = '📝';
       memo.title = '조황 메모';
-      memo.style.cssText = 'padding:6px 8px;border-radius:var(--radius-sm);font-size:13px;'
-        + 'border:1.5px solid var(--border);background:#fff;flex-shrink:0;cursor:pointer;';
-      (function(ptRef) {
-        memo.addEventListener('click', function() { openMemoSheet(ptRef); });
-      })(pt);
-
+      memo.style.cssText = 'padding:6px 8px;border-radius:var(--radius-sm);font-size:13px;border:1.5px solid var(--border);background:#fff;flex-shrink:0;cursor:pointer;';
+      (function(ptRef) { memo.addEventListener('click', function() { openMemoSheet(ptRef); }); })(pt);
       row.appendChild(btn);
       row.appendChild(memo);
       row.appendChild(del);
@@ -2042,10 +2020,7 @@ document.getElementById('region-selector').addEventListener('click', e => {
   function selectPoint(pt) {
     document.getElementById('wx-panel').style.display = 'block';
     document.getElementById('wx-pt-title').textContent = '📍 ' + pt.name;
-    // 지도 해당 위치로 이동
-    if (pickMap) {
-      pickMap.setView([pt.lat, pt.lon], 11, {animate: true});
-    }
+    if (pickMap) pickMap.setView([pt.lat, pt.lon], 11, {animate:true});
 
     // 🐙 Windy 버튼 링크
     var windyUrl = 'https://www.windy.com/'
@@ -2091,6 +2066,7 @@ document.getElementById('region-selector').addEventListener('click', e => {
         + '💥 돌풍 ' + c.wind_gusts_10m + ' m/s<br>'
         + '🌡 체감 ' + c.apparent_temperature + '°C'
         + (c.precipitation > 0 ? '<br>🌧 ' + c.precipitation + ' mm' : '');
+      if (typeof pickMap !== 'undefined' && pickMap) drawWindArrows(pickMap, lat, lon, c.wind_speed_10m, c.wind_direction_10m);
 
       // 시간별 데이터
       var times  = d.hourly.time;
@@ -2230,22 +2206,20 @@ document.getElementById('region-selector').addEventListener('click', e => {
 
 
 
+  } catch(e) { console.warn("SW err:", e); }
 })();
 
 
 
-// ============================================================
-// 조황 메모 기능
-// ============================================================
+
+
+// 조황 메모
 var MEMO_KEY = 'fishing_memo_v1';
 var currentMemoPoint = null;
-
 function loadMemos() {
-  try { var s = localStorage.getItem(MEMO_KEY); return s ? JSON.parse(s) : {}; }
-  catch(e) { return {}; }
+  try { var s = localStorage.getItem(MEMO_KEY); return s ? JSON.parse(s) : {}; } catch(e) { return {}; }
 }
 function saveMemos(m) { try { localStorage.setItem(MEMO_KEY, JSON.stringify(m)); } catch(e) {} }
-
 function openMemoSheet(pt) {
   currentMemoPoint = pt;
   document.getElementById('memo-point-name').textContent = '📍 ' + pt.name + ' (' + pt.fish + ')';
@@ -2254,11 +2228,11 @@ function openMemoSheet(pt) {
   renderMemoList(pt);
   document.getElementById('memo-sheet').classList.add('open');
 }
-window.closeMemoSheet = function() {
+function closeMemoSheet() {
   document.getElementById('memo-sheet').classList.remove('open');
   currentMemoPoint = null;
-};
-window.saveMemo = function() {
+}
+function doSaveMemo() {
   if (!currentMemoPoint) return;
   var text = document.getElementById('memo-input').value.trim();
   if (!text) { alert('내용을 입력해주세요.'); return; }
@@ -2267,111 +2241,120 @@ window.saveMemo = function() {
   var key = currentMemoPoint.name;
   if (!memos[key]) memos[key] = [];
   memos[key].unshift({
-    date: new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
-    text: text,
-    fish: fish
+    date: new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
+    text: text, fish: fish
   });
   saveMemos(memos);
   document.getElementById('memo-input').value = '';
   document.getElementById('memo-catch').value = '';
   renderMemoList(currentMemoPoint);
-};
-window.deleteMemo = function(ptName, idx) {
+}
+function doDeleteMemo(ptName, idx) {
   var memos = loadMemos();
   if (!memos[ptName]) return;
   memos[ptName].splice(idx, 1);
   saveMemos(memos);
   if (currentMemoPoint && currentMemoPoint.name === ptName) renderMemoList(currentMemoPoint);
-};
+}
 function renderMemoList(pt) {
   var memos = loadMemos();
   var list = document.getElementById('memo-list');
   var entries = memos[pt.name] || [];
-  if (entries.length === 0) {
-    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;">아직 기록이 없습니다.<br>첫 조황을 기록해보세요! 🎣</div>';
+  if (!entries.length) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;">아직 기록이 없습니다 🎣</div>';
     return;
   }
-  list.innerHTML = entries.map(function(e, i) {
-    return '<div class="memo-entry">'
-      + '<span class="memo-del" onclick="deleteMemo('' + pt.name.replace(/'/g,"\'") + '',' + i + ')">삭제</span>'
-      + '<div class="me-date">' + e.date + '</div>'
-      + '<div class="me-text">' + e.text.replace(/\n/g,'<br>') + '</div>'
-      + (e.fish ? '<div class="me-fish">🎣 ' + e.fish + '</div>' : '')
-      + '</div>';
-  }).join('');
+  list.innerHTML = '';
+  entries.forEach(function(e, i) {
+    var div = document.createElement('div');
+    div.className = 'memo-entry';
+    div.innerHTML = '<div class="me-date">' + e.date + '</div>'
+      + '<div class="me-text">' + e.text + '</div>'
+      + (e.fish ? '<div class="me-fish">🎣 ' + e.fish + '</div>' : '');
+    var del = document.createElement('span');
+    del.className = 'memo-del';
+    del.textContent = '삭제';
+    (function(idx2) { del.addEventListener('click', function() { doDeleteMemo(pt.name, idx2); }); })(i);
+    div.insertBefore(del, div.firstChild);
+    list.appendChild(div);
+  });
 }
-// 메모시트 오버레이 클릭 시 닫기
+// 이벤트 등록
+document.getElementById('memo-close-btn').addEventListener('click', closeMemoSheet);
+document.getElementById('memo-save-btn').addEventListener('click', doSaveMemo);
 document.getElementById('memo-sheet').addEventListener('click', function(e) {
   if (e.target === this) closeMemoSheet();
 });
 
-// ============================================================
-// 바람 화살표 오버레이 (Leaflet 위)
-// ============================================================
+// 바람 화살표 오버레이
 var _windLayer = null;
 function drawWindArrows(map, lat, lon, windSpeed, windDir) {
   if (typeof L === 'undefined' || !map) return;
   if (_windLayer) { map.removeLayer(_windLayer); _windLayer = null; }
   if (!windSpeed || !windDir) return;
   var spread = 0.08;
-  var arrows = [];
-  var dirs = [
+  var positions = [
     [lat, lon],
     [lat+spread, lon+spread], [lat-spread, lon-spread],
     [lat+spread, lon-spread], [lat-spread, lon+spread],
-    [lat, lon+spread*1.5],    [lat, lon-spread*1.5],
-    [lat+spread*1.5, lon],    [lat-spread*1.5, lon],
+    [lat, lon+spread*1.5],   [lat, lon-spread*1.5],
+    [lat+spread*1.5, lon],   [lat-spread*1.5, lon],
   ];
-  // 풍향 반대 방향 (바람이 오는 방향) → 화살표는 바람 진행 방향
   var arrowDeg = (windDir + 180) % 360;
-  var rad = arrowDeg * Math.PI / 180;
   var speed = parseFloat(windSpeed);
   var color = speed < 5 ? '#52C4A0' : speed < 10 ? '#FFD166' : speed < 15 ? '#FF6B6B' : '#c0392b';
-  var markers = dirs.map(function(pos) {
+  var markers = positions.map(function(pos) {
     return L.marker(pos, {
       icon: L.divIcon({
         className: '',
-        html: '<div style="transform:rotate(' + arrowDeg + 'deg);font-size:16px;color:' + color + ';'
-            + 'text-shadow:0 0 3px rgba(0,0,0,.3);line-height:1;">➤</div>',
-        iconSize: [20, 20],
-        iconAnchor: [10, 10]
+        html: '<div style="transform:rotate(' + arrowDeg + 'deg);font-size:16px;color:' + color + ';line-height:1;">➤</div>',
+        iconSize: [20,20], iconAnchor: [10,10]
       }),
       interactive: false
     });
   });
   _windLayer = L.layerGroup(markers).addTo(map);
 }
-
-// ============================================================
-// 낚시방법 통합 - 정보 탭 내 동적 로드
-// ============================================================
 function buildMethodInInfo() {
-  var container = document.getElementById('method-panels-inner');
+  const container = document.getElementById('method-panels-inner');
   if (!container || container.innerHTML.trim()) return;
-  var src = document.getElementById('mp-선상');
-  if (!src) return;
   ['선상','도보','어종별'].forEach(function(key) {
-    var srcEl = document.getElementById('mp-' + key);
-    if (!srcEl) return;
-    var div = document.createElement('div');
+    const src = document.getElementById('mp-' + key);
+    if (!src) return;
+    const div = document.createElement('div');
     div.id = 'imp-' + key;
     div.className = 'method-panel' + (key === '선상' ? ' active' : '');
-    div.innerHTML = srcEl.innerHTML;
+    div.innerHTML = src.innerHTML;
     container.appendChild(div);
   });
-  // 이벤트 바인딩
   document.getElementById('method-tabs-inner').querySelectorAll('.method-tab').forEach(function(tab) {
     tab.addEventListener('click', function() {
-      document.getElementById('method-tabs-inner').querySelectorAll('.method-tab').forEach(function(t) { t.classList.remove('active'); });
-      container.querySelectorAll('.method-panel').forEach(function(p) { p.classList.remove('active'); });
+      document.getElementById('method-tabs-inner').querySelectorAll('.method-tab').forEach(t => t.classList.remove('active'));
+      container.querySelectorAll('.method-panel').forEach(p => p.classList.remove('active'));
       tab.classList.add('active');
-      var panel = document.getElementById('imp-' + tab.dataset.mt);
+      const panel = document.getElementById('imp-' + tab.dataset.mt);
       if (panel) panel.classList.add('active');
     });
   });
 }
-
-// Method tabs (page-method 전용)
+function checkProhibitedAlert() {
+  const today = new Date();
+  const mm = today.getMonth() + 1;
+  const dd = today.getDate();
+  const alerts = [];
+  if ((mm === 5 && dd >= 11) || mm === 6 || mm === 7 || mm === 8)
+    alerts.push('🐙 주꾸미 금어기 중 (5/11~8/31)');
+  if (mm === 5)
+    alerts.push('🏹 화살촉오징어 금어기 중 (5/1~5/31)');
+  if (mm === 4 || mm === 5)
+    alerts.push('🦑 살오징어 금어기 중 (4/1~5/31)');
+  const el = document.getElementById('prohibited-alert');
+  if (alerts.length > 0 && el) {
+    el.style.display = 'block';
+    el.innerHTML = '⛔ <strong>오늘 금어기:</strong> ' + alerts.join(' · ');
+  }
+}
+// Method tabs
 document.querySelectorAll('#page-method .method-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('#page-method .method-tab').forEach(t => t.classList.remove('active'));
@@ -2479,7 +2462,6 @@ document.getElementById('species-modal').addEventListener('click', e => {
 // ============================================================
 // INIT
 // ============================================================
-// 전역 함수 노출 (onclick에서 호출용)
 window.navigate = navigate;
 window.openSpeciesModal = openSpeciesModal;
 window.closeModal = closeModal;
@@ -2502,33 +2484,6 @@ window.toggleKnot = toggleKnot;
     window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
   }
 })();
-
-// 금어기 오늘 날짜 기준 알림
-function checkProhibitedAlert() {
-  const today = new Date();
-  const mm = today.getMonth() + 1;
-  const dd = today.getDate();
-  const alerts = [];
-
-  // 주꾸미: 5/11 ~ 8/31
-  if ((mm === 5 && dd >= 11) || mm === 6 || mm === 7 || mm === 8) {
-    alerts.push('🐙 주꾸미 금어기 중 (5/11~8/31) — 채비 사용 금지');
-  }
-  // 화살촉오징어: 5/1 ~ 5/31
-  if (mm === 5) {
-    alerts.push('🏹 화살촉오징어 금어기 중 (5/1~5/31)');
-  }
-  // 살오징어: 4/1 ~ 5/31
-  if (mm === 4 || mm === 5) {
-    alerts.push('🦑 살오징어 금어기 중 (4/1~5/31)');
-  }
-
-  const el = document.getElementById('prohibited-alert');
-  if (alerts.length > 0 && el) {
-    el.style.display = 'block';
-    el.innerHTML = '⛔ <strong>오늘 금어기 어종:</strong> ' + alerts.join(' · ');
-  }
-}
 </script>
 </body>
 </html>
