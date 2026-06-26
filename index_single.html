@@ -463,7 +463,7 @@ ul, ol { list-style: none; }
 }
 .knot-steps { }
 .knot-step {
-  display: flex; gap: 10px; margin-bottom: 12px;
+  display: flex; gap: 10px; margin-bottom: 16px; align-items: flex-start;
 }
 .knot-step .step-num {
   width: 24px; height: 24px; border-radius: 50%;
@@ -484,10 +484,11 @@ ul, ol { list-style: none; }
   display: flex; gap: 8px; margin-bottom: 16px;
 }
 .info-tab {
-  flex: 1; padding: 10px; border-radius: var(--radius-sm);
-  font-size: 13px; font-weight: 700; text-align: center;
+  flex: 1; padding: 8px 6px; border-radius: var(--radius-sm);
+  font-size: 12px; font-weight: 700; text-align: center;
   background: var(--foam); color: var(--muted);
   border: 1.5px solid var(--border); cursor: pointer; transition: all .2s;
+  white-space: nowrap;
 }
 .info-tab.active { background: var(--mint); color: #fff; border-color: var(--mint); }
 .info-panel { display: none; }
@@ -1248,10 +1249,11 @@ ul, ol { list-style: none; }
     <section class="page" id="page-info">
       <div class="page-title">📍 낚시 정보</div>
       <div class="info-tabs" style="flex-wrap:wrap;gap:6px;">
-        <button class="info-tab active" data-it="선사">🚢 선사</button>
-        <button class="info-tab" data-it="방법">🎣 낚시방법</button>
-        <button class="info-tab" data-it="도보">🚶 도보</button>
-        <button class="info-tab" data-it="용어">📖 용어</button>
+        <button class="info-tab active" data-it="선사" style="white-space:nowrap;">🚢 선사</button>
+        <button class="info-tab" data-it="방법" style="white-space:nowrap;">🎣 낚시방법</button>
+        <button class="info-tab" data-it="매듭" style="white-space:nowrap;">🪢 매듭법</button>
+        <button class="info-tab" data-it="도보" style="white-space:nowrap;">🚶 도보</button>
+        <button class="info-tab" data-it="용어" style="white-space:nowrap;">📖 용어</button>
       </div>
 
       <!-- 선사 정보 패널 -->
@@ -1280,6 +1282,11 @@ ul, ol { list-style: none; }
           <button class="method-tab" data-mt="어종별" style="flex:1;min-width:80px;">🐙 어종별</button>
         </div>
         <div id="method-panels-inner"></div>
+      </div>
+
+      <!-- 매듭법 패널 -->
+      <div class="info-panel" id="ip-매듭">
+        <div class="knot-list" id="knot-list-info"></div>
       </div>
 
       <!-- 도보 포인트 패널 -->
@@ -1667,7 +1674,7 @@ const KNOT_DATA = [
       '다시 큰 고리에도 통과시킵니다.',
       '양끝을 잡고 천천히 당겨 조입니다. 조이기 전 침을 묻혀주면 마찰열 방지.',
       '남은 줄은 2~3mm 남기고 잘라줍니다.'
-    ]
+    ],
   },
   {
     name: 'FG 노트 (PE ↔ 리더 연결)',
@@ -1680,7 +1687,7 @@ const KNOT_DATA = [
       '마무리 하프히치 2회로 고정합니다.',
       'PE와 리더 남은 부분을 1~2mm 남기고 잘라줍니다.',
       '처음에는 어렵지만 반복 연습하면 빠르게 익힐 수 있습니다!'
-    ]
+    ],
   },
   {
     name: '팔로마 노트 (강력한 훅매듭)',
@@ -1693,7 +1700,7 @@ const KNOT_DATA = [
       '두 줄 끝과 원줄을 함께 잡고 천천히 조입니다.',
       '조이기 전 침을 묻혀 마찰열을 방지합니다.',
       '2~3mm 남기고 잘라 마무리합니다.'
-    ]
+    ],
   },
   {
     name: '데드 노트 (리더 연결)',
@@ -1706,7 +1713,7 @@ const KNOT_DATA = [
       '양쪽 줄을 천천히 당겨 조입니다.',
       '조이기 전 침을 묻혀 부드럽게 합니다.',
       '남은 줄은 3~5mm 남기고 잘라줍니다.'
-    ]
+    ],
   },
   {
     name: '유니 노트 (도래·스냅 연결)',
@@ -1719,9 +1726,12 @@ const KNOT_DATA = [
       '끝줄을 처음 만든 고리에 통과시킵니다.',
       '천천히 당겨 조이며 도래 쪽으로 밀어줍니다.',
       '2~3mm 남기고 잘라 완성합니다.'
-    ]
+    ],
   }
 ];
+const KNOT_SVG_STEPS = {"0": ["<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">① 아이에 줄 통과 후 15cm 뽑기</text><ellipse cx=\"30\" cy=\"40\" rx=\"11\" ry=\"7\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"2.5\"/><path d=\"M41 40 Q80 22 130 40 Q155 52 185 40\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\" stroke-linecap=\"round\"/><path d=\"M41 40 Q80 58 130 40 Q155 28 175 40\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-dasharray=\"4,3\"/><text x=\"155\" y=\"62\" text-anchor=\"middle\" font-size=\"9\" fill=\"#52C4A0\" font-family=\"sans-serif\">↑ 뽑은 끝줄</text></svg>", "<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">② 원줄에 5~6회 감기</text><ellipse cx=\"28\" cy=\"38\" rx=\"11\" ry=\"7\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"2.5\"/><path d=\"M39 38 L175 38\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><ellipse cx=\"80\" cy=\"38\" rx=\"5\" ry=\"11\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"1.8\"/><ellipse cx=\"100\" cy=\"38\" rx=\"5\" ry=\"11\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"1.8\"/><ellipse cx=\"120\" cy=\"38\" rx=\"5\" ry=\"11\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"1.8\"/><ellipse cx=\"140\" cy=\"38\" rx=\"5\" ry=\"11\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"1.8\"/><ellipse cx=\"160\" cy=\"38\" rx=\"5\" ry=\"11\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"1.8\"/><text x=\"120\" y=\"62\" text-anchor=\"middle\" font-size=\"9\" fill=\"#52C4A0\" font-family=\"sans-serif\">5회 완료</text></svg>", "<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">③ 아이 옆 고리에 통과</text><ellipse cx=\"28\" cy=\"38\" rx=\"11\" ry=\"7\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"2.5\"/><path d=\"M39 38 L165 38\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><ellipse cx=\"90\" cy=\"38\" rx=\"5\" ry=\"11\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"1.8\"/><ellipse cx=\"110\" cy=\"38\" rx=\"5\" ry=\"11\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"1.8\"/><ellipse cx=\"130\" cy=\"38\" rx=\"5\" ry=\"11\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"1.8\"/><path d=\"M165 38 Q172 20 55 22 Q46 22 46 32\" fill=\"none\" stroke=\"#FF6B6B\" stroke-width=\"2\" stroke-dasharray=\"4,2\"/><circle cx=\"46\" cy=\"33\" r=\"3\" fill=\"#FF6B6B\"/><text x=\"130\" y=\"62\" text-anchor=\"middle\" font-size=\"9\" fill=\"#FF6B6B\" font-family=\"sans-serif\">↑ 고리 통과</text></svg>", "<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">④ 큰 고리에도 통과</text><ellipse cx=\"28\" cy=\"38\" rx=\"11\" ry=\"7\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"2.5\"/><path d=\"M39 38 L155 38\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><ellipse cx=\"85\" cy=\"38\" rx=\"5\" ry=\"11\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"1.8\"/><ellipse cx=\"105\" cy=\"38\" rx=\"5\" ry=\"11\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"1.8\"/><ellipse cx=\"125\" cy=\"38\" rx=\"5\" ry=\"11\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"1.8\"/><path d=\"M155 38 Q165 16 95 12 Q28 8 24 30\" fill=\"none\" stroke=\"#FF6B6B\" stroke-width=\"2\" stroke-dasharray=\"4,2\"/><circle cx=\"24\" cy=\"31\" r=\"3\" fill=\"#FF6B6B\"/><text x=\"110\" y=\"62\" text-anchor=\"middle\" font-size=\"9\" fill=\"#FF6B6B\" font-family=\"sans-serif\">큰 고리도 통과!</text></svg>", "<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">⑤ 침 묻혀 양끝 잡고 조이기</text><ellipse cx=\"100\" cy=\"38\" rx=\"11\" ry=\"7\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"2.5\"/><path d=\"M89 38 L18 38\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><text x=\"10\" y=\"42\" font-size=\"12\">←</text><path d=\"M111 38 L182 38\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"2.5\"/><text x=\"184\" y=\"42\" font-size=\"12\">→</text><circle cx=\"100\" cy=\"38\" r=\"6\" fill=\"#FFD166\" opacity=\"0.6\"/><text x=\"100\" y=\"62\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">침을 묻혀 천천히!</text></svg>", "<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">⑥ 완성 — 2~3mm 남기고 자르기</text><ellipse cx=\"48\" cy=\"38\" rx=\"11\" ry=\"7\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"2.5\"/><path d=\"M59 38 L88 38\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><circle cx=\"96\" cy=\"38\" r=\"8\" fill=\"#52C4A0\" opacity=\"0.8\"/><path d=\"M104 38 L155 38\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><text x=\"163\" y=\"42\" font-size=\"14\" text-anchor=\"middle\">✂</text><text x=\"90\" y=\"62\" text-anchor=\"middle\" font-size=\"9\" fill=\"#52C4A0\" font-family=\"sans-serif\">✓ 완성!</text></svg>"], "1": ["<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">① PE줄·리더 팽팽하게 겹치기</text><path d=\"M10 30 L190 30\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"2.5\" stroke-linecap=\"round\"/><path d=\"M10 46 L190 46\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"2.5\" stroke-linecap=\"round\"/><text x=\"50\" y=\"22\" font-size=\"8\" fill=\"#4BA3CC\" font-family=\"sans-serif\">PE 원줄</text><text x=\"50\" y=\"62\" font-size=\"8\" fill=\"#52C4A0\" font-family=\"sans-serif\">리더(쇼크리더)</text></svg>", "<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">② PE로 20회 교차 감기</text><path d=\"M10 38 L190 38\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"2.5\"/><path d=\"M55 26 Q65 38 75 50 Q85 38 95 26 Q105 38 115 50 Q125 38 135 26 Q145 38 155 50 Q165 38 175 26\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"1.8\"/><text x=\"115\" y=\"64\" text-anchor=\"middle\" font-size=\"9\" fill=\"#4BA3CC\" font-family=\"sans-serif\">좌우 번갈아 20회</text></svg>", "<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">③④ 하프히치 4~5회씩 양방향</text><path d=\"M10 38 L190 38\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"2.5\"/><path d=\"M55 26 Q65 38 75 50 Q85 38 95 26 Q105 38 115 50\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"1.5\" opacity=\"0.4\"/><path d=\"M130 38 Q138 26 143 38 Q138 50 134 44 Q140 38 145 38\" fill=\"none\" stroke=\"#FF6B6B\" stroke-width=\"2\"/><path d=\"M155 38 Q163 26 168 38 Q163 50 159 44 Q165 38 170 38\" fill=\"none\" stroke=\"#FFD166\" stroke-width=\"2\"/><text x=\"100\" y=\"64\" text-anchor=\"middle\" font-size=\"9\" fill=\"#FF6B6B\" font-family=\"sans-serif\">반대 방향도 4~5회</text></svg>", "<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">⑤ 마무리 하프히치 2회 + 조이기</text><path d=\"M10 38 L190 38\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"2.5\"/><rect x=\"50\" y=\"28\" width=\"100\" height=\"20\" rx=\"4\" fill=\"#4BA3CC\" opacity=\"0.25\"/><text x=\"100\" y=\"42\" text-anchor=\"middle\" font-size=\"9\" fill=\"#1A6E99\" font-family=\"sans-serif\">FG매듭 영역</text><path d=\"M158 38 Q165 28 170 38 Q165 48 161 43 Q167 38 172 38\" fill=\"none\" stroke=\"#FF6B6B\" stroke-width=\"2\"/><text x=\"100\" y=\"64\" text-anchor=\"middle\" font-size=\"9\" fill=\"#FF6B6B\" font-family=\"sans-serif\">마무리 2회 고정</text></svg>", "<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">⑥ 완성 — 1~2mm 남기고 자르기</text><path d=\"M10 38 L78 38\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"2.5\"/><rect x=\"78\" y=\"30\" width=\"46\" height=\"16\" rx=\"6\" fill=\"#4BA3CC\" opacity=\"0.7\"/><text x=\"101\" y=\"42\" text-anchor=\"middle\" font-size=\"8\" fill=\"#fff\" font-family=\"sans-serif\">FG노트</text><path d=\"M124 38 L155 38\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><text x=\"163\" y=\"42\" font-size=\"14\" text-anchor=\"middle\">✂</text><text x=\"90\" y=\"64\" text-anchor=\"middle\" font-size=\"9\" fill=\"#52C4A0\" font-family=\"sans-serif\">✓ 완성! 최강 강도</text></svg>"], "2": ["<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">① 줄 두 겹으로 접어 아이 통과</text><ellipse cx=\"100\" cy=\"38\" rx=\"13\" ry=\"8\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"2.5\"/><path d=\"M10 34 Q55 24 87 34\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><path d=\"M10 42 Q55 52 87 42\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"2.5\"/><path d=\"M113 34 L190 34\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><path d=\"M113 42 L190 42\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"2.5\"/><text x=\"100\" y=\"64\" text-anchor=\"middle\" font-size=\"9\" fill=\"#4BA3CC\" font-family=\"sans-serif\">두 겹으로 통과!</text></svg>", "<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">② 두 겹 줄로 고리 만들기</text><ellipse cx=\"45\" cy=\"42\" rx=\"13\" ry=\"8\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"2.5\"/><path d=\"M58 38 Q90 18 128 38 Q155 52 128 52 Q100 58 58 46\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><path d=\"M128 46 L190 42\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><text x=\"130\" y=\"64\" text-anchor=\"middle\" font-size=\"9\" fill=\"#1A6E99\" font-family=\"sans-serif\">엄지 크기 고리</text></svg>", "<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">③ 고리 안에 훅(루어) 통과</text><ellipse cx=\"155\" cy=\"40\" rx=\"13\" ry=\"8\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"2.5\"/><path d=\"M10 38 Q70 20 105 30 Q128 36 142 40\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><path d=\"M105 30 Q128 50 142 40\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"2\" stroke-dasharray=\"4,2\"/><path d=\"M128 18 Q148 8 153 28\" fill=\"none\" stroke=\"#FF6B6B\" stroke-width=\"2\"/><text x=\"138\" y=\"12\" font-size=\"8\" fill=\"#FF6B6B\" font-family=\"sans-serif\">↓ 훅/루어</text><text x=\"80\" y=\"64\" text-anchor=\"middle\" font-size=\"9\" fill=\"#FF6B6B\" font-family=\"sans-serif\">고리 안으로 통과!</text></svg>", "<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">④⑤ 침 묻혀 조이면 매듭 완성</text><ellipse cx=\"100\" cy=\"44\" rx=\"13\" ry=\"8\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"2.5\"/><circle cx=\"90\" cy=\"34\" r=\"7\" fill=\"#52C4A0\" opacity=\"0.6\"/><path d=\"M20 38 L83 40\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><text x=\"10\" y=\"42\" font-size=\"12\">←</text><path d=\"M97 34 L170 34\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><text x=\"182\" y=\"38\" font-size=\"12\">→</text><text x=\"100\" y=\"64\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">침 묻혀 천천히 조이기</text></svg>", "<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">⑥ 완성 — 2~3mm 남기고 자르기</text><ellipse cx=\"55\" cy=\"46\" rx=\"13\" ry=\"8\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"2.5\"/><circle cx=\"80\" cy=\"38\" r=\"8\" fill=\"#52C4A0\" opacity=\"0.8\"/><path d=\"M10 40 L42 42\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><path d=\"M88 38 L155 38\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><text x=\"163\" y=\"42\" font-size=\"14\" text-anchor=\"middle\">✂</text><text x=\"90\" y=\"64\" text-anchor=\"middle\" font-size=\"9\" fill=\"#52C4A0\" font-family=\"sans-serif\">✓ 완성! 강도 우수</text></svg>"], "3": ["<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">① PE·리더 각 30cm씩 겹치기</text><path d=\"M10 32 L190 32\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"2.5\"/><path d=\"M10 46 L190 46\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"2.5\"/><line x1=\"75\" y1=\"24\" x2=\"75\" y2=\"54\" stroke=\"#7A8FA0\" stroke-width=\"1\" stroke-dasharray=\"3,2\"/><line x1=\"145\" y1=\"24\" x2=\"145\" y2=\"54\" stroke=\"#7A8FA0\" stroke-width=\"1\" stroke-dasharray=\"3,2\"/><text x=\"110\" y=\"64\" text-anchor=\"middle\" font-size=\"8\" fill=\"#7A8FA0\" font-family=\"sans-serif\">← 30cm 겹침 →</text></svg>", "<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">② 두 줄로 큰 고리 만들기</text><path d=\"M10 38 Q50 38 68 24 Q100 8 132 24 Q152 38 168 38\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"2.5\"/><path d=\"M10 44 Q50 44 68 30 Q100 14 132 30 Q152 44 168 44\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"2\"/><path d=\"M168 40 L190 40\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><text x=\"100\" y=\"64\" text-anchor=\"middle\" font-size=\"9\" fill=\"#4BA3CC\" font-family=\"sans-serif\">두 줄 함께 고리로</text></svg>", "<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">③ 끝줄을 고리에 5회 통과</text><ellipse cx=\"78\" cy=\"38\" rx=\"30\" ry=\"18\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"2\"/><path d=\"M108 30 Q125 24 135 38 Q125 52 108 46\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"1.8\"/><path d=\"M135 38 Q148 30 153 38 Q148 46 143 43\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"1.8\"/><path d=\"M153 38 Q165 30 170 38 Q165 46 160 43\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"1.8\"/><text x=\"130\" y=\"64\" text-anchor=\"middle\" font-size=\"9\" fill=\"#52C4A0\" font-family=\"sans-serif\">5회 통과</text></svg>", "<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">④⑤ 침 묻혀 조이고 모양 정리</text><circle cx=\"100\" cy=\"38\" r=\"13\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"2.5\"/><circle cx=\"100\" cy=\"38\" r=\"6\" fill=\"#4BA3CC\" opacity=\"0.35\"/><path d=\"M87 38 L18 38\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><text x=\"10\" y=\"42\" font-size=\"12\">←</text><path d=\"M113 38 L182 38\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"2.5\"/><text x=\"184\" y=\"42\" font-size=\"12\">→</text><text x=\"100\" y=\"64\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">침 묻혀 천천히</text></svg>", "<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">⑥ 완성 — 3~5mm 남기고 자르기</text><path d=\"M10 38 L72 38\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><ellipse cx=\"92\" cy=\"38\" rx=\"20\" ry=\"11\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"2.5\"/><circle cx=\"92\" cy=\"38\" r=\"5\" fill=\"#52C4A0\" opacity=\"0.8\"/><path d=\"M112 38 L155 38\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"2.5\"/><text x=\"163\" y=\"42\" font-size=\"14\" text-anchor=\"middle\">✂</text><text x=\"90\" y=\"64\" text-anchor=\"middle\" font-size=\"9\" fill=\"#52C4A0\" font-family=\"sans-serif\">✓ 완성! FG 대안</text></svg>"], "4": ["<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">① 도래에 줄 통과 15cm 뽑기</text><circle cx=\"100\" cy=\"38\" r=\"8\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"2.5\"/><path d=\"M10 38 L92 38\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><path d=\"M108 38 L190 38\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><path d=\"M108 38 Q145 24 180 32\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"2\" stroke-dasharray=\"4,2\"/><text x=\"155\" y=\"22\" text-anchor=\"middle\" font-size=\"8\" fill=\"#52C4A0\" font-family=\"sans-serif\">15cm ↑</text></svg>", "<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">② 원줄과 나란히 이중으로 접기</text><circle cx=\"38\" cy=\"38\" r=\"8\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"2.5\"/><path d=\"M10 34 L30 34\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><path d=\"M46 34 L190 34\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><path d=\"M46 44 L190 44\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"2\" stroke-dasharray=\"5,2\"/><text x=\"120\" y=\"62\" text-anchor=\"middle\" font-size=\"9\" fill=\"#52C4A0\" font-family=\"sans-serif\">나란히 이중으로</text></svg>", "<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">③ 고리 만들어 5~6회 감기</text><circle cx=\"28\" cy=\"38\" r=\"8\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"2.5\"/><path d=\"M36 38 L76 38\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><ellipse cx=\"94\" cy=\"38\" rx=\"5\" ry=\"12\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"1.8\"/><ellipse cx=\"110\" cy=\"38\" rx=\"5\" ry=\"12\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"1.8\"/><ellipse cx=\"126\" cy=\"38\" rx=\"5\" ry=\"12\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"1.8\"/><ellipse cx=\"142\" cy=\"38\" rx=\"5\" ry=\"12\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"1.8\"/><ellipse cx=\"158\" cy=\"38\" rx=\"5\" ry=\"12\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"1.8\"/><text x=\"126\" y=\"64\" text-anchor=\"middle\" font-size=\"9\" fill=\"#52C4A0\" font-family=\"sans-serif\">5~6회 감기</text></svg>", "<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">④ 끝줄을 처음 고리에 통과</text><circle cx=\"25\" cy=\"38\" r=\"8\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"2.5\"/><path d=\"M33 38 L68 38\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><ellipse cx=\"86\" cy=\"38\" rx=\"5\" ry=\"12\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"1.5\" opacity=\"0.5\"/><ellipse cx=\"102\" cy=\"38\" rx=\"5\" ry=\"12\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"1.5\" opacity=\"0.5\"/><ellipse cx=\"118\" cy=\"38\" rx=\"5\" ry=\"12\" fill=\"none\" stroke=\"#52C4A0\" stroke-width=\"1.5\" opacity=\"0.5\"/><path d=\"M165 38 Q172 20 74 20 Q67 20 67 30\" fill=\"none\" stroke=\"#FF6B6B\" stroke-width=\"2\" stroke-dasharray=\"4,2\"/><circle cx=\"67\" cy=\"31\" r=\"3\" fill=\"#FF6B6B\"/><text x=\"130\" y=\"64\" text-anchor=\"middle\" font-size=\"9\" fill=\"#FF6B6B\" font-family=\"sans-serif\">↑ 고리 통과</text></svg>", "<svg viewBox=\"0 0 200 70\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"100\" y=\"11\" text-anchor=\"middle\" font-size=\"9\" fill=\"#7A8FA0\" font-family=\"sans-serif\">⑤⑥ 조여 도래 쪽으로 밀어 완성</text><circle cx=\"42\" cy=\"38\" r=\"8\" fill=\"none\" stroke=\"#4BA3CC\" stroke-width=\"2.5\"/><path d=\"M10 38 L34 38\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><circle cx=\"72\" cy=\"38\" r=\"9\" fill=\"#52C4A0\" opacity=\"0.8\"/><path d=\"M81 38 L150 38\" fill=\"none\" stroke=\"#1A6E99\" stroke-width=\"2.5\"/><text x=\"158\" y=\"42\" font-size=\"14\" text-anchor=\"middle\">✂</text><text x=\"30\" y=\"20\" font-size=\"9\" fill=\"#4BA3CC\" font-family=\"sans-serif\">도래쪽 →</text><text x=\"90\" y=\"64\" text-anchor=\"middle\" font-size=\"9\" fill=\"#52C4A0\" font-family=\"sans-serif\">✓ 완성!</text></svg>"]};
+
+
 
 const BOAT_DATA = {
   '거제': [
@@ -2050,35 +2060,40 @@ function closeModal() {
 }
 
 function buildKnots() {
-  const list = document.getElementById('knot-list');
+  var list = document.getElementById('knot-list');
+  if (!list) return;
   list.innerHTML = '';
-  const diffMap = { easy:'쉬움', mid:'보통', hard:'어려움' };
-  KNOT_DATA.forEach((k, i) => {
-    const steps = k.steps.map((s, j) => `
-      <div class="knot-step">
-        <div class="step-num">${j+1}</div>
-        <div class="step-text">${s}</div>
-      </div>`).join('');
-    list.innerHTML += `
-      <div class="knot-item" id="knot-${i}">
-        <div class="knot-header" onclick="toggleKnot(${i})">
-          <div class="k-left">
-            <div class="k-num">${i+1}</div>
-            <div class="k-title">${k.name}</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span class="k-diff ${k.diff}">${diffMap[k.diff]}</span>
-            <span class="knot-chevron">▼</span>
-          </div>
-        </div>
-        <div class="knot-body">
-          <div class="knot-use">📌 사용처 : ${k.use}</div>
-          <div class="knot-steps">${steps}</div>
-        </div>
-      </div>`;
+  var diffMap = { easy:'쉬움', mid:'보통', hard:'어려움' };
+  KNOT_DATA.forEach(function(k, i) {
+    var stepsHtml = '';
+    k.steps.forEach(function(s, j) {
+      var svgHtml = '';
+      if (KNOT_SVG_STEPS[i] && KNOT_SVG_STEPS[i][j]) {
+        svgHtml = '<div style="width:100%;margin-bottom:6px;border-radius:6px;'
+          + 'border:1px solid var(--border);overflow:hidden;background:#f8fbff;">'
+          + KNOT_SVG_STEPS[i][j] + '</div>';
+      }
+      stepsHtml += '<div class="knot-step">'
+        + '<div class="step-num">' + (j+1) + '</div>'
+        + '<div style="flex:1;">' + svgHtml
+        + '<div class="step-text">' + s + '</div></div></div>';
+    });
+    list.innerHTML += '<div class="knot-item" id="knot-' + i + '">'
+      + '<div class="knot-header" onclick="toggleKnot(' + i + ')">'
+      + '<div class="k-left">'
+      + '<div class="k-num">' + (i+1) + '</div>'
+      + '<div class="k-title">' + k.name + '</div>'
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:8px">'
+      + '<span class="k-diff ' + k.diff + '">' + diffMap[k.diff] + '</span>'
+      + '<span class="knot-chevron">▼</span>'
+      + '</div></div>'
+      + '<div class="knot-body">'
+      + '<div class="knot-use">📌 사용처 : ' + k.use + '</div>'
+      + '<div class="knot-steps">' + stepsHtml + '</div>'
+      + '</div></div>';
   });
 }
-
 function toggleKnot(i) {
   const el = document.getElementById('knot-' + i);
   el.classList.toggle('open');
@@ -2752,6 +2767,22 @@ document.getElementById('stats-sheet').addEventListener('click', function(e) {
   if (e.target === this) closeStatsSheet();
 });
 document.getElementById('open-stats-btn').addEventListener('click', openStatsSheet);
+
+function buildKnotsInInfo() {
+  var list = document.getElementById('knot-list-info');
+  if (!list || list.innerHTML.trim()) return;
+  // page-knot의 knot-list 내용 복사
+  var src = document.getElementById('knot-list');
+  if (!src) return;
+  list.innerHTML = src.innerHTML;
+  // 클릭 이벤트 재연결
+  list.querySelectorAll('.knot-header').forEach(function(header) {
+    header.addEventListener('click', function() {
+      var item = header.closest('.knot-item');
+      if (item) item.classList.toggle('open');
+    });
+  });
+}
 function buildMethodInInfo() {
   const container = document.getElementById('method-panels-inner');
   if (!container || container.innerHTML.trim()) return;
@@ -2877,6 +2908,7 @@ document.querySelectorAll('.info-tab').forEach(tab => {
     tab.classList.add('active');
     document.getElementById('ip-' + tab.dataset.it).classList.add('active');
     if (tab.dataset.it === '방법') buildMethodInInfo();
+    if (tab.dataset.it === '매듭') buildKnotsInInfo();
   });
 });
 
