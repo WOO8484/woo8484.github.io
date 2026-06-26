@@ -649,6 +649,47 @@ ul, ol { list-style: none; }
 .memo-entry .me-text { font-size:12px; line-height:1.6; color:var(--ink); }
 .memo-entry .me-fish { font-size:10px; color:var(--mint); font-weight:700; margin-top:4px; }
 .memo-del { float:right; font-size:11px; color:var(--coral); font-weight:700; cursor:pointer; }
+
+/* 조황 메모 통계 */
+.memo-stats-btn {
+  width:100%; padding:10px; border-radius:var(--radius-sm);
+  background:var(--sky); border:1.5px solid var(--border);
+  font-size:12px; font-weight:700; color:var(--deep);
+  margin-bottom:10px; cursor:pointer; text-align:left;
+  display:flex; align-items:center; gap:6px;
+}
+.stats-sheet {
+  display:none; position:fixed;
+  top:0; bottom:0; left:50%; transform:translateX(-50%);
+  width:100%; max-width:480px;
+  background:rgba(26,110,153,0.35); z-index:300;
+  align-items:flex-end; justify-content:center;
+}
+.stats-sheet.open { display:flex; }
+.stats-inner {
+  background:var(--foam); border-radius:20px 20px 0 0;
+  padding:20px 20px 40px; width:100%; max-height:85dvh; overflow-y:auto;
+}
+.stats-point-card {
+  background:var(--sky); border-radius:var(--radius);
+  padding:14px; margin-bottom:10px;
+  border:1px solid var(--border);
+}
+.stats-point-name { font-size:14px; font-weight:900; color:var(--ink); margin-bottom:8px; }
+.stats-month-grid {
+  display:grid; grid-template-columns:repeat(6,1fr); gap:4px; margin-bottom:8px;
+}
+.stats-month {
+  background:var(--foam); border-radius:6px; padding:4px 2px;
+  text-align:center; font-size:9px; font-weight:700; color:var(--muted);
+  border:1px solid var(--border);
+}
+.stats-month.has-record {
+  background:var(--ocean); color:#fff; border-color:var(--ocean);
+}
+.stats-total { font-size:11px; color:var(--muted); font-weight:700; }
+.stats-last { font-size:11px; color:var(--deep); margin-top:4px; }
+.stats-empty { text-align:center; padding:40px 20px; color:var(--muted); font-size:13px; }
 </style>
 </head>
 <body>
@@ -667,7 +708,7 @@ ul, ol { list-style: none; }
         background:linear-gradient(135deg,rgba(75,163,204,.15),rgba(26,110,153,.15));
         border:1px solid rgba(75,163,204,.3);
         border-radius:20px;padding:2px 7px;margin-left:2px;flex-shrink:0;">
-        <span style="font-size:9px;font-weight:900;color:var(--ocean);letter-spacing:.5px;">v2.0</span>
+        <span style="font-size:9px;font-weight:900;color:var(--ocean);letter-spacing:.5px;">v2.1</span>
         <span style="width:3px;height:3px;border-radius:50%;background:var(--ocean);opacity:.5;"></span>
         <span style="font-size:9px;color:var(--muted);font-weight:600;">BETA</span>
       </div>
@@ -1283,6 +1324,19 @@ ul, ol { list-style: none; }
 </div>
 
 
+
+<!-- ===== 조황 통계 시트 ===== -->
+<div class="stats-sheet" id="stats-sheet">
+  <div class="stats-inner">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:900;color:var(--ink);">📊 조황 통계</div>
+      <button id="stats-close-btn" style="font-size:20px;color:var(--muted);padding:4px;">✕</button>
+    </div>
+    <div id="stats-content"></div>
+  </div>
+</div>
+
 <!-- ===== 조황 메모 시트 ===== -->
 <div class="memo-sheet" id="memo-sheet">
   <div class="memo-inner">
@@ -1304,6 +1358,7 @@ ul, ol { list-style: none; }
         style="padding:10px;border-radius:var(--radius-sm);background:var(--ocean);
                color:#fff;font-size:13px;font-weight:700;">✓ 기록 저장</button>
     </div>
+    <button class="memo-stats-btn" id="open-stats-btn">📊 전체 포인트 조황 통계 보기 →</button>
     <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">📋 과거 기록</div>
     <div id="memo-list"></div>
   </div>
@@ -1895,6 +1950,7 @@ document.getElementById('region-selector').addEventListener('click', e => {
       savePts(points);
       closeForm();
       renderPins();
+      if (typeof addPtMarkers === 'function') addPtMarkers();
     });
   }
 
@@ -1923,12 +1979,38 @@ document.getElementById('region-selector').addEventListener('click', e => {
       maxZoom: 17
     }).addTo(pickMap);
 
-    // 기존 포인트 마커 표시
-    points.forEach(function(pt) {
-      L.circleMarker([pt.lat, pt.lon], {
-        radius: 7, color: '#4BA3CC', fillColor: '#4BA3CC', fillOpacity: 0.9, weight: 2
-      }).addTo(pickMap).bindPopup('<b>' + pt.name + '</b><br>' + pt.fish);
-    });
+    // 기존 포인트 마커 표시 + 클릭 시 selectPoint
+    var ptMarkers = [];
+    function addPtMarkers() {
+      ptMarkers.forEach(function(m) { pickMap.removeLayer(m); });
+      ptMarkers = [];
+      points.forEach(function(pt, i) {
+        var marker = L.marker([pt.lat, pt.lon], {
+          icon: L.divIcon({
+            className: '',
+            html: '<div style="background:#4BA3CC;color:#fff;border-radius:50%;width:24px;height:24px;'
+                + 'display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;'
+                + 'border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);">' + (i+1) + '</div>',
+            iconSize: [24,24], iconAnchor: [12,12]
+          })
+        }).addTo(pickMap);
+        marker.bindPopup('<b>' + pt.name + '</b><br><small>' + pt.fish + '</small>');
+        marker.on('click', function() {
+          // 포인트 버튼 활성화
+          var wrap = document.getElementById('quick-pins');
+          if (wrap) {
+            wrap.querySelectorAll('[data-idx]').forEach(function(b) {
+              b.style.background = 'var(--sky)'; b.style.color = 'var(--deep)'; b.style.borderColor = 'var(--border)';
+            });
+            var btn = wrap.querySelector('[data-idx="' + i + '"]');
+            if (btn) { btn.style.background = 'var(--ocean)'; btn.style.color = '#fff'; btn.style.borderColor = 'var(--ocean)'; }
+          }
+          selectPoint(pt);
+        });
+        ptMarkers.push(marker);
+      });
+    }
+    addPtMarkers();
 
     // 지도 클릭 → 핀 꽂기
     pickMap.on('click', function(e) {
@@ -2001,6 +2083,7 @@ document.getElementById('region-selector').addEventListener('click', e => {
           points.splice(idx, 1);
           savePts(points);
           renderPins();
+          if (typeof addPtMarkers === 'function') addPtMarkers();
         });
       })(i);
 
@@ -2315,6 +2398,79 @@ function drawWindArrows(map, lat, lon, windSpeed, windDir) {
   });
   _windLayer = L.layerGroup(markers).addTo(map);
 }
+
+// 조황 통계
+function openStatsSheet() {
+  buildStatsContent();
+  document.getElementById('stats-sheet').classList.add('open');
+}
+function closeStatsSheet() {
+  document.getElementById('stats-sheet').classList.remove('open');
+}
+function buildStatsContent() {
+  var memos = loadMemos();
+  var container = document.getElementById('stats-content');
+  var keys = Object.keys(memos);
+
+  if (keys.length === 0) {
+    container.innerHTML = '<div class="stats-empty">📝 아직 조황 기록이 없습니다.<br>포인트를 선택해 기록을 추가해보세요!</div>';
+    return;
+  }
+
+  var MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  var html = '';
+
+  // 전체 요약
+  var totalCount = keys.reduce(function(s, k) { return s + memos[k].length; }, 0);
+  html += '<div style="background:linear-gradient(135deg,var(--deep),var(--ocean));border-radius:var(--radius);padding:14px;color:#fff;margin-bottom:14px;">'
+    + '<div style="font-size:12px;opacity:.8;margin-bottom:4px;">📊 전체 조황 기록</div>'
+    + '<div style="font-size:28px;font-weight:900;">' + totalCount + '건</div>'
+    + '<div style="font-size:11px;opacity:.8;margin-top:2px;">' + keys.length + '개 포인트</div>'
+    + '</div>';
+
+  // 포인트별
+  keys.forEach(function(ptName) {
+    var entries = memos[ptName];
+    if (!entries.length) return;
+
+    // 월별 집계
+    var monthMap = {};
+    entries.forEach(function(e) {
+      var d = e.date || '';
+      var m = parseInt(d.split('.')[1]) - 1;
+      if (!isNaN(m) && m >= 0 && m < 12) {
+        if (!monthMap[m]) monthMap[m] = 0;
+        monthMap[m]++;
+      }
+    });
+
+    var monthGrid = MONTHS.map(function(name, i) {
+      var cnt = monthMap[i] || 0;
+      return '<div class="stats-month' + (cnt > 0 ? ' has-record' : '') + '" title="' + name + ' ' + cnt + '건">'
+        + name.replace('월','') + '월'
+        + (cnt > 0 ? '<br><b>' + cnt + '</b>' : '')
+        + '</div>';
+    }).join('');
+
+    var lastEntry = entries[0];
+    var lastDate = lastEntry.date ? lastEntry.date.split(' ')[0] : '';
+
+    html += '<div class="stats-point-card">'
+      + '<div class="stats-point-name">📍 ' + ptName + '</div>'
+      + '<div class="stats-month-grid">' + monthGrid + '</div>'
+      + '<div class="stats-total">총 ' + entries.length + '건의 기록</div>'
+      + '<div class="stats-last">최근: ' + (lastEntry.text.length > 20 ? lastEntry.text.slice(0,20) + '…' : lastEntry.text) + '</div>'
+      + '</div>';
+  });
+
+  container.innerHTML = html;
+}
+
+document.getElementById('stats-close-btn').addEventListener('click', closeStatsSheet);
+document.getElementById('stats-sheet').addEventListener('click', function(e) {
+  if (e.target === this) closeStatsSheet();
+});
+document.getElementById('open-stats-btn').addEventListener('click', openStatsSheet);
 function buildMethodInInfo() {
   const container = document.getElementById('method-panels-inner');
   if (!container || container.innerHTML.trim()) return;

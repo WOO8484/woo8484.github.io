@@ -1,5 +1,5 @@
-// 먹물왕 낚시일지 — Service Worker v2.0
-const CACHE = 'meogmul-v2.0';
+// 먹물왕 낚시일지 — Service Worker v2.1
+const CACHE = 'meogmul-v2.1';
 
 // 앱 쉘: 오프라인에서도 열리게 캐싱할 파일들
 const APP_SHELL = [
