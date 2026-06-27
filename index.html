@@ -1,0 +1,2679 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4BA3CC">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="먹물왕">
+<title>🐙 먹물왕 낚시일지</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root {
+  --sky:       #E8F4FD;
+  --ocean:     #4BA3CC;
+  --deep:      #1A6E99;
+  --foam:      #FFFFFF;
+  --sand:      #FFF8EE;
+  --coral:     #FF6B6B;
+  --mint:      #52C4A0;
+  --sunlight:  #FFD166;
+  --ink:       #1C2B3A;
+  --muted:     #7A8FA0;
+  --border:    #E2EDF5;
+  --shadow:    rgba(26,110,153,0.10);
+  --nav-h:     64px;
+  --header-h:  56px;
+  --radius:    14px;
+  --radius-sm: 8px;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 100%; max-width: 480px; margin: 0 auto;
+  height: 100%; overflow: hidden;
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--sky);
+  color: var(--ink);
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
+button { border: none; background: none; cursor: pointer; font-family: inherit; }
+a { text-decoration: none; color: inherit; }
+ul, ol { list-style: none; }
+
+/* ============================================================
+   LAYOUT — 3-layer
+   ============================================================ */
+#app {
+  display: flex; flex-direction: column;
+  height: 100dvh; width: 100%; max-width: 480px;
+  position: relative; overflow: hidden;
+}
+
+/* HEADER */
+#header {
+  height: var(--header-h);
+  position: relative;
+  background: var(--foam);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px var(--shadow);
+  z-index: 100;
+}
+#header .logo {
+  display: flex; align-items: center; gap: 6px; min-width: 0; overflow: visible;
+}
+#header .logo-text {
+  font-size: 15px; font-weight: 900;
+  background: linear-gradient(135deg, var(--deep), var(--ocean));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  white-space: nowrap;
+}
+#header .weather-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--sky); border-radius: 20px;
+  padding: 4px 12px; font-size: 12px; color: var(--deep); font-weight: 700;
+  border: 1px solid var(--border);
+}
+
+/* MAIN CONTENT */
+#main {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  background: var(--sky);
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* BOTTOM NAV */
+#bottom-nav {
+  height: var(--nav-h);
+  background: var(--foam);
+  border-top: 1px solid var(--border);
+  display: flex; align-items: stretch;
+  flex-shrink: 0;
+  box-shadow: 0 -4px 16px var(--shadow);
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px;
+  padding: 6px 0; transition: all .2s;
+  position: relative;
+}
+.nav-btn .nav-icon { font-size: 20px; line-height: 1; transition: transform .2s; }
+.nav-btn .nav-label { font-size: 9px; font-weight: 700; color: var(--muted); transition: color .2s; }
+.nav-btn.active .nav-label { color: var(--ocean); }
+.nav-btn.active .nav-icon { transform: scale(1.15); }
+.nav-btn.active::after {
+  content: ''; position: absolute; bottom: 0; left: 20%; right: 20%;
+  height: 3px; background: var(--ocean); border-radius: 3px 3px 0 0;
+}
+
+/* ============================================================
+   PAGES
+   ============================================================ */
+.page { display: none; padding: 16px; }
+.page.active { display: block; }
+.page-title {
+  font-size: 20px; font-weight: 900; color: var(--ink);
+  margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+}
+
+/* ============================================================
+   CARDS
+   ============================================================ */
+.card {
+  background: var(--foam); border-radius: var(--radius);
+  padding: 16px; margin-bottom: 12px;
+  box-shadow: 0 2px 12px var(--shadow);
+  border: 1px solid var(--border);
+}
+.card-title {
+  font-size: 14px; font-weight: 700; color: var(--deep);
+  margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+}
+
+/* ============================================================
+   PAGE: 홈 (날씨)
+   ============================================================ */
+.region-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.region-chip-search {
+  background: linear-gradient(135deg, var(--ocean), var(--deep)) !important;
+  color: #fff !important; border-color: var(--ocean) !important;
+}
+.region-chip {
+  padding: 8px 4px; border-radius: var(--radius-sm);
+  font-size: 12px; font-weight: 700; border: 1.5px solid var(--border);
+  background: var(--foam); color: var(--muted);
+  transition: all .2s; cursor: pointer; text-align: center;
+}
+.region-chip.active {
+  background: var(--ocean); color: #fff; border-color: var(--ocean);
+}
+
+.weather-main {
+  background: linear-gradient(145deg, var(--deep), var(--ocean));
+  border-radius: var(--radius); padding: 20px;
+  color: #fff; margin-bottom: 12px;
+  position: relative; overflow: hidden;
+}
+.weather-main::before {
+  content: '🌊';
+  position: absolute; right: -10px; bottom: -10px;
+  font-size: 80px; opacity: 0.15;
+}
+.weather-main .w-temp { font-size: 52px; font-weight: 900; line-height: 1; }
+.weather-main .w-desc { font-size: 15px; opacity: .85; margin-top: 4px; }
+.weather-main .w-region { font-size: 12px; opacity: .7; margin-bottom: 8px; font-weight: 700; }
+
+.weather-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin-top: 14px;
+}
+.w-item {
+  background: rgba(255,255,255,0.15); border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+.w-item .w-lbl { font-size: 10px; opacity: .75; margin-bottom: 2px; }
+.w-item .w-val { font-size: 16px; font-weight: 900; }
+
+.tide-card {
+  background: linear-gradient(135deg, #1A6E99 0%, #52C4A0 100%);
+  border-radius: var(--radius); padding: 16px; color: #fff; margin-bottom: 12px;
+}
+.tide-title { font-size: 13px; font-weight: 700; opacity: .85; margin-bottom: 10px; }
+.tide-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
+.tide-item { text-align: center; }
+.tide-item .t-lbl { font-size: 10px; opacity: .75; }
+.tide-item .t-val { font-size: 14px; font-weight: 900; }
+.tide-item .t-time { font-size: 11px; opacity: .8; }
+
+.fish-season-strip {
+  background: var(--foam); border-radius: var(--radius);
+  padding: 14px; margin-bottom: 12px;
+  border: 1px solid var(--border); box-shadow: 0 2px 8px var(--shadow);
+}
+.fish-season-strip .strip-title { font-size: 13px; font-weight: 700; color: var(--deep); margin-bottom: 12px; }
+.season-items {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.season-item {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 5px;
+  background: var(--sky); border-radius: var(--radius-sm);
+  padding: 10px 4px;
+}
+.season-item .s-icon { width: 44px; height: 44px; display: block; }
+.season-item .s-name { font-size: 10px; font-weight: 700; color: var(--ink); text-align: center; }
+.season-item .s-badge {
+  font-size: 8px; padding: 2px 5px; border-radius: 8px;
+  font-weight: 700; background: var(--mint); color: #fff;
+  white-space: nowrap;
+}
+.season-item .s-badge.off { background: var(--border); color: var(--muted); }
+
+/* ============================================================
+   PAGE: 어종
+   ============================================================ */
+.species-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; margin-bottom: 16px;
+}
+.species-card {
+  background: var(--foam); border-radius: var(--radius);
+  padding: 14px 10px; text-align: center;
+  box-shadow: 0 2px 12px var(--shadow);
+  border: 1.5px solid var(--border);
+  cursor: pointer; transition: all .2s;
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center;
+}
+.species-card:active { transform: scale(.97); }
+.species-card .sp-svg { width: 72px; height: 72px; margin: 4px auto 8px; }
+.species-card .sp-name { font-size: 14px; font-weight: 900; color: var(--ink); }
+.species-card .sp-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.species-card .sp-badge {
+  position: absolute; top: 8px; right: 8px;
+  font-size: 9px; font-weight: 700;
+  background: var(--sunlight); color: var(--ink);
+  padding: 2px 7px; border-radius: 10px;
+}
+
+/* Species Detail Modal */
+.modal-overlay {
+  display: none; position: fixed;
+  top: 0; bottom: 0;
+  left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  background: rgba(26,110,153,0.35); z-index: 200;
+  align-items: flex-end; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-sheet {
+  background: var(--foam); border-radius: 20px 20px 0 0;
+  padding: 20px 20px 40px; width: 100%; max-height: 85dvh;
+  overflow-y: auto;
+  animation: slideUp .3s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); } to { transform: translateY(0); }
+}
+.modal-handle {
+  width: 40px; height: 4px; background: var(--border);
+  border-radius: 2px; margin: 0 auto 16px;
+}
+.modal-sp-header {
+  display: flex; align-items: center; gap: 16px; margin-bottom: 20px;
+  padding-bottom: 16px; border-bottom: 1px solid var(--border);
+}
+.modal-sp-icon { width: 90px; height: 90px; flex-shrink: 0; }
+.modal-sp-info { flex: 1; }
+.modal-title { font-size: 22px; font-weight: 900; margin-bottom: 2px; }
+.modal-sub { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+.modal-badge-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.modal-badge {
+  font-size: 10px; padding: 3px 9px; border-radius: 10px;
+  font-weight: 700; background: var(--sky); color: var(--deep);
+  border: 1px solid var(--border);
+}
+.modal-badge.peak { background: var(--mint); color: #fff; border-color: var(--mint); }
+.modal-badge.warn { background: #fff0f0; color: var(--coral); border-color: #fcc; }
+.modal-section { margin-bottom: 16px; }
+.modal-section-title {
+  font-size: 13px; font-weight: 700; color: var(--deep);
+  margin-bottom: 8px; display: flex; align-items: center; gap: 5px;
+}
+.info-row { display: flex; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.info-tag {
+  font-size: 11px; padding: 4px 10px; border-radius: 12px;
+  background: var(--sky); color: var(--deep); font-weight: 700;
+  border: 1px solid var(--border);
+}
+.modal-text { font-size: 13px; line-height: 1.7; color: var(--ink); }
+.modal-tip-box {
+  background: var(--sand); border-radius: var(--radius-sm);
+  padding: 12px 14px; font-size: 12px; line-height: 1.7;
+  color: #7a5c2e; border-left: 3px solid var(--sunlight);
+}
+.modal-close-btn {
+  width: 100%; padding: 14px; border-radius: var(--radius);
+  background: var(--ocean); color: #fff; font-weight: 700; font-size: 15px;
+  margin-top: 16px;
+}
+/* 어종 카드 개선 */
+.sp-info-row {
+  display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;
+  margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border);
+  width: 100%;
+}
+.sp-info-tag {
+  font-size: 9px; padding: 2px 6px; border-radius: 8px;
+  background: var(--sky); color: var(--deep); font-weight: 700;
+}
+.sp-detail-btn {
+  margin-top: 8px; padding: 7px; border-radius: var(--radius-sm);
+  background: var(--ocean); color: #fff; font-size: 11px; font-weight: 700;
+  width: 100%; text-align: center;
+}
+
+/* ============================================================
+   PAGE: 낚시방법
+   ============================================================ */
+.method-tabs {
+  display: flex; gap: 8px; margin-bottom: 16px;
+}
+.method-tab {
+  flex: 1; padding: 10px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 700; text-align: center;
+  background: var(--foam); color: var(--muted);
+  border: 1.5px solid var(--border); cursor: pointer; transition: all .2s;
+}
+.method-tab.active {
+  background: var(--ocean); color: #fff; border-color: var(--ocean);
+}
+.method-panel { display: none; }
+.method-panel.active { display: block; }
+.method-item {
+  background: var(--foam); border-radius: var(--radius);
+  padding: 14px; margin-bottom: 10px;
+  border-left: 4px solid var(--ocean);
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.method-item .m-title { font-size: 15px; font-weight: 900; margin-bottom: 6px; }
+.method-item .m-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.method-item .m-tag {
+  font-size: 10px; padding: 3px 8px; border-radius: 10px;
+  background: var(--sky); color: var(--deep); font-weight: 700;
+}
+.method-item .m-desc { font-size: 12px; line-height: 1.7; color: #444; }
+.method-item .m-tip {
+  margin-top: 8px; padding: 8px 10px; background: var(--sand);
+  border-radius: var(--radius-sm); font-size: 11px; color: #7a5c2e;
+  line-height: 1.6;
+}
+.method-item .m-tip::before { content: '💡 '; }
+
+/* ============================================================
+   PAGE: 채비
+   ============================================================ */
+.tackle-species-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.tackle-tab {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 4px;
+  padding: 8px 4px; border-radius: var(--radius-sm);
+  font-size: 10px; font-weight: 700;
+  background: var(--foam); color: var(--muted);
+  border: 1.5px solid var(--border); cursor: pointer; transition: all .2s;
+  min-height: 64px;
+}
+.tackle-tab .tt-icon { width: 36px; height: 36px; display: block; }
+.tackle-tab .tt-name { font-size: 10px; font-weight: 700; text-align: center; line-height: 1.2; }
+.tackle-tab.active { background: var(--deep); color: #fff; border-color: var(--deep); }
+.tackle-panel { display: none; }
+.tackle-panel.active { display: block; }
+.tackle-card {
+  background: var(--foam); border-radius: var(--radius);
+  padding: 16px; margin-bottom: 12px;
+  box-shadow: 0 2px 10px var(--shadow);
+  border: 1px solid var(--border);
+}
+.tackle-card .t-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+}
+.tackle-card .t-icon { font-size: 28px; }
+.tackle-card .t-name { font-size: 15px; font-weight: 900; }
+.tackle-card .t-sub { font-size: 11px; color: var(--muted); }
+.tackle-spec {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px;
+}
+.spec-item {
+  background: var(--sky); border-radius: var(--radius-sm);
+  padding: 7px 8px;
+}
+.spec-item .s-lbl { font-size: 9px; color: var(--muted); font-weight: 700; }
+.spec-item .s-val { font-size: 12px; font-weight: 700; color: var(--ink); margin-top: 2px; line-height: 1.3; }
+.tackle-tip {
+  background: var(--sand); border-radius: var(--radius-sm);
+  padding: 10px 12px; font-size: 12px; line-height: 1.7;
+  color: #7a5c2e; border-left: 3px solid var(--sunlight);
+}
+
+/* ============================================================
+   PAGE: 매듭법
+   ============================================================ */
+.knot-list { }
+.knot-item {
+  background: var(--foam); border-radius: var(--radius);
+  margin-bottom: 12px; overflow: hidden;
+  box-shadow: 0 2px 10px var(--shadow); border: 1px solid var(--border);
+}
+.knot-header {
+  padding: 14px 16px; display: flex; align-items: center;
+  justify-content: space-between; cursor: pointer;
+}
+.knot-header .k-left { display: flex; align-items: center; gap: 10px; }
+.knot-header .k-num {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--ocean); color: #fff;
+  font-size: 14px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+}
+.knot-header .k-title { font-size: 15px; font-weight: 700; }
+.knot-header .k-diff {
+  font-size: 10px; padding: 3px 8px; border-radius: 10px; font-weight: 700; white-space: nowrap;
+}
+.k-diff.easy { background: #d4edda; color: #155724; }
+.k-diff.mid  { background: #fff3cd; color: #856404; }
+.k-diff.hard { background: #f8d7da; color: #721c24; }
+.knot-chevron { font-size: 12px; color: var(--muted); transition: transform .3s; }
+.knot-item.open .knot-chevron { transform: rotate(180deg); }
+.knot-body { display: none; padding: 0 16px 16px; }
+.knot-item.open .knot-body { display: block; }
+.knot-use {
+  font-size: 12px; color: var(--muted); margin-bottom: 12px;
+  padding: 8px 10px; background: var(--sky); border-radius: var(--radius-sm);
+}
+.knot-steps { }
+.knot-step {
+  display: flex; gap: 10px; margin-bottom: 12px;
+}
+.knot-step .step-num {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--deep); color: #fff;
+  font-size: 11px; font-weight: 900; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.knot-step .step-text { font-size: 12px; line-height: 1.7; color: var(--ink); padding-top: 3px; }
+.knot-svg-area {
+  background: var(--sky); border-radius: var(--radius-sm);
+  padding: 16px; text-align: center; margin-top: 8px;
+}
+
+/* ============================================================
+   PAGE: 정보 (선사/도보)
+   ============================================================ */
+.info-tabs {
+  display: flex; gap: 8px; margin-bottom: 16px;
+}
+.info-tab {
+  flex: 1; padding: 8px 6px; border-radius: var(--radius-sm);
+  font-size: 12px; font-weight: 700; text-align: center;
+  background: var(--foam); color: var(--muted);
+  border: 1.5px solid var(--border); cursor: pointer; transition: all .2s;
+  white-space: nowrap;
+}
+.info-tab.active { background: var(--mint); color: #fff; border-color: var(--mint); }
+.info-panel { display: none; }
+.info-panel.active { display: block; }
+
+.marina-region-tabs {
+  display: flex; gap: 6px; overflow-x: auto;
+  padding-bottom: 4px; margin-bottom: 14px; scrollbar-width: none;
+}
+.marina-region-tabs::-webkit-scrollbar { display: none; }
+.marina-region-tab {
+  flex-shrink: 0; padding: 6px 12px; border-radius: 20px;
+  font-size: 11px; font-weight: 700;
+  background: var(--foam); color: var(--muted);
+  border: 1.5px solid var(--border); cursor: pointer; transition: all .2s;
+}
+.marina-region-tab.active { background: var(--mint); color: #fff; border-color: var(--mint); }
+.marina-panel { display: none; }
+.marina-panel.active { display: block; }
+
+.boat-card {
+  background: var(--foam); border-radius: var(--radius);
+  padding: 14px; margin-bottom: 10px;
+  border: 1px solid var(--border); box-shadow: 0 2px 8px var(--shadow);
+}
+.boat-card .b-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.boat-card .b-name { font-size: 15px; font-weight: 900; }
+.boat-card .b-region {
+  font-size: 10px; padding: 3px 8px; border-radius: 10px;
+  background: var(--sky); color: var(--deep); font-weight: 700;
+}
+.boat-card .b-info { font-size: 12px; color: #555; line-height: 1.7; margin-bottom: 8px; }
+.boat-card .b-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.boat-card .b-tag {
+  font-size: 10px; padding: 3px 8px; border-radius: 10px;
+  background: var(--sand); color: #7a5c2e; font-weight: 700;
+}
+.boat-card .b-actions { display: flex; gap: 8px; }
+.boat-card .b-btn {
+  flex: 1; padding: 9px; border-radius: var(--radius-sm);
+  font-size: 12px; font-weight: 700; text-align: center;
+}
+.b-btn.call { background: var(--ocean); color: #fff; }
+.b-btn.web  { background: var(--sky); color: var(--deep); border: 1px solid var(--border); }
+
+.walk-spot {
+  background: var(--foam); border-radius: var(--radius);
+  padding: 14px; margin-bottom: 10px;
+  border-left: 4px solid var(--mint);
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.walk-spot .ws-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.walk-spot .ws-icon { font-size: 24px; }
+.walk-spot .ws-name { font-size: 14px; font-weight: 900; }
+.walk-spot .ws-region { font-size: 11px; color: var(--muted); }
+.walk-spot .ws-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+.walk-spot .ws-tag {
+  font-size: 10px; padding: 3px 8px; border-radius: 10px;
+  background: #e8f8f3; color: #1a7a5e; font-weight: 700;
+}
+.walk-spot .ws-desc { font-size: 12px; line-height: 1.7; color: #444; }
+
+/* ============================================================
+   SEASON CALENDAR WIDGET
+   ============================================================ */
+.season-cal {
+  background: var(--foam); border-radius: var(--radius);
+  padding: 16px; margin-bottom: 12px;
+  box-shadow: 0 2px 10px var(--shadow); border: 1px solid var(--border);
+}
+.season-cal-title { font-size: 14px; font-weight: 700; color: var(--deep); margin-bottom: 12px; }
+.cal-table { width: 100%; border-collapse: collapse; }
+.cal-table th {
+  font-size: 9px; font-weight: 700; color: var(--muted);
+  padding: 4px 2px; text-align: center;
+}
+.cal-table td { padding: 3px 2px; }
+.cal-bar {
+  height: 14px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px; font-weight: 700;
+}
+.cal-bar.peak { background: var(--ocean); color: #fff; }
+.cal-bar.ok   { background: var(--sky); color: var(--deep); border: 1px solid var(--border); }
+.cal-bar.off  { background: transparent; }
+.cal-name { font-size: 11px; font-weight: 700; color: var(--ink); padding-right: 4px; white-space: nowrap; }
+.cal-icon { font-size: 14px; }
+
+/* ============================================================
+   금어기 & 용어사전
+   ============================================================ */
+.prohibited-card {
+  background: #fff5f5; border-radius: var(--radius);
+  padding: 14px; margin-bottom: 10px;
+  border-left: 4px solid var(--coral);
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.prohibited-card .p-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.prohibited-card .p-icon { font-size: 24px; }
+.prohibited-card .p-name { font-size: 14px; font-weight: 900; }
+.prohibited-card .p-period {
+  display: inline-block; font-size: 11px; padding: 3px 10px;
+  background: var(--coral); color: #fff; border-radius: 10px;
+  font-weight: 700; margin-bottom: 8px;
+}
+.prohibited-card .p-desc { font-size: 12px; color: #555; line-height: 1.6; }
+
+.glossary-item {
+  background: var(--foam); border-radius: var(--radius-sm);
+  padding: 12px 14px; margin-bottom: 8px;
+  border: 1px solid var(--border);
+}
+.glossary-item .g-term {
+  font-size: 14px; font-weight: 900; color: var(--deep); margin-bottom: 4px;
+}
+.glossary-item .g-def { font-size: 12px; line-height: 1.7; color: #444; }
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+.section-label {
+  font-size: 11px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .05em;
+  margin-bottom: 10px; margin-top: 4px;
+}
+.divider { height: 1px; background: var(--border); margin: 16px 0; }
+.empty-state {
+  text-align: center; padding: 40px 20px;
+  color: var(--muted); font-size: 13px;
+}
+.empty-state .e-icon { font-size: 48px; margin-bottom: 12px; }
+
+/* ============================================================
+   SVG SPECIES ICONS (inline)
+   ============================================================ */
+
+/* 조황 메모 */
+.memo-sheet {
+  display:none; position:fixed;
+  top:0; bottom:0; left:50%; transform:translateX(-50%);
+  width:100%; max-width:480px;
+  background:rgba(26,110,153,0.35); z-index:300;
+  align-items:flex-end; justify-content:center;
+}
+.memo-sheet.open { display:flex; }
+.memo-inner {
+  background:var(--foam); border-radius:20px 20px 0 0;
+  padding:20px 20px 40px; width:100%; max-height:80dvh; overflow-y:auto;
+}
+.memo-entry {
+  background:var(--sky); border-radius:var(--radius-sm);
+  padding:10px 12px; margin-bottom:8px;
+  border-left:3px solid var(--ocean);
+}
+.memo-entry .me-date { font-size:10px; color:var(--muted); font-weight:700; margin-bottom:3px; }
+.memo-entry .me-text { font-size:12px; line-height:1.6; color:var(--ink); }
+.memo-entry .me-fish { font-size:10px; color:var(--mint); font-weight:700; margin-top:4px; }
+.memo-del { float:right; font-size:11px; color:var(--coral); font-weight:700; cursor:pointer; }
+
+.stats-sheet { display:none;position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(26,110,153,0.35);z-index:300;align-items:flex-end;justify-content:center; }
+.stats-sheet.open { display:flex; }
+.stats-inner { background:var(--foam);border-radius:20px 20px 0 0;padding:20px 20px 40px;width:100%;max-height:85dvh;overflow-y:auto; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== HEADER ===== -->
+  <header id="header">
+    <div class="logo">
+      <svg width="28" height="28" viewBox="0 0 28 28">
+        <circle cx="14" cy="14" r="14" fill="#4BA3CC"/>
+        <text x="14" y="19" text-anchor="middle" font-size="16" fill="white">🐙</text>
+      </svg>
+      <span class="logo-text">먹물왕 낚시일지</span>
+      <div id="version-badge" style="
+        display:flex;align-items:center;gap:3px;
+        background:linear-gradient(135deg,rgba(75,163,204,.15),rgba(26,110,153,.15));
+        border:1px solid rgba(75,163,204,.3);
+        border-radius:20px;padding:2px 7px;margin-left:2px;flex-shrink:0;">
+        <span style="font-size:9px;font-weight:900;color:var(--ocean);letter-spacing:.5px;">v1.0</span>
+        <span style="width:3px;height:3px;border-radius:50%;background:var(--ocean);opacity:.5;"></span>
+        
+      </div>
+    </div>
+    <div class="weather-badge" id="header-weather">
+      <span>🌤</span><span id="hw-text">날씨 로딩중</span>
+    </div>
+  </header>
+
+  <!-- ===== MAIN ===== -->
+  <main id="main">
+
+    <!-- =============== PAGE: 홈/날씨 =============== -->
+    <section class="page active" id="page-home">
+      <div class="region-selector" id="region-selector">
+        <button class="region-chip active" data-region="거제">🏝 거제</button>
+        <button class="region-chip" data-region="통영">⛵ 통영</button>
+        <button class="region-chip" data-region="사천">🎣 사천</button>
+        <button class="region-chip" data-region="부산">🌉 부산</button>
+        <button class="region-chip" data-region="울산">🐋 울산</button>
+        <button class="region-chip region-chip-search" id="region-search-btn">🌬 날씨검색</button>
+      </div>
+
+      <!-- 날씨 검색 패널 -->
+      <div id="region-search-panel" style="display:none;margin-bottom:12px;">
+        <div style="background:var(--foam);border-radius:var(--radius);padding:14px;border:1.5px solid var(--ocean);box-shadow:0 4px 16px var(--shadow);">
+
+          <!-- 헤더 -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div style="font-size:13px;font-weight:700;color:var(--deep);">📍 낚시 포인트 날씨</div>
+            <button id="add-point-toggle"
+              style="padding:5px 12px;border-radius:var(--radius-sm);background:var(--ocean);
+                     color:#fff;font-size:11px;font-weight:700;">＋ 포인트 추가</button>
+          </div>
+
+          <!-- ★ 포인트 추가 모드 (Leaflet 지도) -->
+          <div id="add-point-form" style="display:none;margin-bottom:12px;">
+            <div style="background:var(--sky);border-radius:var(--radius-sm);padding:10px;border:1.5px solid var(--ocean);">
+              <div style="font-size:11px;font-weight:700;color:var(--deep);margin-bottom:6px;">
+                🗺 지도를 탭해서 위치를 선택하세요
+              </div>
+              <!-- Leaflet 지도 -->
+              <div id="leaflet-pick-map"
+                style="width:100%;height:240px;border-radius:var(--radius-sm);
+                       overflow:hidden;border:1px solid var(--border);margin-bottom:8px;"></div>
+              <!-- 선택된 좌표 표시 -->
+              <div id="pick-coord-bar"
+                style="display:none;background:#fff;border-radius:var(--radius-sm);
+                       padding:7px 10px;font-size:11px;color:var(--deep);font-weight:700;
+                       border:1px solid var(--border);margin-bottom:8px;">
+                📍 <span id="pick-coord-text">위치를 탭하세요</span>
+              </div>
+              <!-- 이름·어종 입력 -->
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <input id="new-pt-name" type="text" placeholder="포인트 이름 (예: 여수 돌산도)"
+                  style="padding:8px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);
+                         font-size:12px;font-family:inherit;background:#fff;outline:none;">
+                <input id="new-pt-fish" type="text" placeholder="주요 어종 (예: 무늬오징어·문어)"
+                  style="padding:8px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);
+                         font-size:12px;font-family:inherit;background:#fff;outline:none;">
+                <!-- 위도/경도는 숨김 — 지도 탭으로 자동 입력 -->
+                <input id="new-pt-lat" type="hidden">
+                <input id="new-pt-lon" type="hidden">
+                <div style="display:flex;gap:6px;">
+                  <button id="new-pt-save"
+                    style="flex:1;padding:9px;border-radius:var(--radius-sm);
+                           background:var(--ocean);color:#fff;font-size:12px;font-weight:700;">
+                    ✓ 저장
+                  </button>
+                  <button id="new-pt-cancel"
+                    style="padding:9px 14px;border-radius:var(--radius-sm);
+                           background:var(--border);color:var(--muted);font-size:12px;font-weight:700;">
+                    취소
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 포인트 버튼 목록 -->
+          <div id="quick-pins" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
+
+          <!-- 날씨 패널 -->
+          <div id="wx-panel" style="display:none;">
+
+            <!-- 포인트명 + 🐙 Windy 버튼 -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <div style="font-size:13px;font-weight:700;color:var(--deep);" id="wx-pt-title">📍</div>
+              <button id="open-windy-ext" style="
+                display:flex;align-items:center;gap:5px;
+                padding:6px 12px;border-radius:20px;
+                background:linear-gradient(135deg,#1a3a5c,#0a7abf);
+                color:#fff;font-size:11px;font-weight:700;
+                box-shadow:0 2px 8px rgba(10,122,191,.35);
+                border:1px solid rgba(255,255,255,.15);">
+                <svg width="16" height="16" viewBox="0 0 32 32" fill="none">
+                  <!-- 🐙 먹물왕 미니 아이콘 -->
+                  <circle cx="16" cy="12" r="8" fill="#4BA3CC"/>
+                  <ellipse cx="13" cy="11" rx="2" ry="2.5" fill="white"/>
+                  <ellipse cx="19" cy="11" rx="2" ry="2.5" fill="white"/>
+                  <circle cx="13" cy="11.5" r="1" fill="#1a3a5c"/>
+                  <circle cx="19" cy="11.5" r="1" fill="#1a3a5c"/>
+                  <!-- 바람선 -->
+                  <path d="M6 20 Q10 17 14 20 Q18 23 22 20 Q26 17 28 19" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                  <path d="M4 24 Q9 21 13 24 Q17 27 22 24 Q26 21 29 23" stroke="white" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".7"/>
+                </svg>
+                Windy 보기
+              </button>
+            </div>
+
+            <!-- 현재 날씨 요약 -->
+            <div id="wx-now-card" style="
+              display:flex;align-items:center;gap:12px;
+              background:linear-gradient(135deg,var(--deep),var(--ocean));
+              border-radius:var(--radius-sm);padding:12px 14px;
+              color:#fff;margin-bottom:10px;">
+              <div style="font-size:40px;line-height:1;" id="wx-now-icon">⏳</div>
+              <div style="flex:1;">
+                <div style="font-size:26px;font-weight:900;line-height:1;" id="wx-now-temp">--°</div>
+                <div style="font-size:11px;opacity:.8;margin-top:2px;" id="wx-now-desc">불러오는 중…</div>
+              </div>
+              <div style="text-align:right;font-size:11px;line-height:2;opacity:.9;" id="wx-now-extra"></div>
+            </div>
+
+            <!-- 시간별 테이블 -->
+            <div style="background:var(--foam);border-radius:var(--radius-sm);border:1px solid var(--border);overflow:hidden;">
+              <div id="wx-date-hdr" style="display:grid;background:#eef4f9;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--deep);"></div>
+              <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;">
+                <table id="wx-tbl" style="width:max-content;min-width:100%;border-collapse:collapse;"></table>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 날씨 메인 -->
+      <div class="weather-main" id="weather-main-card">
+        <div class="w-region" id="w-region-name">📍 거제</div>
+        <div style="display:flex; align-items:flex-end; gap:12px">
+          <div class="w-temp" id="w-temp">--°</div>
+          <div>
+            <div class="w-desc" id="w-desc">날씨 정보</div>
+            <div style="font-size:11px;opacity:.7;margin-top:2px" id="w-feelslike">체감 --°</div>
+          </div>
+        </div>
+        <div class="weather-grid">
+          <div class="w-item"><div class="w-lbl">💨 풍속</div><div class="w-val" id="w-wind">-- m/s</div></div>
+          <div class="w-item"><div class="w-lbl">🌊 파고</div><div class="w-val" id="w-wave">-- m</div></div>
+          <div class="w-item"><div class="w-lbl">💧 습도</div><div class="w-val" id="w-hum">-- %</div></div>
+          <div class="w-item"><div class="w-lbl">👁 시정</div><div class="w-val" id="w-vis">-- km</div></div>
+        </div>
+      </div>
+
+      <!-- 물때 -->
+      <div class="tide-card">
+        <div class="tide-title">🌊 오늘의 물때</div>
+        <div class="tide-row">
+          <div class="tide-item"><div class="t-lbl">현재 조위</div><div class="t-val" id="t-cur">--cm</div></div>
+          <div class="tide-item"><div class="t-lbl">물때</div><div class="t-val" id="t-type">--물</div></div>
+          <div class="tide-item"><div class="t-lbl">낚시적합</div><div class="t-val" id="t-fish">--</div></div>
+        </div>
+        <div style="height:1px;background:rgba(255,255,255,.2);margin:10px 0"></div>
+        <div class="tide-row">
+          <div class="tide-item"><div class="t-lbl">만조</div><div class="t-val">↑</div><div class="t-time" id="t-high">--:--</div></div>
+          <div class="tide-item"><div class="t-lbl">간조</div><div class="t-val">↓</div><div class="t-time" id="t-low">--:--</div></div>
+          <div class="tide-item"><div class="t-lbl">일출</div><div class="t-val">🌅</div><div class="t-time" id="t-sun">--:--</div></div>
+          <div class="tide-item"><div class="t-lbl">일몰</div><div class="t-val">🌇</div><div class="t-time" id="t-set">--:--</div></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- =============== PAGE: 시즌/금어기 =============== -->
+    <section class="page" id="page-season">
+      <div class="page-title">🗓 이달의 두족류 시즌</div>
+
+      <!-- 이달의 시즌 스트립 -->
+      <div class="fish-season-strip">
+        <div class="strip-title">📅 이번 달 현황</div>
+        <div class="season-items" id="season-strip">
+          <!-- JS로 채워짐 -->
+        </div>
+      </div>
+
+      <!-- 연간 시즌 캘린더 -->
+      <div class="season-cal">
+        <div class="season-cal-title">📅 연간 시즌 캘린더</div>
+        <table class="cal-table">
+          <thead>
+            <tr>
+              <th></th><th></th>
+              <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th>
+              <th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th>
+            </tr>
+          </thead>
+          <tbody id="season-cal-body"></tbody>
+        </table>
+      </div>
+
+      <!-- 금어기 정보 -->
+      <div id="prohibited-alert" style="display:none;background:#fff0f0;border:1.5px solid var(--coral);border-radius:var(--radius);padding:10px 14px;margin-bottom:10px;font-size:12px;color:var(--coral);font-weight:700;"></div>
+      <div class="page-title" style="margin-top:4px">⛔ 금어기 정보</div>
+      <div class="prohibited-card">
+        <div class="p-header"><span class="p-icon" data-fish="bigfin">🦑</span><span class="p-name">무늬오징어 (흰꼴뚜기)</span></div>
+        <span class="p-period">금어기 없음 (연중 가능)</span>
+        <div class="p-desc">별도 금어기 없으나 산란기(봄·초여름)에는 자원 보호를 위해 자제 권장</div>
+      </div>
+      <div class="prohibited-card">
+        <div class="p-header"><span class="p-icon" data-fish="octopus">🐙</span><span class="p-name">문어</span></div>
+        <span class="p-period">금지체장 : 외투장 6cm 미만</span>
+        <div class="p-desc">소형 문어는 반드시 방류. 특히 5~7월 산란기에는 자원 보호 동참 권장</div>
+      </div>
+      <div class="prohibited-card">
+        <div class="p-header"><span class="p-icon" data-fish="webfoot">🦐</span><span class="p-name">주꾸미</span></div>
+        <span class="p-period">금어기 : 5월 11일 ~ 8월 31일</span>
+        <div class="p-desc">매년 동일 기간 적용. 위반 시 과태료 부과. 해당 기간 채비 사용 금지</div>
+      </div>
+      <div class="prohibited-card">
+        <div class="p-header"><span class="p-icon" data-fish="arrow">🏹</span><span class="p-name">화살촉오징어</span></div>
+        <span class="p-period">금어기 : 5월 1일 ~ 5월 31일 / 몸통 15cm 이하 방류</span>
+        <div class="p-desc">5월 한 달 금어기. 6월부터 12월까지 시즌. 15cm 이하 소형 개체는 반드시 방류.</div>
+      </div>
+      <div class="prohibited-card">
+        <div class="p-header"><span class="p-icon" data-fish="saury">🦑</span><span class="p-name">살오징어</span></div>
+        <span class="p-period">금어기 : 4월 1일 ~ 5월 31일</span>
+        <div class="p-desc">매년 4~5월 두 달간 금어기. 금어기 종료 후 첫 출조는 최소 두 달 전 예약 권장.</div>
+      </div>
+    </section>
+
+    <!-- =============== PAGE: 어종 =============== -->
+    <section class="page" id="page-species">
+      <div class="page-title">🐙 두족류 어종 도감</div>
+      <div class="species-grid" id="species-grid">
+        <!-- JS로 채워짐 -->
+      </div>
+    </section>
+
+    <!-- =============== PAGE: 낚시방법 =============== -->
+    <section class="page" id="page-method">
+      <div class="page-title">🎣 낚시 방법</div>
+      <div class="method-tabs">
+        <button class="method-tab active" data-mt="선상">🚢 선상낚시</button>
+        <button class="method-tab" data-mt="도보">🚶 도보낚시</button>
+        <button class="method-tab" data-mt="어종별">🐙 어종별</button>
+      </div>
+      <div class="method-panel active" id="mp-선상">
+        <div class="method-item">
+          <div class="m-title">에깅 (Eging) — 무늬오징어</div>
+          <div class="m-tags"><span class="m-tag">선상</span><span class="m-tag">에기</span><span class="m-tag">무늬오징어</span></div>
+          <div class="m-desc">선상 에깅은 닻을 내리거나 드리프팅 중 에기를 캐스팅 후 액션을 주어 무늬오징어를 유인합니다. 에기를 캐스팅 후 착저시키고, 2~3회 강한 저킹(샤쿠리) 후 팔을 내려 에기가 자연스럽게 낙하하도록 합니다. 이 낙하 중에 대부분의 어택이 발생합니다.</div>
+          <div class="m-tip">조류가 흐르는 포인트에서 조류 방향으로 캐스팅하면 효과적입니다.</div>
+        </div>
+        <div class="method-item">
+          <div class="m-title">타이라바 병행 오모리그</div>
+          <div class="m-tags"><span class="m-tag">선상</span><span class="m-tag">오모리그</span><span class="m-tag">한치·갑오징어</span></div>
+          <div class="m-desc">오모리그는 납추에 에기를 달아 깊은 수심을 공략하는 방법입니다. 선상에서 수직으로 내려 바닥 근처를 공략하며 한치, 갑오징어에 효과적입니다. 바닥 착저 후 20~30cm 위에서 천천히 저킹합니다.</div>
+          <div class="m-tip">야간 선상낚시 시 수중 집어등 사용으로 조황을 극대화할 수 있습니다.</div>
+        </div>
+        <div class="method-item">
+          <div class="m-title">문어 선상 지깅</div>
+          <div class="m-tags"><span class="m-tag">선상</span><span class="m-tag">문어루어</span><span class="m-tag">문어</span></div>
+          <div class="m-desc">문어 전용 루어(타코베이트, 에기)를 바닥에 착저 후 릴링과 로드 리프팅을 반복합니다. 바닥 지형에 루어를 굴리듯 움직이는 것이 핵심입니다. 문어는 느린 움직임에 반응하므로 급하게 당기지 않습니다.</div>
+          <div class="m-tip">문어가 올라오면 급하게 들어올리지 말고 천천히 감아올려야 이탈을 방지합니다.</div>
+        </div>
+        <div class="method-item">
+          <div class="m-title">갑오징어 쿠레 낚시</div>
+          <div class="m-tags"><span class="m-tag">선상</span><span class="m-tag">쿠레</span><span class="m-tag">갑오징어</span></div>
+          <div class="m-desc">갑오징어 전용 쿠레채비로 바닥층을 천천히 끌어오거나 리프트&폴 액션을 줍니다. 갑오징어는 에기보다 색이 있는 쿠레나 갑오징어 전용채비에 반응이 좋습니다.</div>
+          <div class="m-tip">갑오징어는 먹물을 뿜으니 쿨러 안쪽에 검정 비닐을 깔아두면 편합니다.</div>
+        </div>
+      </div>
+      <div class="method-panel" id="mp-도보">
+        <div class="method-item" style="border-left-color:var(--mint)">
+          <div class="m-title">방파제 에깅</div>
+          <div class="m-tags"><span class="m-tag">도보</span><span class="m-tag">에기</span><span class="m-tag">무늬오징어·한치</span></div>
+          <div class="m-desc">방파제 테트라포드 주변을 공략하는 도보 에깅입니다. 야간에 집어등이 켜지는 방파제 근처가 명당입니다. 에기를 멀리 캐스팅 후 착저 → 샤쿠리 → 폴 반복. 라인 슬랙이 갑자기 사라지거나 팽팽해지면 챔질합니다.</div>
+          <div class="m-tip">조류가 흐르는 시간대(물들고 나갈 때)에 집중하세요.</div>
+        </div>
+        <div class="method-item" style="border-left-color:var(--mint)">
+          <div class="m-title">갯바위 문어 걸치기</div>
+          <div class="m-tags"><span class="m-tag">도보</span><span class="m-tag">갯바위</span><span class="m-tag">문어</span></div>
+          <div class="m-desc">갯바위에서 문어 전용채비나 문어 루어를 바위틈에 걸치듯 움직여 문어를 유인합니다. 바위 틈새를 꼼꼼히 공략하는 것이 핵심으로, 조심스럽게 끌어내야 합니다.</div>
+          <div class="m-tip">미끄러운 갯바위는 반드시 갯바위화와 구명조끼를 착용하세요.</div>
+        </div>
+        <div class="method-item" style="border-left-color:var(--mint)">
+          <div class="m-title">주꾸미 에기낚시</div>
+          <div class="m-tags"><span class="m-tag">도보</span><span class="m-tag">에기</span><span class="m-tag">주꾸미</span></div>
+          <div class="m-desc">주꾸미 전용 에기(주꾸미 에기, 문어형)를 바닥에서 천천히 리프팅 하는 방법입니다. 가을~겨울 시즌 방파제에서 많이 사용합니다. 에기를 착저 후 가볍게 들었다 놓기를 반복합니다.</div>
+          <div class="m-tip">주꾸미 에기는 무게가 있고 발광 효과가 있는 것이 야간에 효과적입니다.</div>
+        </div>
+        <div class="method-item" style="border-left-color:var(--mint)">
+          <div class="m-title">한치 야간 투어</div>
+          <div class="m-tags"><span class="m-tag">도보</span><span class="m-tag">야간</span><span class="m-tag">한치</span></div>
+          <div class="m-desc">한치는 야간에 불빛에 모이는 습성이 있어 집어등 근처 방파제에서 효과적입니다. 소형 에기나 샤브리그를 캐스팅 후 카운트다운으로 수심을 조절하며 공략합니다. 여름철 7~9월이 피크 시즌입니다.</div>
+          <div class="m-tip">집어등 불빛 경계선(빛과 어둠의 경계) 부근을 집중 공략하세요.</div>
+        </div>
+      </div>
+      <div class="method-panel" id="mp-어종별">
+        <div class="method-item" style="border-left-color:var(--coral)">
+          <div class="m-title">🐙 문어 — 전용 루어/타코베이트</div>
+          <div class="m-tags"><span class="m-tag">선상·도보</span><span class="m-tag">바닥공략</span><span class="m-tag">난이도 ★★☆</span></div>
+          <div class="m-desc">문어는 바닥에 서식하므로 루어를 바닥에 착저 후 느리게 끌거나 바위 틈을 공략합니다. 급격한 당김보다 부드럽고 자연스러운 움직임이 중요합니다.</div>
+        </div>
+        <div class="method-item" style="border-left-color:var(--coral)">
+          <div class="m-title">🦑 한치 — 에깅/야간투어</div>
+          <div class="m-tags"><span class="m-tag">선상·도보</span><span class="m-tag">야간</span><span class="m-tag">난이도 ★★☆</span></div>
+          <div class="m-desc">야간에 집어등에 모이는 습성. 선상은 수직지깅, 도보는 방파제 집어등 주변 캐스팅. 빠른 샤쿠리보다 중간 속도의 저킹이 효과적입니다.</div>
+        </div>
+        <div class="method-item" style="border-left-color:var(--coral)">
+          <div class="m-title">🐠 주꾸미 — 에기/쿠레</div>
+          <div class="m-tags"><span class="m-tag">선상·도보</span><span class="m-tag">가을~겨울</span><span class="m-tag">난이도 ★☆☆</span></div>
+          <div class="m-desc">초보자에게 추천. 주꾸미는 에기를 잡은 상태로 오래 버티므로 입질이 느껴지면 천천히 들어올리면 됩니다. 무거운 입질감이 특징입니다.</div>
+        </div>
+        <div class="method-item" style="border-left-color:var(--coral)">
+          <div class="m-title">🦑 무늬오징어 — 에깅</div>
+          <div class="m-tags"><span class="m-tag">선상·갯바위</span><span class="m-tag">봄·가을</span><span class="m-tag">난이도 ★★★</span></div>
+          <div class="m-desc">에깅의 꽃. 샤쿠리(저킹) 후 폴 중 입질. 라인이 멈추거나 당겨지는 순간 임팩트 챔질! 조류 흐름을 읽는 것이 조황의 핵심입니다.</div>
+        </div>
+        <div class="method-item" style="border-left-color:var(--coral)">
+          <div class="m-title">🦑 갑오징어 — 쿠레/에기</div>
+          <div class="m-tags"><span class="m-tag">선상·방파제</span><span class="m-tag">가을~겨울</span><span class="m-tag">난이도 ★★☆</span></div>
+          <div class="m-desc">바닥층 공략이 중요. 쿠레채비로 바닥을 느리게 끌거나 에기로 리프트&폴. 갑오징어는 먹물이 많으니 타월 준비 필수.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =============== PAGE: 채비 =============== -->
+    <section class="page" id="page-tackle">
+      <div class="page-title">⚓ 어종별 추천 채비</div>
+      <div class="tackle-species-tabs" id="tackle-tabs-container">
+        <!-- JS buildTackleTabs()로 채워짐 -->
+      </div>
+
+      <div class="tackle-panel active" id="tp-문어">
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🎣</span><div><div class="t-name">선상 문어 기본채비</div><div class="t-sub">선상낚시용</div></div></div>
+          <div class="tackle-spec">
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">타코전용 2.1m</div></div>
+            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">소형 베이트릴</div></div>
+            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 1.5~2호</div></div>
+            <div class="spec-item"><div class="s-lbl">쇼크리더</div><div class="s-val">나일론 40lb</div></div>
+            <div class="spec-item"><div class="s-lbl">루어</div><div class="s-val">타코베이트·에기</div></div>
+            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">30~80호</div></div>
+          </div>
+          <div class="tackle-tip">문어 루어는 문어 색감(오렌지, 핑크, 파랑)에 반응이 좋습니다. 바닥을 긁는 느낌으로 천천히 끌어오세요.</div>
+        </div>
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🪨</span><div><div class="t-name">갯바위 문어 채비</div><div class="t-sub">도보 갯바위용</div></div></div>
+          <div class="tackle-spec">
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">갯바위대 3m</div></div>
+            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">스피닝 2500</div></div>
+            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 1.5호 이상</div></div>
+            <div class="spec-item"><div class="s-lbl">채비</div><div class="s-val">문어 걸치기 채비</div></div>
+            <div class="spec-item"><div class="s-lbl">미끼</div><div class="s-val">문어루어·살오징어</div></div>
+            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">10~20호</div></div>
+          </div>
+          <div class="tackle-tip">갯바위 틈새에 루어를 집어넣고 살살 당기는 방식. 미끼는 살오징어 작게 잘라 훅에 꽂아도 효과적입니다.</div>
+        </div>
+
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🎨</span><div><div class="t-name">루어 색상 가이드</div><div class="t-sub">날씨·수심별</div></div></div>
+          <div style="padding:2px 0;"><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🔴</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">오렌지·핑크</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">맑은 날 기본 / 가장 반응 좋음</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🔵</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">파랑·퍼플</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">맑은 물 · 낮 시간대</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">⚫</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">검정·다크계열</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">탁한 물 · 야간 · 깊은 수심</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🟡</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">골드·형광</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">흐린 날 · 조류 빠를 때</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">⚪</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">화이트·자연색</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">산란기 봄철 · 수온 낮을 때</div></div></div></div>
+        </div>
+      </div>
+
+      <div class="tackle-panel" id="tp-한치">
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🦑</span><div><div class="t-name">한치 오모리그 채비</div><div class="t-sub">선상낚시 · 기본</div></div></div>
+          <div class="tackle-spec">
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">오모리로드 2.1m</div></div>
+            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">수심카운터릴</div></div>
+            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 0.6~1호</div></div>
+            <div class="spec-item"><div class="s-lbl">목줄</div><div class="s-val">카본 3호</div></div>
+            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">오모리 30호</div></div>
+            <div class="spec-item"><div class="s-lbl">슷테/에기</div><div class="s-val">슷테 2~3단</div></div>
+          </div>
+          <div class="tackle-tip">수심 파악이 핵심! 수심 카운터 없는 릴은 5색 합사+마킹 필수. 슷테는 바늘이 얇고 촘촘한 한치 전용으로 준비하세요.</div>
+        </div>
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">⚡</span><div><div class="t-name">이카메탈 채비</div><div class="t-sub">선상 수직지깅</div></div></div>
+          <div class="tackle-spec">
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">이카메탈 2.1m</div></div>
+            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">베이트·전동릴</div></div>
+            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 0.8~1호</div></div>
+            <div class="spec-item"><div class="s-lbl">이카메탈</div><div class="s-val">80~120g 축광</div></div>
+            <div class="spec-item"><div class="s-lbl">슷테</div><div class="s-val">슷테 2~3단</div></div>
+            <div class="spec-item"><div class="s-lbl">공략 수심</div><div class="s-val">10~40m</div></div>
+          </div>
+          <div class="tackle-tip">이카메탈은 봉돌+루어 겸용. 야간에는 야광 슷테 필수! 한치 활성도에 따라 다양한 무게 준비 권장.</div>
+        </div>
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🌙</span><div><div class="t-name">야간 다단 거치 채비</div><div class="t-sub">집어등 주변 · 마릿수</div></div></div>
+          <div class="tackle-spec">
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">거치용 2.1m</div></div>
+            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">소형 전동릴</div></div>
+            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 0.6~1호</div></div>
+            <div class="spec-item"><div class="s-lbl">채비</div><div class="s-val">이카메탈 2~3단</div></div>
+            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">20~30호</div></div>
+            <div class="spec-item"><div class="s-lbl">포인트</div><div class="s-val">집어등 경계선</div></div>
+          </div>
+          <div class="tackle-tip">시판 완성 채비가 편리. 입질은 로드 끝 떨림으로 확인. 집어등 불빛 경계선을 집중 공략하세요.</div>
+        </div>
+
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🎨</span><div><div class="t-name">슷테·이카메탈 색상 가이드</div><div class="t-sub">시간·수심·활성도별</div></div></div>
+          <div style="padding:2px 0;"><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🔴</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">핫핑크·레드</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">기본 필수 색상 / 야간 특히 효과적</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🟡</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">골드·오렌지</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">흐린 날 · 탁한 물 · 조황 부진 시</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">⚪</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">화이트·야광</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">야간 집어등 주변 / 심야 시간대</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🔵</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">블루·퍼플</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">새벽·해질녘 · 맑은 물</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🟢</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">그린야광</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">달 없는 밤 · 깊은 수심</div></div></div></div>
+        </div>
+      </div>
+
+      <div class="tackle-panel" id="tp-주꾸미">
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🎣</span><div><div class="t-name">주꾸미 기본 채비</div><div class="t-sub">선상·방파제 공통</div></div></div>
+          <div class="tackle-spec">
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">에깅로드 7~8ft</div></div>
+            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">스피닝 3000</div></div>
+            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 0.6~1호</div></div>
+            <div class="spec-item"><div class="s-lbl">쇼크리더</div><div class="s-val">플루오로 2호</div></div>
+            <div class="spec-item"><div class="s-lbl">에기</div><div class="s-val">주꾸미에기 2.5호</div></div>
+            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">10~20호</div></div>
+          </div>
+          <div class="tackle-tip">주꾸미는 초보자도 쉽게 할 수 있습니다. 바닥 착저 후 천천히 들어올리면 무거운 느낌이 나는데 그게 주꾸미가 달린 것입니다. 급하게 당기지 마세요!</div>
+        </div>
+
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🎨</span><div><div class="t-name">주꾸미 에기 색상 가이드</div><div class="t-sub">계절·날씨·수심별</div></div></div>
+          <div style="padding:2px 0;"><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🔴</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">레드·오렌지</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">가을 시즌 기본 / 가장 반응 좋음</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🟡</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">골드·형광</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">흐린 날 · 탁한 물</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">⚪</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">야광·화이트</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">야간 낚시 · 깊은 수심</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🔵</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">블루·퍼플</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">맑은 물 · 햇빛 강한 낮</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🟤</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">브라운·자연색</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">교란당한 포인트 · 프레셔 높을 때</div></div></div></div>
+        </div>
+      </div>
+
+      <div class="tackle-panel" id="tp-무늬">
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🎣</span><div><div class="t-name">무늬오징어 에깅 채비</div><div class="t-sub">갯바위·선상 에깅</div></div></div>
+          <div class="tackle-spec">
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">에깅로드 9ft</div></div>
+            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">스피닝 3000</div></div>
+            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 0.6~0.8</div></div>
+            <div class="spec-item"><div class="s-lbl">쇼크리더</div><div class="s-val">플루오로 2~3호</div></div>
+            <div class="spec-item"><div class="s-lbl">에기</div><div class="s-val">3~3.5호</div></div>
+            <div class="spec-item"><div class="s-lbl">색상</div><div class="s-val">핑크·오렌지·블루</div></div>
+          </div>
+          <div class="tackle-tip">무늬오징어 에깅은 라인 관리가 핵심. 챔질 후 너무 세게 당기면 찢어집니다. 일정한 텐션을 유지하며 천천히 끌어올리세요.</div>
+        </div>
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🎯</span><div><div class="t-name">에기 색상 선택 가이드</div><div class="t-sub">날씨·수온·시간대별</div></div></div>
+          <div style="font-size:12px;line-height:1.9;color:#444">
+            ☀️ <b>맑은 날 낮</b> : 자연색(블루그린), 핑크<br>
+            ☁️ <b>흐린 날</b> : 오렌지, 레드오렌지<br>
+            🌙 <b>야간·어두울 때</b> : 야광(그린), 핑크야광<br>
+            🌊 <b>탁한 물</b> : 오렌지, 골드, 레드<br>
+            💎 <b>맑은 물</b> : 자연색, 블루계열
+          </div>
+        </div>
+      </div>
+
+      <div class="tackle-panel" id="tp-갑오징어">
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🎣</span><div><div class="t-name">갑오징어 쿠레 채비</div><div class="t-sub">선상·방파제</div></div></div>
+          <div class="tackle-spec">
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">에깅로드 7~8ft</div></div>
+            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">스피닝릴 3000</div></div>
+            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 0.8~1호</div></div>
+            <div class="spec-item"><div class="s-lbl">쇼크리더</div><div class="s-val">플루오로 2~3호</div></div>
+            <div class="spec-item"><div class="s-lbl">채비</div><div class="s-val">쿠레·에기</div></div>
+            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">15~30호</div></div>
+          </div>
+          <div class="tackle-tip">갑오징어는 먹물이 많으니 타월과 장갑을 미리 준비하세요. 에기보다 쿠레채비의 반응이 더 좋은 경우가 많습니다.</div>
+        </div>
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🎨</span><div><div class="t-name">쿠레·에기 색상 가이드</div><div class="t-sub">날씨·수온·시간대별</div></div></div>
+          <div style="padding:2px 0;"><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🟢</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">그린·올리브</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">기본 색상 / 연중 안정적</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🔴</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">핑크·오렌지</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">맑은 날 낮 · 수온 높을 때</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">⚪</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">화이트·야광</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">야간 · 흐린 날 · 깊은 수심</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🔵</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">블루·퍼플</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">맑은 물 · 새벽·해질녘</div></div></div><div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">⚫</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">검정·다크</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">탁한 물 · 조류 강할 때</div></div></div></div>
+        </div>
+      </div>
+
+      <!-- 화살촉오징어 패널 -->
+      <div class="tackle-panel" id="tp-화살촉오징어">
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🏹</span><div><div class="t-name">화살촉오징어 기본 채비</div><div class="t-sub">방파제·연안 야간낚시</div></div></div>
+          <div class="tackle-spec">
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">연질 스피닝대 2.7m</div></div>
+            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">스피닝릴 2000~2500</div></div>
+            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 0.6~1호</div></div>
+            <div class="spec-item"><div class="s-lbl">채비</div><div class="s-val">슷테·스틱 3~5단</div></div>
+            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">10~20호</div></div>
+            <div class="spec-item"><div class="s-lbl">수심층</div><div class="s-val">20~40m</div></div>
+          </div>
+          <div class="tackle-tip">아무 기술 불필요! 집어등 아래 채비 투입 후 입질층만 찾으면 됩니다. 20m 지점 면사 마킹 추천. 폴링 중 입질 집중.</div>
+        </div>
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🎨</span><div><div class="t-name">슷테·스틱 색상 가이드</div><div class="t-sub">시간대·수심별</div></div></div>
+          <div style="padding:2px 0;">
+            <div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">⚪</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">야광·화이트</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">야간 집어등 주변 기본</div></div></div>
+            <div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🔴</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">핑크·레드</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">활성 높을 때 어필</div></div></div>
+            <div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🟡</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">골드·오렌지</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">탁한 물·흐린 날</div></div></div>
+            <div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;"><span style="font-size:15px;flex-shrink:0;">🟢</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">그린야광</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">달 없는 밤·깊은 수심</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 살오징어 패널 -->
+      <div class="tackle-panel" id="tp-살오징어">
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🦑</span><div><div class="t-name">살오징어 선상 채비</div><div class="t-sub">먼바다 야간 선상낚시</div></div></div>
+          <div class="tackle-spec">
+            <div class="spec-item"><div class="s-lbl">로드</div><div class="s-val">에깅로드 9ft</div></div>
+            <div class="spec-item"><div class="s-lbl">릴</div><div class="s-val">스피닝·전동릴</div></div>
+            <div class="spec-item"><div class="s-lbl">원줄</div><div class="s-val">PE 0.8~1호</div></div>
+            <div class="spec-item"><div class="s-lbl">쇼크리더</div><div class="s-val">카본 1.7~2호</div></div>
+            <div class="spec-item"><div class="s-lbl">에기/스틱</div><div class="s-val">3~5호 스틱</div></div>
+            <div class="spec-item"><div class="s-lbl">봉돌</div><div class="s-val">20호</div></div>
+          </div>
+          <div class="tackle-tip">공격성이 강해 다양한 루어에 잘 반응! 바닥 찍고 릴 3~5바퀴 감은 뒤 폴링 반복. 피크타임 자정~새벽 3시. 세 자릿수 마릿수도 가능.</div>
+        </div>
+        <div class="tackle-card">
+          <div class="t-header"><span class="t-icon">🎨</span><div><div class="t-name">에기·스틱 색상 가이드</div><div class="t-sub">물색·날씨별</div></div></div>
+          <div style="padding:2px 0;">
+            <div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🟤</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">고동·녹색·회색</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">맑은 물 내추럴계열</div></div></div>
+            <div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">🟡</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">노랑·빨강·은색</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">흐린 날 밝은 계열</div></div></div>
+            <div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:15px;flex-shrink:0;">⚪</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">야광·화이트</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">야간 집어등 주변</div></div></div>
+            <div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;"><span style="font-size:15px;flex-shrink:0;">🔴</span><div><div style="font-size:11px;font-weight:700;color:var(--ink);">핑크·오렌지</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">활성 낮을 때 어필</div></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =============== PAGE: 매듭법 =============== -->
+    <section class="page" id="page-knot">
+      <div class="page-title">🪢 매듭 묶는 법</div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px">탭을 눌러 단계별 방법을 확인하세요</p>
+      <div class="knot-list" id="knot-list">
+        <!-- JS로 채워짐 -->
+      </div>
+    </section>
+
+    <!-- =============== PAGE: 정보 =============== -->
+    <section class="page" id="page-info">
+      <div class="page-title">📍 낚시 정보</div>
+      <div class="info-tabs" style="flex-wrap:wrap;gap:6px;">
+        <button class="info-tab active" data-it="선사">🚢 선사</button>
+        <button class="info-tab" data-it="방법">🎣 낚시방법</button>
+        <button class="info-tab" data-it="도보">🚶 도보</button>
+        <button class="info-tab" data-it="매듭">🪢 매듭법</button>
+        <button class="info-tab" data-it="용어">📖 용어</button>
+      </div>
+
+      <!-- 선사 정보 패널 -->
+      <div class="info-panel active" id="ip-선사">
+        <div style="background:var(--sky);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:12px;font-size:11px;color:var(--deep)">
+          💡 선상24(sunsung24.com) 기반 경남·울산 지역 선사 정보입니다. 예약 전 직접 확인을 권장합니다.
+        </div>
+        <div class="marina-region-tabs" id="marina-region-tabs">
+          <button class="marina-region-tab active" data-mr="거제">🏝 거제</button>
+          <button class="marina-region-tab" data-mr="통영">⛵ 통영</button>
+          <button class="marina-region-tab" data-mr="사천">🎣 사천</button>
+          <button class="marina-region-tab" data-mr="고성">🦕 고성</button>
+          <button class="marina-region-tab" data-mr="남해">🌅 남해</button>
+          <button class="marina-region-tab" data-mr="창원">⚓ 창원</button>
+          <button class="marina-region-tab" data-mr="부산">🌉 부산</button>
+          <button class="marina-region-tab" data-mr="울산">🐋 울산</button>
+        </div>
+        <div id="marina-panels-container"></div>
+      </div>
+
+      <!-- 낚시방법 패널 -->
+      <div class="info-panel" id="ip-방법">
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;" id="method-tabs-inner">
+          <button class="method-tab active" data-mt="선상" style="flex:1;min-width:80px;">🚢 선상낚시</button>
+          <button class="method-tab" data-mt="도보" style="flex:1;min-width:80px;">🚶 도보낚시</button>
+          <button class="method-tab" data-mt="어종별" style="flex:1;min-width:80px;">🐙 어종별</button>
+        </div>
+        <div id="method-panels-inner"></div>
+      </div>
+
+
+      <!-- 매듭법 패널 -->
+      <div class="info-panel" id="ip-매듭">
+        <div id="knot-list-info"></div>
+      </div>
+
+      <!-- 도보 포인트 패널 -->
+      <div class="info-panel" id="ip-도보">
+        <div id="walk-spots-list"></div>
+      </div>
+
+      <!-- 용어사전 패널 -->
+      <div class="info-panel" id="ip-용어">
+        <div class="card">
+          <div class="card-title">📖 낚시 초보자 용어 사전</div>
+          <div id="glossary-list"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== BOTTOM NAV ===== -->
+  <nav id="bottom-nav">
+    <button class="nav-btn active" data-page="home">
+      <span class="nav-icon">🌤</span>
+      <span class="nav-label">날씨/물때</span>
+    </button>
+    <button class="nav-btn" data-page="season">
+      <span class="nav-icon">📅</span>
+      <span class="nav-label">시즌/금어기</span>
+    </button>
+    <button class="nav-btn" data-page="species">
+      <span class="nav-icon">🐙</span>
+      <span class="nav-label">어종도감</span>
+    </button>
+    <button class="nav-btn" data-page="tackle">
+      <span class="nav-icon">⚓</span>
+      <span class="nav-label">채비</span>
+    </button>
+    <button class="nav-btn" data-page="info">
+      <span class="nav-icon">📍</span>
+      <span class="nav-label">정보</span>
+    </button>
+  </nav>
+</div>
+
+
+
+<!-- 조황 통계 시트 -->
+<div class="stats-sheet" id="stats-sheet">
+  <div class="stats-inner">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:900;color:var(--ink);">📊 조황 통계</div>
+      <button id="stats-close-btn" style="font-size:20px;color:var(--muted);padding:4px;">✕</button>
+    </div>
+    <div id="stats-content"></div>
+  </div>
+</div>
+<!-- ===== 조황 메모 시트 ===== -->
+<div class="memo-sheet" id="memo-sheet">
+  <div class="memo-inner">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="font-size:16px;font-weight:900;color:var(--ink);">📝 조황 메모</div>
+      <button id="memo-close-btn" style="font-size:20px;color:var(--muted);padding:4px;">✕</button>
+    </div>
+    <div id="memo-point-name" style="font-size:13px;font-weight:700;color:var(--deep);margin-bottom:12px;"></div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+      <textarea id="memo-input" placeholder="조황 기록 (날씨, 마릿수, 채비 등)"
+        style="padding:10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);
+               font-size:12px;font-family:inherit;background:#fff;outline:none;
+               resize:none;height:80px;line-height:1.6;"></textarea>
+      <input id="memo-catch" type="text" placeholder="주요 어종 (예: 무늬오징어 3마리)"
+        style="padding:8px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);
+               font-size:12px;font-family:inherit;background:#fff;outline:none;">
+      <button id="memo-save-btn"
+        style="padding:10px;border-radius:var(--radius-sm);background:var(--ocean);
+               color:#fff;font-size:13px;font-weight:700;">✓ 기록 저장</button>
+    </div>
+    <button id="open-stats-btn" style="width:100%;padding:10px;border-radius:var(--radius-sm);background:var(--sky);border:1.5px solid var(--border);font-size:12px;font-weight:700;color:var(--deep);margin-bottom:10px;cursor:pointer;text-align:left;">📊 전체 포인트 조황 통계 보기 →</button>
+    <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">📋 과거 기록</div>
+    <div id="memo-list"></div>
+  </div>
+</div>
+<!-- ===== SPECIES DETAIL MODAL ===== -->
+<div class="modal-overlay" id="species-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div id="modal-content"></div>
+    <button class="modal-close-btn" onclick="closeModal()">닫기</button>
+  </div>
+</div>
+
+<script src="species-svg.js"></script>
+<script>
+const KNOT_DATA = [
+  {
+    name: '클린치 노트 (기본 훅매듭)',
+    use: '에기·루어에 라인을 직결할 때 가장 기본적인 매듭. 초보자 필수!',
+    diff: 'easy',
+    steps: [
+      '원줄 끝을 훅/에기 아이에 통과시켜 15cm 정도 뽑습니다.',
+      '뽑은 줄을 원줄에 5~6회 감아줍니다. 촘촘하게 감을수록 좋습니다.',
+      '감기 시작점에 생긴 고리에 끝줄을 통과시킵니다.',
+      '다시 큰 고리에도 통과시킵니다.',
+      '양끝을 잡고 천천히 당겨 조입니다. 조이기 전 침을 묻혀주면 마찰열 방지.',
+      '남은 줄은 2~3mm 남기고 잘라줍니다.'
+    ]
+  },
+  {
+    name: 'FG 노트 (PE ↔ 리더 연결)',
+    use: 'PE 원줄과 쇼크리더(나일론/플루오로) 연결. 에깅에서 가장 중요한 매듭!',
+    diff: 'hard',
+    steps: [
+      '리더를 팽팽하게 잡고 PE 줄을 엇갈리게 교차하며 20회 감아줍니다. (좌우 번갈아)',
+      '감은 부분 위에 PE로 하프히치(반매듭) 4~5회 추가합니다.',
+      '반대 방향으로 하프히치 4~5회 추가합니다.',
+      '마무리 하프히치 2회로 고정합니다.',
+      'PE와 리더 남은 부분을 1~2mm 남기고 잘라줍니다.',
+      '처음에는 어렵지만 반복 연습하면 빠르게 익힐 수 있습니다!'
+    ]
+  },
+  {
+    name: '팔로마 노트 (강력한 훅매듭)',
+    use: '루어·훅에 직결. 강도가 높아 대물 낚시에도 사용. 간단하면서 강합니다.',
+    diff: 'easy',
+    steps: [
+      '원줄을 두 겹으로 접어 훅의 아이에 통과시킵니다.',
+      '두 겹 줄로 엄지·검지 크기의 고리를 만듭니다.',
+      '고리 안에 훅을 통과시킵니다.',
+      '두 줄 끝과 원줄을 함께 잡고 천천히 조입니다.',
+      '조이기 전 침을 묻혀 마찰열을 방지합니다.',
+      '2~3mm 남기고 잘라 마무리합니다.'
+    ]
+  },
+  {
+    name: '데드 노트 (리더 연결)',
+    use: 'PE와 리더 연결에 사용하는 간단한 매듭. FG가 어려울 때 대안.',
+    diff: 'mid',
+    steps: [
+      'PE와 리더 끝을 각각 30cm씩 겹쳐놓습니다.',
+      '두 줄을 함께 잡고 큰 고리를 만듭니다.',
+      '두 줄 끝을 고리 안에 5회 통과시킵니다.',
+      '양쪽 줄을 천천히 당겨 조입니다.',
+      '조이기 전 침을 묻혀 부드럽게 합니다.',
+      '남은 줄은 3~5mm 남기고 잘라줍니다.'
+    ]
+  },
+  {
+    name: '유니 노트 (도래·스냅 연결)',
+    use: '도래, 스냅, 링에 원줄을 연결할 때. 쉽고 강한 매듭.',
+    diff: 'easy',
+    steps: [
+      '원줄을 도래·스냅에 통과시켜 15cm 뽑습니다.',
+      '원줄과 나란히 접어 이중으로 만듭니다.',
+      '접힌 부분을 함께 잡고 고리를 만든 후 끝줄로 5~6회 감습니다.',
+      '끝줄을 처음 만든 고리에 통과시킵니다.',
+      '천천히 당겨 조이며 도래 쪽으로 밀어줍니다.',
+      '2~3mm 남기고 잘라 완성합니다.'
+    ]
+  }
+];
+
+const BOAT_DATA = {
+  '거제': [
+    { name: '거제 블루피쉬호', fish: '무늬오징어·문어', depart: '장승포항', price: '1인 6만원~', web: 'https://sunsung24.com' },
+    { name: '거제 에깅마스터호', fish: '무늬오징어 전용', depart: '고현항', price: '1인 7만원~', web: 'https://sunsung24.com' },
+    { name: '아쿠아프린세스호', fish: '갑오징어·한치', depart: '일운면 구조라', price: '1인 5만원~', web: 'https://sunsung24.com' },
+  ],
+  '통영': [
+    { name: '통영 남해낚시호', fish: '한치·무늬오징어', depart: '통영항', price: '1인 6만원~', web: 'https://sunsung24.com' },
+    { name: '통영 이순신호', fish: '문어·갑오징어', depart: '미수동 선착장', price: '1인 5만원~', web: 'https://sunsung24.com' },
+  ],
+  '고성': [
+    { name: '고성 공룡호', fish: '갑오징어·주꾸미', depart: '자란만', price: '1인 4만원~', web: 'https://sunsung24.com' },
+    { name: '고성 하이낚시호', fish: '문어·무늬오징어', depart: '당항포', price: '1인 5만원~', web: 'https://sunsung24.com' },
+  ],
+  '남해': [
+    { name: '남해 보물섬호', fish: '무늬오징어·한치', depart: '남해 창선선착장', price: '1인 6만원~', web: 'https://sunsung24.com' },
+    { name: '남해 플라이피쉬호', fish: '갑오징어·주꾸미', depart: '미조항', price: '1인 5만원~', web: 'https://sunsung24.com' },
+  ],
+  '사천': [
+    { name: '사천 삼천포호', fish: '갑오징어·주꾸미', depart: '삼천포항', price: '1인 4만원~', web: 'https://sunsung24.com' },
+    { name: '사천 실안낚시호', fish: '문어·에깅', depart: '실안선착장', price: '1인 4만5천원~', web: 'https://sunsung24.com' },
+  ],
+  '창원': [
+    { name: '창원 진해만호', fish: '갑오징어·문어', depart: '진해 용원', price: '1인 5만원~', web: 'https://sunsung24.com' },
+    { name: '창원 마산호', fish: '주꾸미·갑오징어', depart: '마산항', price: '1인 4만원~', web: 'https://sunsung24.com' },
+  ],
+  '부산': [
+    { name: '부산 대왕낚시호', fish: '무늬오징어·문어', depart: '기장 대변항', price: '1인 7만원~', web: 'https://sunsung24.com' },
+    { name: '부산 해운대블루호', fish: '한치·갑오징어', depart: '해운대 미포', price: '1인 6만원~', web: 'https://sunsung24.com' },
+    { name: '부산 감천항낚시호', fish: '문어·주꾸미', depart: '감천항', price: '1인 5만원~', web: 'https://sunsung24.com' },
+  ],
+  '울산': [
+    { name: '울산 방어진호', fish: '무늬오징어·문어', depart: '방어진항', price: '1인 7만원~', web: 'https://sunsung24.com' },
+    { name: '울산 강동낚시호', fish: '한치·갑오징어', depart: '강동항', price: '1인 6만원~', web: 'https://sunsung24.com' },
+    { name: '울산 정자항호', fish: '갑오징어·주꾸미', depart: '정자항', price: '1인 5만원~', web: 'https://sunsung24.com' },
+  ],
+};
+
+const WALK_SPOTS = [
+  { region:'거제', name:'장승포 방파제', icon:'🏖', fish:['무늬오징어','문어'], desc:'거제 동쪽 장승포 외항 방파제. 야간 에깅 명소. 테트라포드 주변 무늬오징어 시즌(봄·가을) 조황 우수.' },
+  { region:'거제', name:'외도 인근 갯바위', icon:'🪨', fish:['무늬오징어'], desc:'외도 주변 갯바위. 봄철 무늬오징어 산란 포인트. 조류 빠르므로 주의.' },
+  { region:'통영', name:'통영 서호항 방파제', icon:'🏖', fish:['갑오징어','한치'], desc:'통영 서호항 방파제. 집어등 주변 한치 야간낚시 명소. 10~11월 갑오징어도 풍성.' },
+  { region:'통영', name:'사량도 갯바위', icon:'🪨', fish:['무늬오징어'], desc:'사량도 섬 내 갯바위. 에깅 명소로 유명. 도선 이용 접근.' },
+  { region:'남해', name:'미조항 방파제', icon:'🏖', fish:['무늬오징어','갑오징어'], desc:'미조항 방파제 및 인근 갯바위. 에깅 조황이 꾸준하고 초보자도 즐길 수 있는 환경.' },
+  { region:'부산', name:'기장 대변항 방파제', icon:'🏖', fish:['무늬오징어','문어'], desc:'기장군 대변항 방파제. 에깅·문어 낚시 명소. 새벽·야간 조황 우수.' },
+  { region:'부산', name:'영도 절영해안 산책로', icon:'🏖', fish:['갑오징어','문어'], desc:'영도 북쪽 절영해안. 접근성 좋은 도보 낚시터. 가을 갑오징어 시즌 인기.' },
+  { region:'울산', name:'방어진 도구해수욕장', icon:'🏖', fish:['무늬오징어','한치'], desc:'울산 방어진 인근 모래해변 및 방파제. 에깅과 야간 한치낚시 포인트. 여름~가을 시즌 활성.' },
+  { region:'울산', name:'강동 화암추 갯바위', icon:'🪨', fish:['무늬오징어'], desc:'울산 강동해변 북쪽 화암추 갯바위. 에깅 명포인트. 봄·가을 무늬오징어 조황 우수.' },
+  { region:'거제', name:'지심도 갯바위', icon:'🪨', fish:['무늬오징어','문어'], desc:'거제 지심도(동백섬) 갯바위. 도선 이용. 청정 환경의 프리미엄 낚시 포인트.' },
+];
+
+const GLOSSARY = [
+  { term:'에깅(Eging)', def:'오징어류(무늬오징어, 갑오징어 등)를 에기(새우 모양 루어)로 낚는 방법. 일본어 에기(餌木)에서 유래.' },
+  { term:'샤쿠리(저킹)', def:'로드를 빠르게 들어올려 에기를 급상승시키는 액션. 오징어의 어택을 유도하는 핵심 동작.' },
+  { term:'폴(Fall)', def:'에기가 자유낙하하며 내려가는 상태. 대부분의 어택은 폴 중에 발생한다.' },
+  { term:'쇼크리더', def:'PE 원줄 끝에 연결하는 나일론/플루오로 카본 줄. 마찰과 충격 흡수용.' },
+  { term:'PE 줄', def:'폴리에틸렌 합사. 늘어남이 없어 감도가 높고 가볍다. 에깅의 표준 원줄.' },
+  { term:'플루오로카본', def:'굴절률이 물과 비슷해 수중에서 거의 보이지 않는 줄. 쇼크리더로 많이 사용.' },
+  { term:'봉돌(싱커)', def:'채비를 가라앉히는 납추. 무게에 따라 호수로 표기 (1호=3.75g).' },
+  { term:'도래', def:'줄 꼬임을 방지하는 회전 연결 부품. 에기 위에 연결해 사용하기도 함.' },
+  { term:'착저', def:'루어나 채비가 바닥에 닿는 것. 바닥층 어종 공략의 시작점.' },
+  { term:'챔질(훅셋)', def:'물고기나 두족류가 미끼를 물었을 때 로드를 들어올려 훅을 박는 동작.' },
+  { term:'조류', def:'바닷물의 흐름. 낚시 성패를 좌우하는 가장 중요한 요소 중 하나.' },
+  { term:'물때', def:'조수의 간만 상태. 음력으로 계산하며 조금·무시·한사리로 구분.' },
+  { term:'조금', def:'조수 간만의 차가 가장 작은 시기(음력 7일, 22일경). 조류가 느려 낚시하기 좋은 날.' },
+  { term:'한사리', def:'조수 간만의 차가 가장 큰 시기(음력 보름, 그믐경). 조류가 강하다.' },
+  { term:'선상낚시', def:'낚시 전용 선박(선사)을 이용해 외해 포인트로 나가는 낚시 방식.' },
+];
+
+const SEASON_DATA = [
+  { name:'문어',        spId:'octopus',    months:[1,1,1,1,1,0,0,1,1,1,1,1] },
+  { name:'한치',        spId:'squid-han',  months:[0,0,0,0,0,1,1,1,1,0,0,0] },
+  { name:'주꾸미',      spId:'webfoot',    months:[0,0,0,0,0,0,0,0,1,1,1,0] },
+  { name:'무늬오징어',  spId:'bigfin',     months:[0,0,1,1,1,0,0,0,1,1,1,0] },
+  { name:'갑오징어',    spId:'cuttlefish', months:[0,0,0,0,0,0,0,0,1,1,1,1] },
+  { name:'화살촉오징어', spId:'arrow',     months:[0,0,0,0,0,1,1,1,1,1,1,0] },
+  { name:'살오징어',    spId:'saury',      months:[0,0,0,1,1,1,1,1,1,1,0,0] },
+];
+
+const REGION_COORDS = {
+  '거제': { lat:34.8799, lon:128.6211 },
+  '통영': { lat:34.8544, lon:128.4332 },
+  '사천': { lat:34.9381, lon:128.0644 },
+  '부산': { lat:35.1796, lon:129.0756 },
+  '울산': { lat:35.5384, lon:129.3114 },
+};
+const _wxCache = {};
+function _wmoToDesc(c) {
+  if (c===0) return '맑음'; if (c<=2) return '구름조금'; if (c===3) return '흐림';
+  if (c<=49) return '안개'; if (c<=59) return '이슬비'; if (c<=69) return '비';
+  if (c<=79) return '눈'; if (c<=82) return '소나기'; if (c<=99) return '뇌우';
+  return '알수없음';
+}
+
+const TIDE_MOCK = {
+  '거제': { cur:'320cm', type:'7', fish:'⭐⭐⭐ 좋음', high:'06:42', low:'12:38', sun:'05:22', set:'19:48' },
+  '통영': { cur:'280cm', type:'9', fish:'⭐⭐ 보통',  high:'07:15', low:'13:10', sun:'05:23', set:'19:49' },
+  '사천': { cur:'270cm', type:'11', fish:'⭐ 나쁨',   high:'07:30', low:'13:28', sun:'05:22', set:'19:48' },
+  '부산': { cur:'300cm', type:'6', fish:'⭐⭐⭐ 좋음', high:'06:50', low:'12:48', sun:'05:19', set:'19:45' },
+  '울산': { cur:'290cm', type:'7', fish:'⭐⭐⭐ 좋음', high:'06:58', low:'12:55', sun:'05:18', set:'19:44' },
+};
+
+// ============================================================
+// APP LOGIC
+// ============================================================
+
+let svgInsertCount = 0;
+function getSvg(sp) {
+  // SVG를 삽입할 때마다 gradient id에 고유 suffix를 붙여 중복 방지
+  const uid = ++svgInsertCount;
+  return sp.svgPath
+    .replace(/id="sp-oct-g"/g, `id="sp-oct-g-${uid}"`)
+    .replace(/url\(#sp-oct-g\)/g, `url(#sp-oct-g-${uid})`)
+    .replace(/id="sp-han-g"/g, `id="sp-han-g-${uid}"`)
+    .replace(/url\(#sp-han-g\)/g, `url(#sp-han-g-${uid})`)
+    .replace(/id="sp-juk-g"/g, `id="sp-juk-g-${uid}"`)
+    .replace(/url\(#sp-juk-g\)/g, `url(#sp-juk-g-${uid})`)
+    .replace(/id="sp-mun-g"/g, `id="sp-mun-g-${uid}"`)
+    .replace(/url\(#sp-mun-g\)/g, `url(#sp-mun-g-${uid})`)
+    .replace(/id="sp-cut-g"/g, `id="sp-cut-g-${uid}"`)
+    .replace(/url\(#sp-cut-g\)/g, `url(#sp-cut-g-${uid})`)
+    .replace(/id="sp-arr-g"/g, `id="sp-arr-g-${uid}"`)
+    .replace(/url\(#sp-arr-g\)/g, `url(#sp-arr-g-${uid})`)
+    .replace(/id="sp-sau-g"/g, `id="sp-sau-g-${uid}"`)
+    .replace(/url\(#sp-sau-g\)/g, `url(#sp-sau-g-${uid})`);
+}
+
+let currentRegion = '거제';
+let currentPage = 'home';
+
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelector(`.nav-btn[data-page="${page}"]`).classList.add('active');
+  document.getElementById('main').scrollTop = 0;
+  currentPage = page;
+}
+
+async function updateWeather(region) {
+  const t = TIDE_MOCK[region] || TIDE_MOCK['거제'];
+  document.getElementById('w-region-name').textContent = '📍 ' + region;
+  document.getElementById('t-cur').textContent = t.cur;
+  document.getElementById('t-type').textContent = t.type + '물';
+  document.getElementById('t-fish').textContent = t.fish;
+  document.getElementById('t-high').textContent = t.high;
+  document.getElementById('t-low').textContent = t.low;
+  document.getElementById('t-sun').textContent = t.sun;
+  document.getElementById('t-set').textContent = t.set;
+  const now = Date.now();
+  if (_wxCache[region] && (now - _wxCache[region].ts) < 5*60*1000) {
+    _applyWeatherUI(_wxCache[region].data); return;
+  }
+  document.getElementById('w-temp').textContent = '--°';
+  document.getElementById('w-desc').textContent = '불러오는 중…';
+  document.getElementById('hw-text').textContent = region + ' 로딩중';
+  const {lat, lon} = REGION_COORDS[region] || REGION_COORDS['거제'];
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
+    + `&current=temperature_2m,apparent_temperature,weathercode,windspeed_10m,relativehumidity_2m,visibility,wave_height`
+    + `&wind_speed_unit=ms&timezone=Asia%2FSeoul`;
+  try {
+    const res = await fetch(url);
+    const json = await res.json();
+    const c = json.current;
+    const data = {
+      temp: Math.round(c.temperature_2m),
+      feelslike: Math.round(c.apparent_temperature),
+      desc: _wmoToDesc(c.weathercode),
+      wind: c.windspeed_10m != null ? c.windspeed_10m.toFixed(1) : '--',
+      wave: c.wave_height != null ? c.wave_height.toFixed(1) : '--',
+      hum: c.relativehumidity_2m != null ? Math.round(c.relativehumidity_2m) : '--',
+      vis: c.visibility != null ? (c.visibility/1000).toFixed(0) : '--',
+    };
+    _wxCache[region] = {ts: now, data};
+    _applyWeatherUI(data);
+  } catch(e) {
+    document.getElementById('w-desc').textContent = '날씨 오류';
+    document.getElementById('hw-text').textContent = region + ' 날씨 오류';
+  }
+}
+function _applyWeatherUI(w) {
+  document.getElementById('w-temp').textContent = w.temp + '°';
+  document.getElementById('w-desc').textContent = w.desc;
+  document.getElementById('w-feelslike').textContent = '체감 ' + w.feelslike + '°';
+  document.getElementById('w-wind').textContent = w.wind + ' m/s';
+  document.getElementById('w-wave').textContent = w.wave + ' m';
+  document.getElementById('w-hum').textContent = w.hum + ' %';
+  document.getElementById('w-vis').textContent = w.vis + ' km';
+  document.getElementById('hw-text').textContent = document.getElementById('w-region-name').textContent.replace('📍 ','') + ' ' + w.temp + '° ' + w.desc;
+}
+
+function buildSeasonStrip() {
+  const now = new Date().getMonth(); // 0-based
+  const strip = document.getElementById('season-strip');
+  strip.innerHTML = '';
+  SEASON_DATA.forEach(s => {
+    const isPeak = s.months[now] === 1;
+    const sp = SPECIES_DATA.find(d => d.name === s.name);
+    const icon = sp ? `<div class="s-icon">${getSvg(sp)}</div>` : `<div style="font-size:28px;line-height:1">${s.icon}</div>`;
+    strip.innerHTML += `
+      <div class="season-item">
+        ${icon}
+        <div class="s-name">${s.name}</div>
+        <div class="s-badge ${isPeak ? '' : 'off'}">${isPeak ? '시즌중' : '비시즌'}</div>
+      </div>`;
+  });
+}
+
+function buildSeasonCal() {
+  const tbody = document.getElementById('season-cal-body');
+  tbody.innerHTML = '';
+  const now = new Date().getMonth();
+  SEASON_DATA.forEach(s => {
+    const sp = SPECIES_DATA.find(d => d.id === s.spId);
+    // SVG를 24px 미니 아이콘으로 축소
+    const iconSvg = sp ? getSvg(sp) : '';
+    const iconCell = sp
+      ? '<div style="width:28px;height:28px;flex-shrink:0;">' + iconSvg + '</div>'
+      : '<span style="font-size:18px;">🦑</span>';
+    let row = '<tr>'
+      + '<td style="padding:3px 4px;text-align:center;">' + iconCell + '</td>'
+      + '<td class="cal-name">' + s.name + '</td>';
+    s.months.forEach(function(m, i) {
+      const isNow = i === now;
+      const cls = m ? 'peak' : 'off';
+      const style = (isNow && m) ? 'outline:2px solid #FF6B6B;outline-offset:-1px;border-radius:8px;' : '';
+      row += '<td><div class="cal-bar ' + cls + '" style="' + style + '"></div></td>';
+    });
+    row += '</tr>';
+    tbody.innerHTML += row;
+  });
+}
+
+function buildSpeciesGrid() {
+  const grid = document.getElementById('species-grid');
+  grid.innerHTML = '';
+  const now = new Date().getMonth();
+  SPECIES_DATA.forEach(sp => {
+    const isPeak = sp.season[now] === 1;
+    grid.innerHTML += `
+      <div class="species-card" onclick="openSpeciesModal('${sp.id}')">
+        <div class="sp-badge">${sp.badge}</div>
+        <div class="sp-svg">${getSvg(sp)}</div>
+        <div class="sp-name">${sp.name}</div>
+        <div class="sp-sub">${sp.sub}</div>
+        <div class="sp-info-row">
+          <span class="sp-info-tag" style="${isPeak ? 'background:var(--mint);color:#fff' : ''}">
+            ${isPeak ? '🟢 시즌중' : '⚪ 비시즌'}
+          </span>
+          <span class="sp-info-tag">📏 ${sp.size.split(' ')[0]}</span>
+        </div>
+        <div class="sp-info-row">
+          <span class="sp-info-tag">🌊 ${sp.depth}</span>
+        </div>
+        <button class="sp-detail-btn" onclick="event.stopPropagation(); openSpeciesModal('${sp.id}')">상세정보 보기 →</button>
+      </div>`;
+  });
+}
+
+function openSpeciesModal(id) {
+  const sp = SPECIES_DATA.find(s => s.id === id);
+  if (!sp) return;
+  const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const now = new Date().getMonth();
+  const isPeak = sp.season[now] === 1;
+  const peakList = sp.season.map((v,i) => v ? months[i] : null).filter(Boolean).join(', ');
+  // 시즌 바 시각화
+  const monthBars = sp.season.map((v,i) => {
+    const isNow = i === now;
+    const style = v
+      ? (isNow ? `background:var(--coral);outline:2px solid var(--ink)` : `background:var(--ocean)`)
+      : `background:var(--border)`;
+    return `<div title="${months[i]}" style="flex:1;height:10px;border-radius:4px;${style}"></div>`;
+  }).join('');
+
+  document.getElementById('modal-content').innerHTML = `
+    <div class="modal-sp-header">
+      <div class="modal-sp-icon">${getSvg(sp)}</div>
+      <div class="modal-sp-info">
+        <div class="modal-title">${sp.name}</div>
+        <div class="modal-sub">${sp.nameEn}<br>${sp.sub}</div>
+        <div class="modal-badge-row">
+          <span class="modal-badge ${isPeak ? 'peak' : ''}">${isPeak ? '🟢 현재 시즌중' : '⚪ 현재 비시즌'}</span>
+          <span class="modal-badge">${sp.badge}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">📅 연간 시즌</div>
+      <div style="display:flex;gap:3px;margin-bottom:6px;align-items:center">${monthBars}</div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:10px">
+        <span>1월</span><span>4월</span><span>7월</span><span>10월</span><span>12월</span>
+      </div>
+      <div class="info-row">
+        <span class="info-tag">⭐ 피크 : ${sp.peakMonths}</span>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">🌊 서식 정보</div>
+      <div class="info-row">
+        <span class="info-tag">📏 ${sp.size}</span>
+        <span class="info-tag">🌊 수심 : ${sp.depth}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-tag">🪨 ${sp.habitat}</span>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">💡 낚시 팁</div>
+      <div class="modal-tip-box">${sp.tips}</div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">⛔ 규정 / 금어기</div>
+      <div style="background:#fff0f0;border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;font-weight:700;color:var(--coral);border-left:3px solid var(--coral)">${sp.prohibited}</div>
+    </div>`;
+  document.getElementById('species-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('species-modal').classList.remove('open');
+}
+
+function buildKnots() {
+  var list = document.getElementById('knot-list');
+  if (!list) return;
+  list.innerHTML = '';
+  var diffMap = { easy:'쉬움', mid:'보통', hard:'어려움' };
+  KNOT_DATA.forEach(function(k, i) {
+    var stepsHtml = '';
+    k.steps.forEach(function(s, j) {
+      var svgEl = document.getElementById('ksvg-'+i+'-'+j);
+      var svgHtml = svgEl ? '<div style="margin-bottom:6px;border-radius:6px;border:1px solid var(--border);overflow:hidden;background:#f8fbff;">'+svgEl.innerHTML+'</div>' : '';
+      stepsHtml += '<div class="knot-step"><div class="step-num">'+(j+1)+'</div>'
+        +'<div style="flex:1;">'+svgHtml+'<div class="step-text">'+s+'</div></div></div>';
+    });
+    list.innerHTML += '<div class="knot-item" id="knot-'+i+'">'
+      +'<div class="knot-header" onclick="toggleKnot('+i+')">'
+      +'<div class="k-left"><div class="k-num">'+(i+1)+'</div><div class="k-title">'+k.name+'</div></div>'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+      +'<span class="k-diff '+k.diff+'">'+diffMap[k.diff]+'</span>'
+      +'<span class="knot-chevron">▼</span></div></div>'
+      +'<div class="knot-body"><div class="knot-use">📌 사용처 : '+k.use+'</div>'
+      +'<div class="knot-steps">'+stepsHtml+'</div></div></div>';
+  });
+}
+function toggleKnot(i) {
+  const el = document.getElementById('knot-' + i);
+  el.classList.toggle('open');
+}
+
+function buildBoats() {
+  const container = document.getElementById('marina-panels-container');
+  container.innerHTML = '';
+  Object.keys(BOAT_DATA).forEach(region => {
+    const boats = BOAT_DATA[region].map(b => `
+      <div class="boat-card">
+        <div class="b-header">
+          <div class="b-name">${b.name}</div>
+          <span class="b-region">${region}</span>
+        </div>
+        <div class="b-info">📍 ${b.depart} · 💰 ${b.price}</div>
+        <div class="b-tags">
+          ${b.fish.split('·').map(f => `<span class="b-tag">🎣 ${f.trim()}</span>`).join('')}
+        </div>
+        <div class="b-actions">
+          <a href="${b.web}" target="_blank" class="b-btn web" style="background:var(--ocean);color:#fff;">🌐 선상24에서 예약</a>
+        </div>
+      </div>`).join('');
+    container.innerHTML += `<div class="marina-panel ${region === '거제' ? 'active' : ''}" id="mr-${region}">${boats}</div>`;
+  });
+}
+
+function buildWalkSpots() {
+  const FMAP = {
+    '문어':'octopus','한치':'squid-han','주꾸미':'webfoot',
+    '무늬오징어':'bigfin','갑오징어':'cuttlefish',
+    '화살촉오징어':'arrow','화살촉':'arrow','살오징어':'saury',
+  };
+  const list = document.getElementById('walk-spots-list');
+  list.innerHTML = '';
+  WALK_SPOTS.forEach(s => {
+    const fishTags = s.fish.map(f => {
+      const sp = SPECIES_DATA.find(d => d.id === FMAP[f]);
+      const icon = sp
+        ? `<span style="display:inline-block;width:18px;height:18px;vertical-align:middle;">${getSvg(sp)}</span>`
+        : '🎣';
+      return `<span class="ws-tag">${icon} ${f}</span>`;
+    }).join('');
+    list.innerHTML += `
+      <div class="walk-spot">
+        <div class="ws-header">
+          <span class="ws-icon">${s.icon}</span>
+          <div><div class="ws-name">${s.name}</div><div class="ws-region">${s.region}</div></div>
+        </div>
+        <div class="ws-tags">${fishTags}</div>
+        <div class="ws-desc">${s.desc}</div>
+      </div>`;
+  });
+}
+
+function buildGlossary() {
+  const list = document.getElementById('glossary-list');
+  list.innerHTML = '';
+  GLOSSARY.forEach(g => {
+    list.innerHTML += `
+      <div class="glossary-item">
+        <div class="g-term">${g.term}</div>
+        <div class="g-def">${g.def}</div>
+      </div>`;
+  });
+}
+
+// ============================================================
+// EVENT LISTENERS
+// ============================================================
+
+// Bottom nav
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => navigate(btn.dataset.page));
+});
+
+// Region chips
+document.getElementById('region-selector').addEventListener('click', e => {
+  const chip = e.target.closest('.region-chip');
+  if (!chip || chip.id === 'region-search-btn') return;
+  document.querySelectorAll('.region-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  currentRegion = chip.dataset.region;
+  updateWeather(currentRegion);
+  document.getElementById('region-search-panel').style.display = 'none';
+});
+
+// ── Windy 포인트 날씨 ────────────────────────────────────────────────────
+(function setupWindySearch() {
+  try {
+
+  var STORAGE_KEY = 'fishing_points_v2';
+  var DEFAULT_PTS = [
+    { name:'거제 장승포', lat:34.836, lon:128.693, fish:'무늬오징어·문어' },
+    { name:'통영 서호항', lat:34.845, lon:128.430, fish:'갑오징어·한치' },
+    { name:'사천 삼천포', lat:34.923, lon:128.064, fish:'갑오징어·주꾸미' },
+    { name:'부산 대변항', lat:35.244, lon:129.222, fish:'무늬오징어·문어' },
+    { name:'울산 방어진', lat:35.491, lon:129.437, fish:'무늬오징어·한치' },
+  ];
+
+  function loadPts() {
+    try { var s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s) : DEFAULT_PTS.slice(); }
+    catch(e) { return DEFAULT_PTS.slice(); }
+  }
+  function savePts(p) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch(e) {} }
+
+  var points = loadPts();
+  var panelReady = false;
+  var pickMap = null, pickMarker = null;
+  var pickedLat = null, pickedLon = null;
+  var currentWindyExt = '';
+
+  // ── 패널 토글 ────────────────────────────────────────────────────────
+  document.getElementById('region-search-btn').addEventListener('click', function() {
+    var panel = document.getElementById('region-search-panel');
+    var opening = (panel.style.display === 'none' || panel.style.display === '');
+    panel.style.display = opening ? 'block' : 'none';
+    if (opening && !panelReady) { panelReady = true; bindEvents(); renderPins(); }
+    if (opening) { setTimeout(function(){ initPickMap(); }, 80); }
+  });
+  document.querySelectorAll('.region-chip:not(#region-search-btn)').forEach(function(c) {
+    c.addEventListener('click', function() {
+      document.getElementById('region-search-panel').style.display = 'none';
+    });
+  });
+
+  // ── 이벤트 바인딩 ────────────────────────────────────────────────────
+  function bindEvents() {
+
+    // ＋ 포인트 추가 버튼
+    document.getElementById('add-point-toggle').addEventListener('click', function() {
+      var form = document.getElementById('add-point-form');
+      var opening = (form.style.display === 'none' || form.style.display === '');
+      form.style.display = opening ? 'block' : 'none';
+      if (opening) { setTimeout(function(){ initPickMap(); }, 50); }
+    });
+
+    // 취소
+    document.getElementById('new-pt-cancel').addEventListener('click', function() {
+      closeForm();
+    });
+
+    // 저장
+    document.getElementById('new-pt-save').addEventListener('click', function() {
+      var name = document.getElementById('new-pt-name').value.trim();
+      var fish = document.getElementById('new-pt-fish').value.trim() || '두족류';
+      if (!name)       { alert('포인트 이름을 입력해주세요.'); return; }
+      if (!pickedLat)  { alert('지도에서 위치를 먼저 탭해주세요.'); return; }
+      points.push({ name:name, lat:pickedLat, lon:pickedLon, fish:fish });
+      savePts(points);
+      closeForm();
+      renderPins();
+      if (typeof addPtMarkers === 'function') addPtMarkers();
+    });
+  }
+
+  function closeForm() {
+    document.getElementById('add-point-form').style.display = 'none';
+    document.getElementById('new-pt-name').value = '';
+    document.getElementById('new-pt-fish').value = '';
+    document.getElementById('pick-coord-bar').style.display = 'none';
+    pickedLat = null; pickedLon = null;
+    if (pickMarker && pickMap) { pickMap.removeLayer(pickMarker); pickMarker = null; }
+  }
+
+  // ── Leaflet 지도 초기화 ──────────────────────────────────────────────
+  function initPickMap() {
+    if (pickMap) { setTimeout(function(){ pickMap.invalidateSize(); }, 50); return; }
+    if (typeof L==='undefined') { var el=document.getElementById('leaflet-pick-map'); if(el) el.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#eef4f9;color:#4BA3CC;font-size:12px;font-weight:700;">🗺 지도는 배포 환경에서 이용 가능</div>'; return; }
+
+    pickMap = L.map('leaflet-pick-map', { zoomControl: true, attributionControl: false })
+      .setView([34.95, 128.5], 8);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 17
+    }).addTo(pickMap);
+
+    // 포인트 마커 (번호 아이콘)
+    var ptMarkers = [];
+    function addPtMarkers() {
+      ptMarkers.forEach(function(m){ pickMap.removeLayer(m); }); ptMarkers=[];
+      points.forEach(function(pt, i) {
+        var marker = L.marker([pt.lat, pt.lon], {
+          icon: L.divIcon({ className:'', html:'<div style="background:#4BA3CC;color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);">'+(i+1)+'</div>', iconSize:[24,24], iconAnchor:[12,12] })
+        }).addTo(pickMap);
+        marker.bindPopup('<b>'+pt.name+'</b><br><small>'+pt.fish+'</small>');
+        marker.on('click', function(){ selectPoint(pt); });
+        ptMarkers.push(marker);
+      });
+    }
+    addPtMarkers();
+
+    // 지도 클릭 → 핀 꽂기
+    pickMap.on('click', function(e) {
+      var lat = e.latlng.lat, lon = e.latlng.lng;
+      pickedLat = parseFloat(lat.toFixed(5));
+      pickedLon = parseFloat(lon.toFixed(5));
+
+      if (pickMarker) pickMap.removeLayer(pickMarker);
+      pickMarker = L.marker([lat, lon], {
+        icon: L.divIcon({
+          className: '',
+          html: '<div style="background:#FF6B6B;width:18px;height:18px;border-radius:50% 50% 50% 0;'
+              + 'border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);'
+              + 'transform:rotate(-45deg);"></div>',
+          iconSize: [18, 18], iconAnchor: [9, 18]
+        })
+      }).addTo(pickMap);
+
+      var bar = document.getElementById('pick-coord-bar');
+      bar.style.display = 'block';
+      document.getElementById('pick-coord-text').textContent =
+        lat.toFixed(4) + ', ' + lon.toFixed(4) + ' — 이름을 입력 후 저장';
+    });
+  }
+
+  // ── 포인트 목록 렌더링 ───────────────────────────────────────────────
+  function renderPins() {
+    var wrap = document.getElementById('quick-pins');
+    wrap.innerHTML = '';
+    if (points.length === 0) {
+      wrap.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:8px;">포인트를 추가해주세요.</div>';
+      return;
+    }
+    points.forEach(function(pt, i) {
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:6px;';
+
+      var btn = document.createElement('button');
+      btn.innerHTML =
+        '<span style="background:var(--ocean);color:#fff;border-radius:50%;width:18px;height:18px;'
+        + 'display:inline-flex;align-items:center;justify-content:center;font-size:9px;'
+        + 'margin-right:6px;flex-shrink:0;">' + (i + 1) + '</span>'
+        + '<span style="flex:1;text-align:left;">' + pt.name + '</span>'
+        + '<span style="font-size:10px;color:var(--muted);margin-left:6px;white-space:nowrap;">🎣 ' + pt.fish + '</span>';
+      btn.dataset.idx = i;
+      btn.style.cssText = 'display:flex;align-items:center;flex:1;padding:8px 12px;'
+        + 'border-radius:var(--radius-sm);border:1.5px solid var(--border);'
+        + 'background:var(--sky);color:var(--deep);font-size:12px;font-weight:700;'
+        + 'cursor:pointer;transition:all .15s;text-align:left;';
+      btn.addEventListener('click', function() {
+        wrap.querySelectorAll('[data-idx]').forEach(function(b) {
+          b.style.background = 'var(--sky)'; b.style.color = 'var(--deep)';
+          b.style.borderColor = 'var(--border)';
+        });
+        btn.style.background = 'var(--ocean)'; btn.style.color = '#fff';
+        btn.style.borderColor = 'var(--ocean)';
+        selectPoint(pt);
+      });
+
+      var del = document.createElement('button');
+      del.innerHTML = '🗑';
+      del.title = i < DEFAULT_PTS.length ? '기본 포인트는 삭제할 수 없습니다' : '삭제';
+      del.style.cssText = 'padding:6px 8px;border-radius:var(--radius-sm);font-size:13px;'
+        + 'border:1.5px solid var(--border);background:#fff;flex-shrink:0;'
+        + (i < DEFAULT_PTS.length ? 'opacity:0.3;cursor:not-allowed;' : 'cursor:pointer;');
+      del.disabled = (i < DEFAULT_PTS.length);
+      (function(idx) {
+        del.addEventListener('click', function() {
+          if (idx < DEFAULT_PTS.length) return;
+          points.splice(idx, 1);
+          savePts(points);
+          renderPins();
+          if (typeof addPtMarkers === 'function') addPtMarkers();
+        });
+      })(i);
+
+      var memo = document.createElement('button');
+      memo.innerHTML = '📝';
+      memo.title = '조황 메모';
+      memo.style.cssText = 'padding:6px 8px;border-radius:var(--radius-sm);font-size:13px;border:1.5px solid var(--border);background:#fff;flex-shrink:0;cursor:pointer;';
+      (function(ptRef) { memo.addEventListener('click', function() { openMemoSheet(ptRef); }); })(pt);
+      row.appendChild(btn);
+      row.appendChild(memo);
+      row.appendChild(del);
+      wrap.appendChild(row);
+    });
+  }
+
+  // ── Windy embed ──────────────────────────────────────────────────────
+  function selectPoint(pt) {
+    document.getElementById('wx-panel').style.display = 'block';
+    document.getElementById('wx-pt-title').textContent = '📍 ' + pt.name;
+    if (typeof pickMap !== 'undefined' && pickMap) pickMap.setView([pt.lat, pt.lon], 11, {animate:true});
+
+    // 🐙 Windy 버튼 링크
+    var windyUrl = 'https://www.windy.com/'
+      + pt.lat.toFixed(3) + '/' + pt.lon.toFixed(3)
+      + '?wind,' + pt.lat.toFixed(2) + ',' + pt.lon.toFixed(2) + ',10';
+    document.getElementById('open-windy-ext').onclick = function() {
+      window.open(windyUrl, '_blank');
+    };
+
+    fetchWx(pt.lat, pt.lon);
+  }
+
+  async function fetchWx(lat, lon) {
+    document.getElementById('wx-now-icon').textContent = '⏳';
+    document.getElementById('wx-now-temp').textContent = '--°';
+    document.getElementById('wx-now-desc').textContent = '불러오는 중…';
+    document.getElementById('wx-now-extra').innerHTML = '';
+    document.getElementById('wx-tbl').innerHTML = '';
+    document.getElementById('wx-date-hdr').innerHTML = '';
+
+    try {
+      var res = await fetch(
+        'https://api.open-meteo.com/v1/forecast'
+        + '?latitude='  + lat.toFixed(4)
+        + '&longitude=' + lon.toFixed(4)
+        + '&current=temperature_2m,apparent_temperature,weather_code,'
+        + 'wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation'
+        + '&hourly=temperature_2m,precipitation,wind_speed_10m,wind_gusts_10m,'
+        + 'wind_direction_10m,weather_code,wave_height'
+        + '&wind_speed_unit=ms&forecast_days=3&timezone=Asia%2FSeoul'
+      );
+      if (!res.ok) throw new Error(res.status);
+      var d = await res.json();
+      var c = d.current;
+      var wd = wmo(c.weather_code);
+
+      // 현재 날씨 요약
+      document.getElementById('wx-now-icon').textContent = wd.i;
+      document.getElementById('wx-now-temp').textContent = c.temperature_2m + '°C';
+      document.getElementById('wx-now-desc').textContent = wd.t;
+      document.getElementById('wx-now-extra').innerHTML =
+        '💨 ' + c.wind_speed_10m + ' m/s ' + dir(c.wind_direction_10m) + '<br>'
+        + '💥 돌풍 ' + c.wind_gusts_10m + ' m/s<br>'
+        + '🌡 체감 ' + c.apparent_temperature + '°C'
+        + (c.precipitation > 0 ? '<br>🌧 ' + c.precipitation + ' mm' : '');
+
+      // 시간별 데이터
+      var times  = d.hourly.time;
+      var TEMPS  = d.hourly.temperature_2m;
+      var PREC   = d.hourly.precipitation;
+      var WIND   = d.hourly.wind_speed_10m;
+      var GUST   = d.hourly.wind_gusts_10m;
+      var WDIR   = d.hourly.wind_direction_10m;
+      var WC     = d.hourly.weather_code;
+      var WAVE   = d.hourly.wave_height;
+
+      // 3시간 간격 슬롯
+      var slots = [];
+      for (var i = 0; i < times.length && slots.length < 18; i++) {
+        if (new Date(times[i]).getHours() % 3 === 0) slots.push(i);
+      }
+
+      // 날짜 헤더
+      var dateMap = {}, dateOrder = [];
+      slots.forEach(function(idx) {
+        var dt = new Date(times[idx]);
+        var key = ['일','월','화','수','목','금','토'][dt.getDay()]
+          + ' ' + (dt.getMonth()+1) + '/' + dt.getDate();
+        if (!dateMap[key]) { dateMap[key] = 0; dateOrder.push(key); }
+        dateMap[key]++;
+      });
+      var hdr = document.getElementById('wx-date-hdr');
+      hdr.style.gridTemplateColumns = '50px repeat(' + slots.length + ', 38px)';
+      var hdrHtml = '<div style="padding:5px 4px;"></div>';
+      dateOrder.forEach(function(k) {
+        hdrHtml += '<div style="grid-column:span ' + dateMap[k] + ';padding:5px 2px;'
+          + 'text-align:center;border-left:1px solid var(--border);">' + k + '</div>';
+      });
+      hdr.innerHTML = hdrHtml;
+
+      // 바람 색상
+      function wc(v) {
+        return v>=14?'#c62828':v>=10?'#e65100':v>=7?'#f57f17':v>=4?'#2e7d32':'#0277bd';
+      }
+      function wbg(v) {
+        return v>=14?'rgba(198,40,40,.13)':v>=10?'rgba(230,81,0,.11)':
+               v>=7?'rgba(245,127,23,.11)':v>=4?'rgba(46,125,50,.09)':'rgba(2,119,189,.09)';
+      }
+      // 파고 색상
+      function wavec(v) {
+        return v>=2?'#c62828':v>=1?'#e65100':v>=0.5?'#f57f17':'#0277bd';
+      }
+      // 기온 색상
+      function tempc(t) {
+        var r = Math.round(Math.min(Math.max((t-10)/20,0),1)*220);
+        return 'rgb('+r+',80,'+(220-r)+')';
+      }
+      // 풍향 화살표
+      function wdarr(deg) {
+        return ['↓','↙','←','↖','↑','↗','→','↘'][Math.round(deg/45)%8];
+      }
+
+      var LBL = 'position:sticky;left:0;background:var(--foam);z-index:2;'
+        + 'padding:5px 6px;font-size:10px;font-weight:700;color:var(--muted);'
+        + 'white-space:nowrap;border-right:1px solid var(--border);min-width:50px;'
+        + 'border-bottom:1px solid var(--border);';
+      var CELL = 'padding:5px 2px;text-align:center;font-size:11px;font-weight:700;'
+        + 'width:38px;border-left:1px solid #eef4f9;border-bottom:1px solid var(--border);';
+
+      var ROWS = [
+        { l:'시간', k:'time' },
+        { l:'날씨', k:'icon' },
+        { l:'기온°C', k:'temp' },
+        { l:'비 mm', k:'prec' },
+        { l:'바람 m/s', k:'wind' },
+        { l:'돌풍 m/s', k:'gust' },
+        { l:'파고 m', k:'wave' },
+        { l:'풍향', k:'wdir' },
+      ];
+
+      var tbody = '';
+      ROWS.forEach(function(row) {
+        tbody += '<tr>';
+        tbody += '<td style="' + LBL + '">' + row.l + '</td>';
+        slots.forEach(function(idx) {
+          var dt = new Date(times[idx]);
+          var h = dt.getHours();
+          var isNight = h < 6 || h >= 21;
+          var style = CELL + (isNight ? 'background:#f8f9fc;' : '');
+          var cell = '';
+
+          if (row.k === 'time') {
+            cell = '<span style="font-size:10px;font-weight:900;color:'+(isNight?'#7986cb':'var(--deep)')+';">' + h + '시</span>';
+          } else if (row.k === 'icon') {
+            cell = '<span style="font-size:15px;">' + wmo(WC[idx]).i + '</span>';
+          } else if (row.k === 'temp') {
+            cell = '<span style="color:' + tempc(TEMPS[idx]) + ';">' + TEMPS[idx] + '°</span>';
+          } else if (row.k === 'prec') {
+            var p = PREC[idx];
+            cell = p > 0
+              ? '<span style="color:#1565c0;font-size:10px;">' + p.toFixed(1) + '</span>'
+              : '<span style="color:#cfd8dc;">—</span>';
+          } else if (row.k === 'wind') {
+            var w = WIND[idx];
+            style += 'background:' + wbg(w) + ';';
+            cell = '<span style="color:' + wc(w) + ';">' + w.toFixed(1) + '</span>';
+          } else if (row.k === 'gust') {
+            var g = GUST[idx];
+            style += 'background:' + wbg(g) + ';';
+            cell = '<span style="color:' + wc(g) + ';">' + g.toFixed(1) + '</span>';
+          } else if (row.k === 'wave') {
+            var wv = WAVE ? WAVE[idx] : null;
+            cell = wv != null
+              ? '<span style="color:' + wavec(wv) + ';">' + wv.toFixed(1) + '</span>'
+              : '<span style="color:#cfd8dc;">—</span>';
+          } else if (row.k === 'wdir') {
+            cell = '<span style="font-size:15px;color:var(--deep);" title="' + WDIR[idx] + '°">'
+              + wdarr(WDIR[idx]) + '</span>';
+          }
+          tbody += '<td style="' + style + '">' + cell + '</td>';
+        });
+        tbody += '</tr>';
+      });
+      document.getElementById('wx-tbl').innerHTML = '<tbody>' + tbody + '</tbody>';
+
+    } catch(e) {
+      document.getElementById('wx-now-desc').textContent = '⚠️ 날씨를 불러올 수 없습니다.';
+    }
+  }
+
+  function wmo(c) {
+    var m={0:['☀️','맑음'],1:['🌤','대체로 맑음'],2:['⛅','구름조금'],3:['☁️','흐림'],
+      45:['🌫','안개'],48:['🌫','짙은 안개'],51:['🌦','이슬비'],53:['🌦','이슬비'],
+      55:['🌧','강한 이슬비'],61:['🌧','비'],63:['🌧','비'],65:['🌧','강한 비'],
+      71:['🌨','눈'],73:['🌨','눈'],75:['❄️','강한 눈'],80:['🌦','소나기'],
+      81:['🌧','소나기'],82:['⛈','강한 소나기'],95:['⛈','뇌우'],99:['⛈','뇌우+우박']};
+    var v=m[c]||['🌡','코드'+c]; return {i:v[0],t:v[1]};
+  }
+  function dir(d) {
+    return ['N','NE','E','SE','S','SW','W','NW'][Math.round(d/45)%8];
+  }
+
+
+
+  } catch(e) { console.warn('SW:', e); }
+})();
+
+
+
+
+
+// 조황 메모
+var MEMO_KEY = 'fishing_memo_v1';
+var currentMemoPoint = null;
+function loadMemos() {
+  try { var s = localStorage.getItem(MEMO_KEY); return s ? JSON.parse(s) : {}; } catch(e) { return {}; }
+}
+function saveMemos(m) { try { localStorage.setItem(MEMO_KEY, JSON.stringify(m)); } catch(e) {} }
+function openMemoSheet(pt) {
+  currentMemoPoint = pt;
+  document.getElementById('memo-point-name').textContent = '📍 ' + pt.name + ' (' + pt.fish + ')';
+  document.getElementById('memo-input').value = '';
+  document.getElementById('memo-catch').value = '';
+  renderMemoList(pt);
+  document.getElementById('memo-sheet').classList.add('open');
+}
+function closeMemoSheet() {
+  document.getElementById('memo-sheet').classList.remove('open');
+  currentMemoPoint = null;
+}
+function doSaveMemo() {
+  if (!currentMemoPoint) return;
+  var text = document.getElementById('memo-input').value.trim();
+  if (!text) { alert('내용을 입력해주세요.'); return; }
+  var fish = document.getElementById('memo-catch').value.trim();
+  var memos = loadMemos();
+  var key = currentMemoPoint.name;
+  if (!memos[key]) memos[key] = [];
+  memos[key].unshift({
+    date: new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
+    text: text, fish: fish
+  });
+  saveMemos(memos);
+  document.getElementById('memo-input').value = '';
+  document.getElementById('memo-catch').value = '';
+  renderMemoList(currentMemoPoint);
+}
+function doDeleteMemo(ptName, idx) {
+  var memos = loadMemos();
+  if (!memos[ptName]) return;
+  memos[ptName].splice(idx, 1);
+  saveMemos(memos);
+  if (currentMemoPoint && currentMemoPoint.name === ptName) renderMemoList(currentMemoPoint);
+}
+function renderMemoList(pt) {
+  var memos = loadMemos();
+  var list = document.getElementById('memo-list');
+  var entries = memos[pt.name] || [];
+  if (!entries.length) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;">아직 기록이 없습니다 🎣</div>';
+    return;
+  }
+  list.innerHTML = '';
+  entries.forEach(function(e, i) {
+    var div = document.createElement('div');
+    div.className = 'memo-entry';
+    div.innerHTML = '<div class="me-date">' + e.date + '</div>'
+      + '<div class="me-text">' + e.text + '</div>'
+      + (e.fish ? '<div class="me-fish">🎣 ' + e.fish + '</div>' : '');
+    var del = document.createElement('span');
+    del.className = 'memo-del';
+    del.textContent = '삭제';
+    (function(idx2) { del.addEventListener('click', function() { doDeleteMemo(pt.name, idx2); }); })(i);
+    div.insertBefore(del, div.firstChild);
+    list.appendChild(div);
+  });
+}
+// 이벤트 등록
+document.getElementById('memo-close-btn').addEventListener('click', closeMemoSheet);
+document.getElementById('memo-save-btn').addEventListener('click', doSaveMemo);
+document.getElementById('memo-sheet').addEventListener('click', function(e) {
+  if (e.target === this) closeMemoSheet();
+});
+
+document.getElementById('stats-close-btn').addEventListener('click', closeStatsSheet);
+document.getElementById('stats-sheet').addEventListener('click', function(e){ if(e.target===this) closeStatsSheet(); });
+document.getElementById('open-stats-btn').addEventListener('click', openStatsSheet);
+function buildMethodInInfo() {
+  const container = document.getElementById('method-panels-inner');
+  if (!container || container.innerHTML.trim()) return;
+  ['선상','도보','어종별'].forEach(function(key) {
+    const src = document.getElementById('mp-' + key);
+    if (!src) return;
+    const div = document.createElement('div');
+    div.id = 'imp-' + key;
+    div.className = 'method-panel' + (key === '선상' ? ' active' : '');
+    div.innerHTML = src.innerHTML;
+    container.appendChild(div);
+  });
+  document.getElementById('method-tabs-inner').querySelectorAll('.method-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.getElementById('method-tabs-inner').querySelectorAll('.method-tab').forEach(t => t.classList.remove('active'));
+      container.querySelectorAll('.method-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      const panel = document.getElementById('imp-' + tab.dataset.mt);
+      if (panel) panel.classList.add('active');
+    });
+  });
+}
+function checkProhibitedAlert() {
+  const today = new Date();
+  const mm = today.getMonth() + 1;
+  const dd = today.getDate();
+  const alerts = [];
+  if ((mm === 5 && dd >= 11) || mm === 6 || mm === 7 || mm === 8)
+    alerts.push('🐙 주꾸미 금어기 중 (5/11~8/31)');
+  if (mm === 5)
+    alerts.push('🏹 화살촉오징어 금어기 중 (5/1~5/31)');
+  if (mm === 4 || mm === 5)
+    alerts.push('🦑 살오징어 금어기 중 (4/1~5/31)');
+  const el = document.getElementById('prohibited-alert');
+  if (alerts.length > 0 && el) {
+    el.style.display = 'block';
+    el.innerHTML = '⛔ <strong>오늘 금어기:</strong> ' + alerts.join(' · ');
+  }
+}
+
+
+// 낚시방법 통합
+
+
+// ============================================================
+// 매듭법 정보탭 — 단계별 SVG 삽화 포함
+// ============================================================
+const KNOT_SVG_DATA = {
+  '클린치': {
+    info: { purpose:['에기·루어에 라인 직결','초보자 필수 기본 매듭'], feature:['5~6회 감아 마찰력 극대화','누구나 5분이면 완성'], caution:'침을 묻혀 천천히 조여야 마찰열 방지!', tip:'감는 횟수가 많을수록 강해집니다 (최대 8회)' },
+    youtube: 'https://www.youtube.com/results?search_query=클린치노트+낚시+묶는법',
+    steps: []
+  },
+  'FG': {
+    info: { purpose:['PE줄 ↔ 쇼크리더 직결','에깅·지깅 필수 매듭 1순위'], feature:['결속강도 거의 100% 유지','당길수록 더 조여지는 구조'], caution:'리더를 팽팽하게 유지하며 감아야 풀리지 않음!', tip:'처음엔 어렵지만 반복하면 2분 안에 완성' },
+    youtube: 'https://www.youtube.com/results?search_query=FG노트+낚시+묶는법',
+    steps: []
+  },
+  '팔로마': {
+    info: { purpose:['루어·훅 직결 (굵은 라인)','대물 낚시 최강 결속력'], feature:['미끄러짐(Slip) 완벽 차단','구조적 안정성 최고'], caution:'고리가 너무 작으면 훅이 통과 안 됨 — 넉넉하게!', tip:'침 묻혀 조이면 열변형 없이 100% 강도 유지' },
+    youtube: 'https://www.youtube.com/results?search_query=팔로마노트+낚시+묶는법',
+    steps: []
+  },
+  '데드': {
+    info: { purpose:['PE ↔ 리더 간단 연결','FG 어려울 때 현장 대안'], feature:['초보자도 3분 완성','현장에서 빠르게 묶기 가능'], caution:'FG보다 강도 낮음 — 일반 낚시에 적합', tip:'두 줄을 항상 함께 움직이는 것이 핵심!' },
+    youtube: 'https://www.youtube.com/results?search_query=데드노트+낚시+묶는법',
+    steps: []
+  },
+  '유니': {
+    info: { purpose:['도래·스냅·링에 원줄 연결','범용성 최고 — 모든 연결에 사용'], feature:['직관적 구조 — 입문자 최적','4단계로 완성되는 간단 매듭'], caution:'마찰열 주의! 반드시 침이나 물 묻혀 조이기', tip:'조이면서 도래 방향으로 밀어줘야 단단히 고정' },
+    youtube: 'https://www.youtube.com/results?search_query=유니노트+낚시+묶는법',
+    steps: []
+  }
+};
+
+function buildKnotsInInfo() {
+  var list = document.getElementById('knot-list-info');
+  if (!list || list.innerHTML.trim()) return;
+
+  var diffMap   = { easy:'쉬움', mid:'보통', hard:'어려움' };
+  var diffColor = { easy:'#d4edda|#155724', mid:'#fff3cd|#856404', hard:'#f8d7da|#721c24' };
+  var svgKeys   = ['클린치','FG','팔로마','데드','유니'];
+
+  var html = '';
+  KNOT_DATA.forEach(function(k, i) {
+    var dc   = (diffColor[k.diff]||'#eee|#333').split('|');
+    var ksvg = KNOT_SVG_DATA[svgKeys[i]] || {};
+    var info = ksvg.info || {};
+    var ytUrl = ksvg.youtube || '';
+
+    // 정보 카드
+    var infoCard = '';
+    if (info.purpose) {
+      infoCard = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">'
+        + '<div style="background:linear-gradient(135deg,#EBF5FB,#D6EAF8);border-radius:10px;padding:10px 12px;border:1px solid #AED6F1;">'
+        + '<div style="font-size:10px;font-weight:700;color:#1A5276;margin-bottom:6px;">🎯 용도</div>'
+        + info.purpose.map(function(p){ return '<div style="font-size:11px;color:#1A5276;font-weight:600;line-height:1.6;">• '+p+'</div>'; }).join('')
+        + '</div>'
+        + '<div style="background:linear-gradient(135deg,#EAFAF1,#D5F5E3);border-radius:10px;padding:10px 12px;border:1px solid #A9DFBF;">'
+        + '<div style="font-size:10px;font-weight:700;color:#1E8449;margin-bottom:6px;">⭐ 특징</div>'
+        + info.feature.map(function(f){ return '<div style="font-size:11px;color:#1E8449;font-weight:600;line-height:1.6;">• '+f+'</div>'; }).join('')
+        + '</div></div>'
+        + '<div style="background:#FEF9E7;border-radius:8px;padding:8px 12px;margin-bottom:8px;border-left:3px solid #F39C12;display:flex;gap:6px;">'
+        + '<span>⚠️</span><div>'
+        + '<div style="font-size:10px;font-weight:700;color:#D35400;margin-bottom:2px;">주의사항</div>'
+        + '<div style="font-size:11px;color:#7D6608;font-weight:600;">'+info.caution+'</div></div></div>'
+        + '<div style="background:#EBF5FB;border-radius:8px;padding:8px 12px;margin-bottom:12px;border-left:3px solid #3498DB;display:flex;gap:6px;">'
+        + '<span>💡</span><div>'
+        + '<div style="font-size:10px;font-weight:700;color:#1A5276;margin-bottom:2px;">꿀팁</div>'
+        + '<div style="font-size:11px;color:#1A5276;font-weight:600;">'+info.tip+'</div></div></div>';
+    }
+
+    // 단계별 설명 (텍스트)
+    var stepsHtml = '';
+    k.steps.forEach(function(s, j) {
+      stepsHtml += '<div style="display:flex;gap:10px;margin-bottom:12px;">'
+        + '<div style="width:24px;height:24px;border-radius:50%;background:var(--ocean);color:#fff;font-size:11px;font-weight:900;flex-shrink:0;display:flex;align-items:center;justify-content:center;">'+(j+1)+'</div>'
+        + '<div style="font-size:12px;line-height:1.7;color:var(--ink);padding-top:2px;">'+s+'</div>'
+        + '</div>';
+    });
+
+    // 유튜브 버튼
+    var ytBtn = ytUrl
+      ? '<a href="'+ytUrl+'" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#FF0000;color:white;border-radius:10px;padding:12px;text-decoration:none;font-size:13px;font-weight:700;margin-top:4px;">'
+        + '<svg width="20" height="14" viewBox="0 0 20 14" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M19.6 2.2C19.4 1.4 18.8.8 18 .6 16.4.2 10 .2 10 .2s-6.4 0-8 .4C1.2.8.6 1.4.4 2.2 0 3.8 0 7 0 7s0 3.2.4 4.8C.6 12.6 1.2 13.2 2 13.4c1.6.4 8 .4 8 .4s6.4 0 8-.4c.8-.2 1.4-.8 1.6-1.6C20 10.2 20 7 20 7s0-3.2-.4-4.8zM8 10V4l5.3 3L8 10z"/></svg>'
+        + '유튜브에서 묶는법 보기</a>'
+      : '';
+
+    html += '<div class="knot-item" id="ki-info-'+i+'">'
+      + '<div class="knot-header" data-knot-info="'+i+'" style="padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">'
+      + '<div style="display:flex;align-items:center;gap:10px;">'
+      + '<div style="width:32px;height:32px;border-radius:50%;background:var(--ocean);color:#fff;font-size:14px;font-weight:900;display:flex;align-items:center;justify-content:center;">'+(i+1)+'</div>'
+      + '<div><div style="font-size:15px;font-weight:700;">'+k.name+'</div>'
+      + '<div style="font-size:10px;color:var(--muted);margin-top:1px;">'+k.use+'</div></div>'
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:8px;">'
+      + '<span style="font-size:10px;padding:3px 8px;border-radius:10px;font-weight:700;white-space:nowrap;background:'+dc[0]+';color:'+dc[1]+';">'+diffMap[k.diff]+'</span>'
+      + '<span class="knot-chevron" style="font-size:12px;color:var(--muted);">▼</span>'
+      + '</div></div>'
+      + '<div class="knot-body" style="padding:0 14px 16px;">'
+      + infoCard
+      + (stepsHtml ? '<div style="font-size:11px;font-weight:900;color:#fff;margin-bottom:10px;padding:6px 10px;background:var(--ocean);border-radius:6px;text-align:center;">📋 단계별 묶는 법</div>' + stepsHtml : '')
+      + ytBtn
+      + '</div></div>';
+  });
+
+  list.innerHTML = html;
+
+  list.querySelectorAll('[data-knot-info]').forEach(function(header) {
+    header.addEventListener('click', function() {
+      header.closest('.knot-item').classList.toggle('open');
+    });
+  });
+}
+
+// 지도 이동
+function selectPointMap(pt) {
+  if (typeof pickMap !== 'undefined' && pickMap) pickMap.setView([pt.lat, pt.lon], 11, {animate:true});
+}
+
+// 바람 화살표
+var _windLayer = null;
+function drawWindArrows(map, lat, lon, spd, dir) {
+  if (typeof L==='undefined'||!map) return;
+  if (_windLayer) { map.removeLayer(_windLayer); _windLayer=null; }
+  if (!spd||!dir) return;
+  var spread=0.08, deg=(dir+180)%360, speed=parseFloat(spd);
+  var color=speed<5?'#52C4A0':speed<10?'#FFD166':speed<15?'#FF6B6B':'#c0392b';
+  var positions=[[lat,lon],[lat+spread,lon+spread],[lat-spread,lon-spread],[lat+spread,lon-spread],[lat-spread,lon+spread],[lat,lon+spread*1.5],[lat,lon-spread*1.5],[lat+spread*1.5,lon],[lat-spread*1.5,lon]];
+  var markers=positions.map(function(pos){
+    return L.marker(pos,{icon:L.divIcon({className:'',html:'<div style="transform:rotate('+deg+'deg);font-size:16px;color:'+color+';line-height:1;">➤</div>',iconSize:[20,20],iconAnchor:[10,10]}),interactive:false});
+  });
+  _windLayer=L.layerGroup(markers).addTo(map);
+}
+
+// 통계 시트
+function openStatsSheet() { buildStatsContent(); document.getElementById('stats-sheet').classList.add('open'); }
+function closeStatsSheet() { document.getElementById('stats-sheet').classList.remove('open'); }
+function buildStatsContent() {
+  var memos=loadMemos(), container=document.getElementById('stats-content'), keys=Object.keys(memos);
+  if (!keys.length) { container.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">📝 아직 기록이 없습니다</div>'; return; }
+  var MONTHS=['1','2','3','4','5','6','7','8','9','10','11','12'];
+  var total=keys.reduce(function(s,k){return s+memos[k].length;},0);
+  var html='<div style="background:linear-gradient(135deg,var(--deep),var(--ocean));border-radius:var(--radius);padding:14px;color:#fff;margin-bottom:14px;">'
+    +'<div style="font-size:11px;opacity:.8;margin-bottom:4px;">📊 전체 기록</div>'
+    +'<div style="font-size:28px;font-weight:900;">'+total+'건</div>'
+    +'<div style="font-size:11px;opacity:.8;">'+keys.length+'개 포인트</div></div>';
+  keys.forEach(function(ptName) {
+    var entries=memos[ptName]; if(!entries.length) return;
+    var monthMap={};
+    entries.forEach(function(e){var m=parseInt((e.date||'').split('.')[1])-1;if(!isNaN(m)&&m>=0&&m<12){monthMap[m]=(monthMap[m]||0)+1;}});
+    var grid=MONTHS.map(function(n,i){var cnt=monthMap[i]||0;return '<div style="background:'+(cnt?'var(--ocean)':'var(--foam)')
+      +';color:'+(cnt?'#fff':'var(--muted)')
+      +';border-radius:4px;padding:3px 1px;text-align:center;font-size:9px;font-weight:700;border:1px solid var(--border);">'
+      +n+'월'+(cnt?'<br><b>'+cnt+'</b>':'')+'</div>';}).join('');
+    html+='<div style="background:var(--sky);border-radius:var(--radius);padding:14px;margin-bottom:10px;border:1px solid var(--border);">'
+      +'<div style="font-size:14px;font-weight:900;color:var(--ink);margin-bottom:8px;">📍 '+ptName+'</div>'
+      +'<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:8px;">'+grid+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);">총 '+entries.length+'건</div></div>';
+  });
+  container.innerHTML=html;
+}
+
+// Method tabs
+document.querySelectorAll('#page-method .method-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('#page-method .method-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('#page-method .method-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('mp-' + tab.dataset.mt).classList.add('active');
+  });
+});
+
+// Tackle tabs — 동적으로 생성 후 이벤트 등록
+function buildTackleTabs() {
+  const TACKLE_LIST = [
+    { key: '문어',       label: '문어',      spId: 'octopus'    },
+    { key: '한치',       label: '한치',      spId: 'squid-han'  },
+    { key: '주꾸미',     label: '주꾸미',    spId: 'webfoot'    },
+    { key: '무늬',       label: '무늬오징어', spId: 'bigfin'    },
+    { key: '갑오징어',   label: '갑오징어',  spId: 'cuttlefish' },
+    { key: '화살촉오징어', label: '화살촉',  spId: 'arrow'      },
+    { key: '살오징어',   label: '살오징어',  spId: 'saury'      },
+  ];
+  const container = document.getElementById('tackle-tabs-container');
+  container.innerHTML = '';
+  TACKLE_LIST.forEach((t, i) => {
+    const sp = SPECIES_DATA.find(s => s.id === t.spId);
+    const svg = sp ? '<div class="tt-icon">' + getSvg(sp) + '</div>' : '';
+    const btn = document.createElement('button');
+    btn.className = 'tackle-tab' + (i === 0 ? ' active' : '');
+    btn.dataset.tt = t.key;
+    btn.innerHTML = svg + '<span class="tt-name">' + t.label + '</span>';
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tackle-tab').forEach(tb => tb.classList.remove('active'));
+      document.querySelectorAll('.tackle-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tp-' + t.key).classList.add('active');
+    });
+    container.appendChild(btn);
+  });
+}
+
+
+// ============================================================
+// 어종 아이콘 패치
+// ============================================================
+const FISH_NAME_TO_ID = {
+  '문어':'octopus','한치':'squid-han','주꾸미':'webfoot',
+  '무늬오징어':'bigfin','갑오징어':'cuttlefish',
+  '화살촉오징어':'arrow','화살촉':'arrow','살오징어':'saury',
+};
+function patchTackleCardIcons() {
+  const MAP = {
+    '문어':'octopus','한치':'squid-han','주꾸미':'webfoot',
+    '무늬':'bigfin','갑오징어':'cuttlefish','화살촉오징어':'arrow','살오징어':'saury',
+  };
+  Object.entries(MAP).forEach(([key, spId]) => {
+    const panel = document.getElementById('tp-' + key);
+    if (!panel) return;
+    const sp = SPECIES_DATA.find(s => s.id === spId);
+    if (!sp) return;
+    panel.querySelectorAll('.tackle-card').forEach(card => {
+      const tName = card.querySelector('.t-name');
+      if (!tName || tName.textContent.includes('색상 가이드')) return;
+      const el = card.querySelector('.t-icon');
+      if (!el) return;
+      el.style.cssText = 'width:32px;height:32px;display:inline-block;vertical-align:middle;font-size:0;';
+      el.innerHTML = getSvg(sp);
+    });
+  });
+}
+function patchProhibitedCardIcons() {
+  document.querySelectorAll('.p-icon[data-fish]').forEach(el => {
+    const sp = SPECIES_DATA.find(s => s.id === el.dataset.fish);
+    if (!sp) return;
+    el.style.cssText = 'width:28px;height:28px;display:inline-block;vertical-align:middle;font-size:0;';
+    el.innerHTML = getSvg(sp);
+  });
+}
+
+// Info tabs
+document.querySelectorAll('.info-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.info-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.info-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('ip-' + tab.dataset.it).classList.add('active');
+    if (tab.dataset.it === '방법') buildMethodInInfo();
+    if (tab.dataset.it === '매듭') buildKnotsInInfo();
+  });
+});
+
+// Marina region tabs
+document.getElementById('marina-region-tabs').addEventListener('click', e => {
+  const tab = e.target.closest('.marina-region-tab');
+  if (!tab) return;
+  document.querySelectorAll('.marina-region-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.marina-panel').forEach(p => p.classList.remove('active'));
+  tab.classList.add('active');
+  const panel = document.getElementById('mr-' + tab.dataset.mr);
+  if (panel) panel.classList.add('active');
+});
+
+// Modal overlay close
+document.getElementById('species-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('species-modal')) closeModal();
+});
+
+// ============================================================
+// INIT
+// ============================================================
+window.navigate = navigate;
+window.openSpeciesModal = openSpeciesModal;
+window.closeModal = closeModal;
+window.toggleKnot = toggleKnot;
+
+
+(function init() {
+  updateWeather('거제');
+  buildSeasonStrip();
+  buildSeasonCal();
+  buildSpeciesGrid();
+  buildTackleTabs();
+  patchTackleCardIcons();
+  patchProhibitedCardIcons();
+  buildKnots();
+  buildBoats();
+  buildWalkSpots();
+  buildGlossary();
+  checkProhibitedAlert();
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+  }
+})();
+</script>
+
+<!-- 매듭 SVG (hidden) -->
+<div style="display:none;" aria-hidden="true">
+  <div id="ksvg-0-0"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">① 아이에 줄 통과 후 15cm 뽑기</text><ellipse cx="30" cy="40" rx="11" ry="7" fill="none" stroke="#4BA3CC" stroke-width="2.5"/><path d="M41 40 Q80 22 130 40 Q155 52 185 40" fill="none" stroke="#1A6E99" stroke-width="2.5" stroke-linecap="round"/><path d="M41 40 Q80 58 130 40 Q155 28 175 40" fill="none" stroke="#52C4A0" stroke-width="2" stroke-linecap="round" stroke-dasharray="4,3"/><text x="155" y="62" text-anchor="middle" font-size="9" fill="#52C4A0" font-family="sans-serif">뽑은 끝줄</text></svg></div>
+  <div id="ksvg-0-1"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">② 원줄에 5~6회 감기</text><ellipse cx="28" cy="38" rx="11" ry="7" fill="none" stroke="#4BA3CC" stroke-width="2.5"/><path d="M39 38 L175 38" fill="none" stroke="#1A6E99" stroke-width="2.5"/><ellipse cx="80" cy="38" rx="5" ry="11" fill="none" stroke="#52C4A0" stroke-width="1.8"/><ellipse cx="100" cy="38" rx="5" ry="11" fill="none" stroke="#52C4A0" stroke-width="1.8"/><ellipse cx="120" cy="38" rx="5" ry="11" fill="none" stroke="#52C4A0" stroke-width="1.8"/><ellipse cx="140" cy="38" rx="5" ry="11" fill="none" stroke="#52C4A0" stroke-width="1.8"/><ellipse cx="160" cy="38" rx="5" ry="11" fill="none" stroke="#52C4A0" stroke-width="1.8"/><text x="120" y="62" text-anchor="middle" font-size="9" fill="#52C4A0" font-family="sans-serif">5회 완료</text></svg></div>
+  <div id="ksvg-0-2"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">③ 아이 옆 고리에 통과</text><ellipse cx="28" cy="38" rx="11" ry="7" fill="none" stroke="#4BA3CC" stroke-width="2.5"/><path d="M39 38 L165 38" fill="none" stroke="#1A6E99" stroke-width="2.5"/><ellipse cx="90" cy="38" rx="5" ry="11" fill="none" stroke="#52C4A0" stroke-width="1.8"/><ellipse cx="110" cy="38" rx="5" ry="11" fill="none" stroke="#52C4A0" stroke-width="1.8"/><ellipse cx="130" cy="38" rx="5" ry="11" fill="none" stroke="#52C4A0" stroke-width="1.8"/><path d="M165 38 Q172 20 55 22 Q46 22 46 32" fill="none" stroke="#FF6B6B" stroke-width="2" stroke-dasharray="4,2"/><circle cx="46" cy="33" r="3" fill="#FF6B6B"/><text x="130" y="62" text-anchor="middle" font-size="9" fill="#FF6B6B" font-family="sans-serif">고리 통과!</text></svg></div>
+  <div id="ksvg-0-3"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">④ 큰 고리에도 통과</text><ellipse cx="28" cy="38" rx="11" ry="7" fill="none" stroke="#4BA3CC" stroke-width="2.5"/><path d="M39 38 L155 38" fill="none" stroke="#1A6E99" stroke-width="2.5"/><ellipse cx="85" cy="38" rx="5" ry="11" fill="none" stroke="#52C4A0" stroke-width="1.8"/><ellipse cx="105" cy="38" rx="5" ry="11" fill="none" stroke="#52C4A0" stroke-width="1.8"/><ellipse cx="125" cy="38" rx="5" ry="11" fill="none" stroke="#52C4A0" stroke-width="1.8"/><path d="M155 38 Q165 16 95 12 Q28 8 24 30" fill="none" stroke="#FF6B6B" stroke-width="2" stroke-dasharray="4,2"/><circle cx="24" cy="31" r="3" fill="#FF6B6B"/><text x="110" y="62" text-anchor="middle" font-size="9" fill="#FF6B6B" font-family="sans-serif">큰 고리도 통과!</text></svg></div>
+  <div id="ksvg-0-4"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">⑤ 침 묻혀 양끝 잡고 조이기</text><path d="M18 38 L89 38" fill="none" stroke="#1A6E99" stroke-width="2.5"/><text x="10" y="42" font-size="12">←</text><circle cx="100" cy="38" r="8" fill="#FFD166" opacity="0.6"/><path d="M111 38 L182 38" fill="none" stroke="#52C4A0" stroke-width="2.5"/><text x="190" y="42" font-size="12">→</text><text x="100" y="62" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">천천히 조이기!</text></svg></div>
+  <div id="ksvg-0-5"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">⑥ 완성 — 2~3mm 남기고 자르기</text><ellipse cx="48" cy="38" rx="11" ry="7" fill="none" stroke="#4BA3CC" stroke-width="2.5"/><path d="M59 38 L88 38" fill="none" stroke="#1A6E99" stroke-width="2.5"/><circle cx="96" cy="38" r="8" fill="#52C4A0" opacity="0.8"/><path d="M104 38 L155 38" fill="none" stroke="#1A6E99" stroke-width="2.5"/><text x="163" y="42" font-size="14" text-anchor="middle">✂</text><text x="90" y="62" text-anchor="middle" font-size="9" fill="#52C4A0" font-family="sans-serif">✓ 완성!</text></svg></div>
+  <div id="ksvg-1-0"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">① PE줄·리더 팽팽하게 겹치기</text><path d="M10 28 L190 28" fill="none" stroke="#4BA3CC" stroke-width="2.5" stroke-linecap="round"/><path d="M10 46 L190 46" fill="none" stroke="#52C4A0" stroke-width="2.5" stroke-linecap="round"/><text x="50" y="20" font-size="8" fill="#4BA3CC" font-family="sans-serif">PE 원줄</text><text x="50" y="64" font-size="8" fill="#52C4A0" font-family="sans-serif">리더</text></svg></div>
+  <div id="ksvg-1-1"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">② PE로 20회 교차 감기</text><path d="M10 38 L190 38" fill="none" stroke="#52C4A0" stroke-width="2.5"/><path d="M55 26 Q65 38 75 50 Q85 38 95 26 Q105 38 115 50 Q125 38 135 26 Q145 38 155 50 Q165 38 175 26" fill="none" stroke="#4BA3CC" stroke-width="1.8"/><text x="115" y="64" text-anchor="middle" font-size="9" fill="#4BA3CC" font-family="sans-serif">20회</text></svg></div>
+  <div id="ksvg-1-2"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">③④ 하프히치 양방향 4~5회씩</text><path d="M10 38 L190 38" fill="none" stroke="#52C4A0" stroke-width="2.5"/><path d="M130 38 Q138 26 143 38 Q138 50 134 44 Q140 38 145 38" fill="none" stroke="#FF6B6B" stroke-width="2"/><path d="M155 38 Q163 26 168 38 Q163 50 159 44 Q165 38 170 38" fill="none" stroke="#FFD166" stroke-width="2"/><text x="100" y="64" text-anchor="middle" font-size="9" fill="#FF6B6B" font-family="sans-serif">반대 방향도 4~5회</text></svg></div>
+  <div id="ksvg-1-3"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">⑤⑥ 마무리 2회 후 완성</text><path d="M10 38 L78 38" fill="none" stroke="#52C4A0" stroke-width="2.5"/><rect x="78" y="30" width="46" height="16" rx="6" fill="#4BA3CC" opacity="0.7"/><text x="101" y="42" text-anchor="middle" font-size="8" fill="#fff" font-family="sans-serif">FG노트</text><path d="M124 38 L155 38" fill="none" stroke="#1A6E99" stroke-width="2.5"/><text x="163" y="42" font-size="14" text-anchor="middle">✂</text><text x="90" y="64" text-anchor="middle" font-size="9" fill="#52C4A0" font-family="sans-serif">✓ 완성!</text></svg></div>
+  <div id="ksvg-2-0"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">① 줄 두 겹으로 아이 통과</text><ellipse cx="100" cy="38" rx="13" ry="8" fill="none" stroke="#4BA3CC" stroke-width="2.5"/><path d="M10 34 Q55 24 87 34" fill="none" stroke="#1A6E99" stroke-width="2.5"/><path d="M10 42 Q55 52 87 42" fill="none" stroke="#52C4A0" stroke-width="2.5"/><path d="M113 34 L190 34" fill="none" stroke="#1A6E99" stroke-width="2.5"/><path d="M113 42 L190 42" fill="none" stroke="#52C4A0" stroke-width="2.5"/><text x="100" y="64" text-anchor="middle" font-size="9" fill="#4BA3CC" font-family="sans-serif">두 겹으로 통과!</text></svg></div>
+  <div id="ksvg-2-1"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">② 두 겹 줄로 고리 만들기</text><ellipse cx="45" cy="42" rx="13" ry="8" fill="none" stroke="#4BA3CC" stroke-width="2.5"/><path d="M58 38 Q90 18 128 38 Q155 52 128 52 Q100 58 58 46" fill="none" stroke="#1A6E99" stroke-width="2.5"/><path d="M128 46 L190 42" fill="none" stroke="#1A6E99" stroke-width="2.5"/><text x="130" y="64" text-anchor="middle" font-size="9" fill="#1A6E99" font-family="sans-serif">엄지 크기 고리</text></svg></div>
+  <div id="ksvg-2-2"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">③ 고리 안에 훅 통과</text><ellipse cx="155" cy="40" rx="13" ry="8" fill="none" stroke="#4BA3CC" stroke-width="2.5"/><path d="M10 38 Q70 20 105 30 Q128 36 142 40" fill="none" stroke="#1A6E99" stroke-width="2.5"/><path d="M128 18 Q148 8 153 28" fill="none" stroke="#FF6B6B" stroke-width="2"/><text x="80" y="64" text-anchor="middle" font-size="9" fill="#FF6B6B" font-family="sans-serif">고리 안으로 훅 통과!</text></svg></div>
+  <div id="ksvg-2-3"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">④⑤⑥ 조이면 완성</text><circle cx="80" cy="38" r="8" fill="#52C4A0" opacity="0.8"/><path d="M20 38 L72 38" fill="none" stroke="#1A6E99" stroke-width="2.5"/><text x="10" y="42" font-size="12">←</text><path d="M88 38 L155 38" fill="none" stroke="#1A6E99" stroke-width="2.5"/><text x="163" y="42" font-size="14" text-anchor="middle">✂</text><text x="90" y="64" text-anchor="middle" font-size="9" fill="#52C4A0" font-family="sans-serif">✓ 완성!</text></svg></div>
+  <div id="ksvg-3-0"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">① PE·리더 각 30cm씩 겹치기</text><path d="M10 32 L190 32" fill="none" stroke="#4BA3CC" stroke-width="2.5"/><path d="M10 46 L190 46" fill="none" stroke="#52C4A0" stroke-width="2.5"/><text x="110" y="64" text-anchor="middle" font-size="8" fill="#7A8FA0" font-family="sans-serif">30cm 겹침</text></svg></div>
+  <div id="ksvg-3-1"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">② 두 줄로 큰 고리 만들기</text><path d="M10 38 Q50 38 68 24 Q100 8 132 24 Q152 38 168 38" fill="none" stroke="#4BA3CC" stroke-width="2.5"/><path d="M168 40 L190 40" fill="none" stroke="#1A6E99" stroke-width="2.5"/><text x="100" y="64" text-anchor="middle" font-size="9" fill="#4BA3CC" font-family="sans-serif">두 줄 함께 고리로</text></svg></div>
+  <div id="ksvg-3-2"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">③ 끝줄을 고리에 5회 통과</text><ellipse cx="78" cy="38" rx="30" ry="18" fill="none" stroke="#4BA3CC" stroke-width="2"/><path d="M108 30 Q125 24 135 38 Q125 52 108 46" fill="none" stroke="#52C4A0" stroke-width="1.8"/><path d="M135 38 Q148 30 153 38 Q148 46 145 44" fill="none" stroke="#52C4A0" stroke-width="1.8"/><text x="140" y="64" text-anchor="middle" font-size="9" fill="#52C4A0" font-family="sans-serif">5회 통과</text></svg></div>
+  <div id="ksvg-3-3"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">④⑤⑥ 침 묻혀 조여 완성</text><circle cx="92" cy="38" r="13" fill="none" stroke="#4BA3CC" stroke-width="2.5"/><circle cx="92" cy="38" r="6" fill="#52C4A0" opacity="0.8"/><path d="M10 38 L79 38" fill="none" stroke="#1A6E99" stroke-width="2.5"/><text x="10" y="30" font-size="12">←</text><path d="M105 38 L155 38" fill="none" stroke="#52C4A0" stroke-width="2.5"/><text x="163" y="42" font-size="14" text-anchor="middle">✂</text><text x="90" y="64" text-anchor="middle" font-size="9" fill="#52C4A0" font-family="sans-serif">✓ 완성!</text></svg></div>
+  <div id="ksvg-4-0"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">① 도래에 줄 통과 15cm 뽑기</text><circle cx="100" cy="38" r="8" fill="none" stroke="#4BA3CC" stroke-width="2.5"/><path d="M10 38 L92 38" fill="none" stroke="#1A6E99" stroke-width="2.5"/><path d="M108 38 L190 38" fill="none" stroke="#1A6E99" stroke-width="2.5"/><path d="M108 38 Q145 24 180 32" fill="none" stroke="#52C4A0" stroke-width="2" stroke-dasharray="4,2"/><text x="155" y="22" text-anchor="middle" font-size="8" fill="#52C4A0" font-family="sans-serif">15cm</text></svg></div>
+  <div id="ksvg-4-1"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">② 원줄과 나란히 이중으로 접기</text><circle cx="38" cy="38" r="8" fill="none" stroke="#4BA3CC" stroke-width="2.5"/><path d="M46 34 L190 34" fill="none" stroke="#1A6E99" stroke-width="2.5"/><path d="M46 44 L190 44" fill="none" stroke="#52C4A0" stroke-width="2" stroke-dasharray="5,2"/><text x="120" y="62" text-anchor="middle" font-size="9" fill="#52C4A0" font-family="sans-serif">이중으로</text></svg></div>
+  <div id="ksvg-4-2"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">③ 고리 만들어 5~6회 감기</text><circle cx="28" cy="38" r="8" fill="none" stroke="#4BA3CC" stroke-width="2.5"/><path d="M36 38 L76 38" fill="none" stroke="#1A6E99" stroke-width="2.5"/><ellipse cx="94" cy="38" rx="5" ry="12" fill="none" stroke="#52C4A0" stroke-width="1.8"/><ellipse cx="110" cy="38" rx="5" ry="12" fill="none" stroke="#52C4A0" stroke-width="1.8"/><ellipse cx="126" cy="38" rx="5" ry="12" fill="none" stroke="#52C4A0" stroke-width="1.8"/><ellipse cx="142" cy="38" rx="5" ry="12" fill="none" stroke="#52C4A0" stroke-width="1.8"/><ellipse cx="158" cy="38" rx="5" ry="12" fill="none" stroke="#52C4A0" stroke-width="1.8"/><text x="126" y="64" text-anchor="middle" font-size="9" fill="#52C4A0" font-family="sans-serif">5~6회</text></svg></div>
+  <div id="ksvg-4-3"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">④ 끝줄을 처음 고리에 통과</text><circle cx="25" cy="38" r="8" fill="none" stroke="#4BA3CC" stroke-width="2.5"/><path d="M33 38 L68 38" fill="none" stroke="#1A6E99" stroke-width="2.5"/><ellipse cx="86" cy="38" rx="5" ry="12" fill="none" stroke="#52C4A0" stroke-width="1.5" opacity="0.5"/><ellipse cx="102" cy="38" rx="5" ry="12" fill="none" stroke="#52C4A0" stroke-width="1.5" opacity="0.5"/><path d="M165 38 Q172 20 74 20 Q67 20 67 30" fill="none" stroke="#FF6B6B" stroke-width="2" stroke-dasharray="4,2"/><circle cx="67" cy="31" r="3" fill="#FF6B6B"/><text x="130" y="64" text-anchor="middle" font-size="9" fill="#FF6B6B" font-family="sans-serif">고리 통과!</text></svg></div>
+  <div id="ksvg-4-4"><svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg"><text x="100" y="11" text-anchor="middle" font-size="9" fill="#7A8FA0" font-family="sans-serif">⑤⑥ 조여 도래 쪽으로 밀어 완성</text><circle cx="42" cy="38" r="8" fill="none" stroke="#4BA3CC" stroke-width="2.5"/><circle cx="72" cy="38" r="9" fill="#52C4A0" opacity="0.8"/><path d="M81 38 L150 38" fill="none" stroke="#1A6E99" stroke-width="2.5"/><text x="158" y="42" font-size="14" text-anchor="middle">✂</text><text x="90" y="64" text-anchor="middle" font-size="9" fill="#52C4A0" font-family="sans-serif">✓ 완성!</text></svg></div>
+</div>
+</body>
+</html>
