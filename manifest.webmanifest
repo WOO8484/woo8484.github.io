@@ -1,9 +1,9 @@
 {
-  "name": "개인용 연결 웹 테스트",
-  "short_name": "개인 뷰어",
-  "start_url": "./",
-  "display": "standalone",
-  "background_color": "#f5f6f8",
-  "theme_color": "#ffffff",
-  "icons": []
+  "name":"검색기",
+  "short_name":"검색기",
+  "start_url":"./",
+  "display":"standalone",
+  "background_color":"#f3f5f7",
+  "theme_color":"#ffffff",
+  "icons":[{"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
 }
