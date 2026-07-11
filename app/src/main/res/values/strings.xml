@@ -1,4 +1,0 @@
-<resources>
-    <string name="app_name">GPT 공작소 네이버 도우미</string>
-    <string name="accessibility_description">사용자가 직접 선택한 네이버 블로그 글쓰기 화면에 제목과 본문을 입력하는 데 사용합니다. 발행 버튼은 자동으로 누르지 않습니다.</string>
-</resources>
