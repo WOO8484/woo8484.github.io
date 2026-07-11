@@ -15,11 +15,17 @@
             android:textSize="24sp"
             android:textStyle="bold" />
         <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="v1.0.2 접근성 없는 설치 검증판"
+            android:textSize="15sp" />
+        <TextView
             android:id="@+id/statusText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="ZIP 파일을 선택해 주세요."
+            android:layout_marginTop="16dp"
+            android:text="이 버전은 접근성 서비스를 포함하지 않습니다. APK 설치와 ZIP 읽기만 검증합니다."
             android:textSize="16sp" />
         <Button
             android:id="@+id/selectZipButton"
@@ -28,35 +34,17 @@
             android:layout_marginTop="18dp"
             android:text="자료 ZIP 선택" />
         <Button
-            android:id="@+id/accessibilityButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="접근성 설정 열기" />
-        <Button
             android:id="@+id/openNaverButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="네이버 블로그 글쓰기 열기" />
-        <Button
-            android:id="@+id/startButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
             android:enabled="false"
-            android:text="자동입력 시작" />
-        <Button
-            android:id="@+id/stopButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="자동입력 즉시 중지" />
+            android:text="네이버 블로그 글쓰기 열기" />
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
-            android:text="안전 기준\n• 네이버 로그인 정보는 저장하지 않습니다.\n• 게시판을 찾지 못하면 자동으로 선택하지 않습니다.\n• 발행·임시저장 버튼은 자동으로 누르지 않습니다.\n• 추가 인증이나 보안 확인이 나타나면 중단합니다."
+            android:text="검증 범위\n• APK 설치 및 실행\n• v5.3 네이버 자료 ZIP 확인\n• 제목·본문·게시판·태그·이미지 수 확인\n• 네이버 글쓰기 페이지 열기\n\n제외 기능\n• 접근성 권한 요청 없음\n• 화면 자동입력 없음\n• 게시판·이미지·태그 자동조작 없음\n• 임시저장·발행 자동 클릭 없음"
             android:textSize="14sp" />
     </LinearLayout>
 </ScrollView>

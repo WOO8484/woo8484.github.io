@@ -10,8 +10,8 @@ android {
         applicationId = "com.gptgongjakso.naverhelper"
         minSdk = 26
         targetSdk = 35
-        versionCode = 10000
-        versionName = "1.0.0"
+        versionCode = 10002
+        versionName = "1.0.2"
     }
 
     buildTypes {
