@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="216dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_floating_panel">
+
+    <!-- 헤더 (드래그 이동 핸들 + 닫기) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/floatingHandle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="≡ 네이버 도우미"
+            android:textColor="@color/floating_text"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:paddingVertical="4dp" />
+
+        <TextView
+            android:id="@+id/btnClose"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/bg_close_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="✕"
+            android:textColor="@color/floating_text"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- 상태 -->
+    <TextView
+        android:id="@+id/floatingStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="자료 없음"
+        android:textColor="#FFCFD2D6"
+        android:textSize="11sp"
+        android:paddingVertical="4dp" />
+
+    <!-- 제목 / 본문 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="4dp">
+
+        <TextView
+            android:id="@+id/btnTitle"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:background="@drawable/bg_floating_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="제목 입력"
+            android:textColor="@color/floating_text"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/btnBody"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:background="@drawable/bg_floating_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="본문 입력"
+            android:textColor="@color/floating_text"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <!-- 태그 자동 입력 -->
+    <TextView
+        android:id="@+id/btnTagsAuto"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_floating_button"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:text="태그 1개씩 자동 입력"
+        android:textColor="@color/floating_text"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <!-- 다음 태그 복사 / 다시 복사 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="6dp">
+
+        <TextView
+            android:id="@+id/btnTagNext"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:background="@drawable/bg_floating_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="다음 태그 복사"
+            android:textColor="@color/floating_text"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/btnTagAgain"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:background="@drawable/bg_floating_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="현재 태그 다시"
+            android:textColor="@color/floating_text"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- 사진 첨부 -->
+    <TextView
+        android:id="@+id/btnPhoto"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_floating_button"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:text="사진 첨부 화면 열기"
+        android:textColor="@color/floating_text"
+        android:textSize="13sp" />
+
+</LinearLayout>
