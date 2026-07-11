@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.gptgongjakso.naverwriterhelper.databinding.ActivityMainBinding
@@ -292,21 +293,42 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ---------- 네이버 열기 ----------
+    // ---------- 네이버 블로그 앱 열기 ----------
     private fun openNaver() {
         SessionRepository.pipeline.let { if (!it.current.isTerminal) it.transitionTo(PipelineState.OPENING_NAVER) }
-        when (NaverLaunchHelper.openNaverBlogWrite(this)) {
-            NaverLaunchHelper.LaunchResult.OPENED_BLOG_APP ->
-                AutomationLogStore.add("네이버 블로그 앱 열기 완료")
-            NaverLaunchHelper.LaunchResult.OPENED_NAVER_APP ->
-                AutomationLogStore.add("네이버 앱 열기 완료 · 블로그 글쓰기로 이동하세요")
-            NaverLaunchHelper.LaunchResult.OPENED_BROWSER ->
-                AutomationLogStore.add("브라우저로 네이버 블로그 열기 완료")
+        when (NaverLaunchHelper.openNaverBlogApp(this)) {
+            NaverLaunchHelper.LaunchResult.OPENED_BLOG_APP -> {
+                AutomationLogStore.add("네이버 블로그 앱 실행 완료")
+                toast("네이버 블로그 앱에서 글쓰기 화면을 연 뒤 플로팅 컨트롤을 사용하세요.")
+            }
+            NaverLaunchHelper.LaunchResult.BLOG_APP_NOT_INSTALLED -> {
+                AutomationLogStore.add("네이버 블로그 앱 미설치")
+                showBlogAppInstallGuideDialog()
+            }
             NaverLaunchHelper.LaunchResult.FAILED -> {
-                AutomationLogStore.add("네이버 열기 실패 · 직접 글쓰기 화면을 여세요")
-                toast("네이버 앱/브라우저를 직접 열어 글쓰기 화면으로 이동하세요")
+                AutomationLogStore.add("네이버 블로그 앱 실행 실패")
+                toast("네이버 블로그 앱을 열 수 없습니다. 설치 상태를 확인해 주세요.")
             }
         }
+    }
+
+    /** 네이버 블로그 앱 미설치 안내 팝업 (작업지시서 3.2) */
+    private fun showBlogAppInstallGuideDialog() {
+        AlertDialog.Builder(this)
+            .setMessage("네이버 블로그 앱이 필요합니다.\n모바일 글쓰기는 네이버 블로그 앱에서 진행해 주세요.")
+            .setPositiveButton("설치 화면 열기") { dialog, _ ->
+                dialog.dismiss()
+                val opened = NaverLaunchHelper.openPlayStoreForBlogApp(this)
+                if (opened) {
+                    AutomationLogStore.add("Play 스토어 설치 화면 실행")
+                    toast("설치 완료 후 GPT 공작소로 돌아와 다시 눌러주세요.")
+                } else {
+                    AutomationLogStore.add("Play 스토어 설치 화면 실행 실패")
+                    toast("Play 스토어를 열 수 없습니다. 직접 설치해 주세요.")
+                }
+            }
+            .setNegativeButton("취소") { dialog, _ -> dialog.dismiss() }
+            .show()
     }
 
     // ---------- 플로팅 시작 ----------

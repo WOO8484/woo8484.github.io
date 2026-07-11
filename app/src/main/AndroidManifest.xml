@@ -23,17 +23,14 @@
       WRITE_EXTERNAL_STORAGE 등 별도 저장 권한이 필요 없다.
     -->
 
-    <!-- 네이버 앱/브라우저 실행 및 설치 여부 조회 (Android 11+ 패키지 가시성) -->
+    <!--
+      네이버 블로그 전용 앱 실행 및 설치 여부 조회 (Android 11+ 패키지 가시성).
+      v1.0.1: 네이버 일반 앱/브라우저 fallback 을 제거하면서 해당 조회 대상도 함께 제거했다.
+      market://, https Play 설치 페이지는 암시적 VIEW 인텐트로 처리되며
+      Play 스토어 자체는 패키지 가시성 없이도 열 수 있어 별도 <package> 선언이 필요 없다.
+    -->
     <queries>
         <package android:name="com.nhn.android.blog" />
-        <package android:name="com.nhn.android.search" />
-        <package android:name="com.naver.whale" />
-        <package android:name="com.android.chrome" />
-        <package android:name="com.sec.android.app.sbrowser" />
-        <intent>
-            <action android:name="android.intent.action.VIEW" />
-            <data android:scheme="https" />
-        </intent>
     </queries>
 
     <application

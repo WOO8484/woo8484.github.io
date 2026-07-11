@@ -11,8 +11,8 @@ android {
         applicationId "com.gptgongjakso.naverwriterhelper"   // 패키지명 유지(지시서 3)
         minSdk 30            // Android 11. ACTION_IME_ENTER / MediaStore / 오버레이 안정 지원
         targetSdk 34
-        versionCode 100      // 지시서 3: versionCode 100
-        versionName "1.0.0"  // 지시서 3: versionName 1.0.0
+        versionCode 101      // v1.0.1: versionCode 101
+        versionName "1.0.1"  // v1.0.1: versionName 1.0.1
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

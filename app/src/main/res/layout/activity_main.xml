@@ -24,7 +24,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="v1.0.0 · 네이버 블로그 입력 보조 (발행은 직접)"
+            android:text="v1.0.1 · 네이버 블로그 입력 보조 (발행은 직접)"
             android:textColor="@color/text_secondary"
             android:textSize="12sp" />
 
@@ -129,7 +129,7 @@
                 android:textSize="13sp" />
 
             <Button android:id="@+id/btnSaveImages" style="@style/ActionButton" android:text="이미지 갤러리에 저장 (GPT공작소 앨범)" />
-            <Button android:id="@+id/btnOpenNaver" style="@style/ActionButton" android:text="네이버 블로그 글쓰기 열기" />
+            <Button android:id="@+id/btnOpenNaver" style="@style/ActionButton" android:text="네이버 블로그 앱 열기" />
             <Button android:id="@+id/btnStartFloating" style="@style/ActionButton" android:text="플로팅 컨트롤 시작" />
         </LinearLayout>
 

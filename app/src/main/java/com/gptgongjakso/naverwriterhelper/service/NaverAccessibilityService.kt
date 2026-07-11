@@ -18,8 +18,8 @@ import com.gptgongjakso.naverwriterhelper.store.SessionRepository
  * 설계 원칙(변경 없음):
  *  - 발행/임시저장 버튼은 절대 누르지 않는다. (탐색 대상에서 제외)
  *  - 모든 자동 입력은 실패해도 앱이 죽지 않고 "클립보드 복사 + 안내" 로 fallback.
- *  - 자동 조작 전 현재 화면이 허용된 네이버 패키지인지 공통 검사.
- *    네이버 앱이 아니면 어떤 노드 조작도 하지 않고 클립보드 fallback 으로 전환.
+ *  - 자동 조작 전 현재 화면이 허용된 네이버 블로그 앱 패키지인지 공통 검사.
+ *    네이버 블로그 앱이 아니면 어떤 노드 조작도 하지 않고 클립보드 fallback 으로 전환.
  *    (→ 앱 전환/전화 수신 시 다른 앱이 전면으로 오면 자동으로 중단됨: 지시서 12 안전)
  *
  * v1.0.0 추가:
@@ -35,9 +35,9 @@ class NaverAccessibilityService : AccessibilityService() {
 
         fun isRunning(): Boolean = instance != null
 
-        /** 네이버 앱 화면이 아닐 때의 공통 안내 문구 */
+        /** 네이버 블로그 앱 화면이 아닐 때의 공통 안내 문구 */
         private const val MSG_NOT_NAVER =
-            "네이버 앱 화면이 아니므로 자동 입력하지 않았습니다. 클립보드 복사로 전환합니다."
+            "네이버 블로그 앱 화면이 아니므로 자동 입력하지 않았습니다. 클립보드 복사로 전환합니다."
 
         /** fallback 클립보드 조건부 삭제 지연(2분) */
         private const val FALLBACK_CLEAR_DELAY = 120_000L
@@ -56,10 +56,9 @@ class NaverAccessibilityService : AccessibilityService() {
         private const val TAG_STEP_DELAY = 500L
     }
 
-    /** 접근성 조작을 허용하는 네이버 패키지 (2개만) */
+    /** 접근성 조작을 허용하는 패키지 (네이버 블로그 앱 1개만, v1.0.1) */
     private val allowedPackages = setOf(
-        "com.nhn.android.blog",
-        "com.nhn.android.search"
+        "com.nhn.android.blog"
     )
 
     /** 사진 첨부 탐색 시 절대 클릭하면 안 되는 단어 */
